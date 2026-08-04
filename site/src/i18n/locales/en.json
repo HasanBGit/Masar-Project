@@ -1,0 +1,175 @@
+{
+  "common": {
+    "skipToContent": "Skip to content",
+    "requestEarlyAccess": "Request early access",
+    "truepointHome": "Truepoint home",
+    "language": "Language",
+    "switchToArabic": "العربية",
+    "switchToEnglish": "English"
+  },
+  "nav": {
+    "product": "Product",
+    "trustEvidence": "Trust & evidence",
+    "howItFits": "How it fits"
+  },
+  "hero": {
+    "eyebrow": "Owner-first · Arabic-first · Saudi & GCC",
+    "heading": "Owner-first infrastructure, not a contractor tool with an owner view bolted on.",
+    "body": "Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record — without asking your site team to change how they work.",
+    "seeHowItWorks": "See how it works ↓",
+    "stat1Value": "6%",
+    "stat1Label": "of Saudi contractors use any modern project-management tool",
+    "stat2Value": "70%",
+    "stat2Label": "of Saudi mega-projects overran schedule in the past decade"
+  },
+  "problem": {
+    "eyebrow": "The problem",
+    "heading": "Everything critical about your project already exists. It's just scattered across places you're not in.",
+    "body": "Progress lives in the trade WhatsApp groups. RFIs and approvals live in an inbox. The PMC's weekly PDF summarizes what it chooses to report. By the time these three versions of the truth reach the owner, they don't agree — and poor communication is the single most-cited reason Saudi construction projects fall behind schedule.",
+    "silos": {
+      "whatsapp": {
+        "title": "WhatsApp groups",
+        "body": "One thread per trade. Nothing outside it can see what's inside — not without someone retyping it."
+      },
+      "email": {
+        "title": "Email / RFI threads",
+        "body": "Formal correspondence, disconnected from the site work it unblocks days later."
+      },
+      "pdf": {
+        "title": "PMC PDF reports",
+        "body": "A monthly summary of contractor-reported progress — self-graded, and reactive by the time it lands."
+      },
+      "phone": {
+        "title": "Phone calls",
+        "body": "Verbal instructions and site decisions, with no record of who agreed to what."
+      }
+    }
+  },
+  "edges": {
+    "eyebrow": "Module 4 — Approval & Decision Workflow",
+    "heading": "\"Seen\" isn't \"agreed.\" Truepoint treats them as three separate, sequential gates — the 3 Edges.",
+    "items": {
+      "hearing": {
+        "title": "Hearing",
+        "body": "The item enters a dedicated pending-decision queue — a clear signal it needs attention, distinct from just another WhatsApp message scrolling past."
+      },
+      "understanding": {
+        "title": "Understanding",
+        "body": "A teach-back comprehension check: the approver restates what they understood before sign-off is accepted — not just a checkbox."
+      },
+      "agreeing": {
+        "title": "Agreeing",
+        "body": "A single named, accountable approver signs off (RACI). Consulted and Informed parties are notified, but only the Accountable party's signature closes the loop."
+      }
+    }
+  },
+  "modules": {
+    "eyebrow": "The platform — 17 modules, 4 phases",
+    "heading": "Every module maps to a real gap in how Saudi construction projects communicate today.",
+    "body": "Modules 4 and 5 are the domain kernel — approvals and trust evidence — that most other modules build on. Everything below is scoped and phased the same way the engineering team tracks it internally.",
+    "phases": {
+      "core": "Core / MVP",
+      "phase2": "Phase 2",
+      "phase3": "Phase 3",
+      "phase4": "Phase 4"
+    },
+    "items": {
+      "1": { "title": "Field Capture", "summary": "Ingests photos, voice notes, and text straight from the WhatsApp groups your trades already use — no new app to adopt." },
+      "2": { "title": "Unified Project Timeline", "summary": "Merges WhatsApp events and email/RFI/permit correspondence into one project-anchored record that survives staff turnover." },
+      "3": { "title": "Owner Dashboard & Role Views", "summary": "One data model, four audience-specific views — Owner, Investor, Consultant, Contractor — plus a daily digest and a timeline-grounded Q&A interface." },
+      "4": { "title": "Approval & Decision Workflow", "summary": "The 3 Edges: Hearing, Understanding, Agreeing — a teach-back comprehension check and a single named, accountable sign-off." },
+      "5": { "title": "Trust & Evidence Infrastructure", "summary": "The verified milestone ledger and audit log every other trust claim depends on, plus automatic contractor-silence detection." },
+      "12": { "title": "Contract & Payment Verification", "summary": "Payment milestones gated on verified evidence, a live contract-vs-actual tracker, and Saudi ZATCA e-invoicing compliance." },
+      "15": { "title": "Monitoring & Observability", "summary": "San3 watches its own pipes — integration health, webhook delivery, SLA compliance, and security monitoring as distinct signals." },
+      "17": { "title": "Security, Access Control & Team Admin", "summary": "Roster management, enforced RBAC, audit logs, and Saudi data residency as an architecture requirement, not a policy footnote." },
+      "6": { "title": "RFI, Change Order & Version Control", "summary": "RFIs, submittals, change orders, and permits tracked as objects with schedule-impact flags, revision tagging, and a live at-risk view." },
+      "7": { "title": "Handover & Post-Handover", "summary": "Punch-list tracking to closure, plain-Arabic O&M documentation, and a defect channel that outlives the project through the 10-year decennial liability window." },
+      "16": { "title": "Search", "summary": "Full-text and semantic search across WhatsApp, email, RFIs, contracts, and photos — scoped so no one sees what they're not allowed to." },
+      "8": { "title": "Multilingual & Voice-First Design", "summary": "Voice-first input/output, call capture, auto-translation, and a Gulf-dialect-aware Arabic NLP pipeline — not an English pipeline with translation bolted on." },
+      "9": { "title": "Safety & Risk Signals", "summary": "Anonymous near-miss reporting never attributed to the worker, plus evidence-vs-report discrepancy flags." },
+      "10": { "title": "Cultural & Trust-Calibrated UX", "summary": "Prayer- and Ramadan-aware notification cadence, named-human attribution on every AI summary, and soft-commitment flagging." },
+      "11": { "title": "International & Remote Stakeholder Support", "summary": "Asynchronous structured decision requests with built-in translation, and timezone-aware escalation for stakeholders abroad." },
+      "13": { "title": "Portfolio Governance", "summary": "The same approval rules and compliance-deadline tracking enforced consistently across every project an owner runs." },
+      "14": { "title": "Platform API & Documentation", "summary": "A public REST API and webhook events for the timeline, approvals, and evidence records, scoped per project and role." }
+    }
+  },
+  "trustEvidence": {
+    "eyebrow": "Module 5 — Trust & Evidence Infrastructure",
+    "heading": "Described in our own research as \"the platform's real product.\"",
+    "points": {
+      "verified": {
+        "title": "Verified, not self-reported",
+        "body": "Every progress claim ties to timestamped, geotagged photo evidence against a specific milestone, with an owner or verifier acknowledgment required before it counts."
+      },
+      "silence": {
+        "title": "Silence is data",
+        "body": "An overdue update is a tracked, escalating event, not a blank screen — unanswered RFIs, quiet permit submissions, and contractor silence are all the same shape of problem."
+      },
+      "decennial": {
+        "title": "Decennial liability, tracked",
+        "body": "Saudi contractors and consultants carry ten years of structural liability after handover. Truepoint keeps that record intact long after the project chat goes quiet."
+      }
+    },
+    "statValue": "47.3%",
+    "statBody": "of the Saudi Center for Commercial Arbitration's 2025 caseload was construction and engineering disputes — the largest share of any sector. Construction arbitrations are won or lost on the evidence produced.",
+    "citation": "Global Arbitration Review, MEA Arbitration Review 2026 — Saudi Arabia"
+  },
+  "culture": {
+    "eyebrow": "Module 10 — Cultural & Trust-Calibrated UX",
+    "wastaCaption": "wasta — personal trust, established before business",
+    "heading": "We're not replacing trust. We're documenting it.",
+    "body": "In the Gulf, personal trust comes before any business relationship — not after it. Truepoint is built around that, not against it: every AI-generated brief shows its source message, person, and timestamp, with a one-tap \"verify with [person].\"",
+    "traits": {
+      "attribution": {
+        "title": "Named-human attribution",
+        "body": "AI summaries are attributed to named humans — \"Ahmed reports...\" — not presented as the platform's own voice."
+      },
+      "prayer": {
+        "title": "Prayer- and Ramadan-aware",
+        "body": "Notification cadence pauses during prayer windows and adjusts for Ramadan hours automatically."
+      },
+      "softCommitment": {
+        "title": "Soft-commitment flagging",
+        "body": "Phrases like \"inshallah, we'll try\" are flagged as low-confidence, not silently treated as a firm commitment."
+      }
+    }
+  },
+  "access": {
+    "eyebrow": "Request early access",
+    "heading": "Truepoint is in early access across Saudi Arabia.",
+    "body": "We're onboarding a small number of owners and developers ahead of general availability. Tell us about your project and we'll follow up directly.",
+    "submittedStrong": "Got it.",
+    "submittedRest": "We'll be in touch by email shortly.",
+    "form": {
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your name",
+      "company": "Company",
+      "companyPlaceholder": "Company or project name",
+      "role": "I am a...",
+      "roleOwnerInvestor": "Owner / Investor",
+      "roleDeveloper": "Developer",
+      "roleConsultant": "Consultant",
+      "roleContractor": "Contractor",
+      "roleOther": "Other",
+      "email": "Email",
+      "emailPlaceholder": "you@company.com",
+      "disclaimer": "We'll follow up by email. Data residency and access follow Saudi PDPL requirements."
+    }
+  },
+  "footer": {
+    "tagline": "One verified record, from site to signature. Built by San3 (صنع), incubated in Misk Foundation's Masar program.",
+    "productTitle": "Product",
+    "companyTitle": "Company",
+    "companyLinkSan3": "San3 & the Masar program",
+    "footnotes": "1. Khan, Shaari & Al Saud (2025), JISEM — Saudi contractor PM-tool adoption. · 2. Khan, Shaari & Al Saud (2025), JISEM — Saudi mega-project schedule overrun. · 3. Aldossari (2025), Advances in Civil Engineering — Saudi owner-cited performance issues. · 4. Global Arbitration Review, MEA Arbitration Review 2026 — SCCA 2025 caseload.",
+    "lastUpdated": "Page last updated August 2026",
+    "copyright": "© 2026 Truepoint / San3"
+  },
+  "convergeVisual": {
+    "wa": { "head": "Trade group · MEP", "line1": "Voice note · 0:42" },
+    "mail": { "head": "RFI #114", "line1": "Re: Drainage detail, Zone C", "line2": "Consultant response · pending" },
+    "pdf": { "head": "PMC Weekly", "line1": "Site 3 — progress summary", "line2": "Contractor-reported % complete" },
+    "verifiedBadge": "Verified",
+    "ahmedCaption": "Ahmed · Site foreman · 14:32 · photo attached"
+  }
+}
