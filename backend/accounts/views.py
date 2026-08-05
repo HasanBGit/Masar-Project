@@ -1,9 +1,11 @@
 from core.models import Project
+from django.db import IntegrityError
 from rest_framework import generics
 from rest_framework.exceptions import AuthenticationFailed, NotFound, PermissionDenied, ValidationError
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from . import services
 from .models import ProjectMembership, Role, User
@@ -22,8 +24,12 @@ class MonitoredTokenObtainPairView(TokenObtainPairView):
     Same JWT login as the default view, plus security/incident monitoring:
     a failed login is logged as an internal AlertEvent (not the
     project-anchored AuditEvent - a login attempt isn't project-scoped
-    yet) so it shows up in observability's security signal.
+    yet) so it shows up in observability's security signal. Throttled on
+    the dedicated `auth` scope to slow down credential guessing.
     """
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
     def post(self, request, *args, **kwargs):
         try:
@@ -33,6 +39,13 @@ class MonitoredTokenObtainPairView(TokenObtainPairView):
 
             observability.record_authentication_failure(request.data.get("email", "unknown"))
             raise
+
+
+class ThrottledTokenRefreshView(TokenRefreshView):
+    """Refresh shares the `auth` throttle scope with token obtain."""
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
 
 class MeView(generics.RetrieveAPIView):
@@ -113,7 +126,10 @@ class RosterView(generics.ListCreateAPIView):
         if user is None:
             raise ValidationError({"user": "Required."})
 
-        membership = services.add_roster_member(project=project, user=user, role=role, added_by=request.user)
+        try:
+            membership = services.add_roster_member(project=project, user=user, role=role, added_by=request.user)
+        except IntegrityError:
+            raise ValidationError({"user": "This user is already a member of the project."})
         return Response(self.get_serializer(membership).data, status=201)
 
 

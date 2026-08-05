@@ -93,14 +93,14 @@ def sync_closure_from_decision(item: PunchListItem) -> PunchListItem:
     return item
 
 
-def get_punch_list(project, unit_or_zone: str | None = None) -> list[PunchListItem]:
-    qs = PunchListItem.objects.filter(project=project)
+def get_punch_list(project, unit_or_zone: str | None = None):
+    """Read-only. Items pending sign-off are synced against their Decision via
+    `sync_closure_from_decision` - called from the explicit sync action /
+    write paths, never lazily during a GET."""
+    qs = PunchListItem.objects.filter(project=project).select_related("raised_by", "assigned_approver")
     if unit_or_zone:
         qs = qs.filter(unit_or_zone=unit_or_zone)
-    items = list(qs)
-    for item in items:
-        sync_closure_from_decision(item)
-    return items
+    return qs
 
 
 # --- O&M documentation checklist ---------------------------------------------
@@ -158,6 +158,8 @@ def acknowledge_defect(defect: PostHandoverDefect, user) -> PostHandoverDefect:
 
 
 def resolve_defect(defect: PostHandoverDefect, user) -> PostHandoverDefect:
+    if defect.status == PostHandoverStatus.RESOLVED:
+        raise ValueError("This defect is already resolved.")
     defect.status = PostHandoverStatus.RESOLVED
     defect.save(update_fields=["status", "updated_at"])
     trust_evidence.record_event(

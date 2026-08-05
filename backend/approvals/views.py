@@ -42,14 +42,14 @@ class DecisionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets
         return services.get_visible_decisions(project, self.request.user)
 
     def get_object(self):
+        # Read-only: SLA escalation is a write and happens in the
+        # `escalate_overdue_decisions` management command sweep (cron), never
+        # as a side effect of a GET.
         decision = get_object_or_404(Decision, pk=self.kwargs["pk"])
         role = get_role(self.request.user, decision.project)
         is_participant = decision.participants.filter(user=self.request.user).exists()
         if role is None or (role not in FULL_VISIBILITY_ROLES and not is_participant):
             raise NotFound("No Decision matches the given query.")
-
-        services.escalate_if_breached(decision)
-        decision.refresh_from_db()
         return decision
 
     def _run_transition(self, fn, decision):

@@ -3,11 +3,17 @@
 // stays byte-identical to the original design; interactivity is reattached in
 // LandingPage.tsx via the ported script.js logic.
 export const LANDING_MARKUP = `
+<!-- NOTE: every image below is hotlinked from CloudFront/Wikimedia. These MUST
+     be self-hosted (copied into /public and referenced locally) before any
+     production deploy — third-party hosts can rate-limit, remove, or replace
+     them at any time. The width/height attributes are approximate placeholder
+     ratios to reduce layout shift; set the exact intrinsic sizes when the
+     files are self-hosted. -->
 <main class="site-shell">
   <section class="cinema-scroll" id="cinema" aria-label="Truepoint cinematic scroll story">
     <div class="stage">
       <div class="world">
-        <img class="scene-img sky-img" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_3GuVL96jjh5izoSrfiVDK7XcMMd/hf_20260805_132834_a787e952-e7bc-4d20-8250-9d91757a603c.png" />
+        <img class="scene-img sky-img" alt="Dawn sky over Riyadh" width="1536" height="1024" src="https://d8j0ntlcm91z4.cloudfront.net/user_3GuVL96jjh5izoSrfiVDK7XcMMd/hf_20260805_132834_a787e952-e7bc-4d20-8250-9d91757a603c.png" />
 
         <header class="site-header" aria-label="Primary navigation">
           <a class="site-logo" href="#cinema">Truepoint</a>
@@ -20,7 +26,9 @@ export const LANDING_MARKUP = `
             <a href="#faq" data-ar="الأسئلة الشائعة">FAQ</a>
           </nav>
           <div class="site-header-actions">
-            <a class="site-login-link" href="/login" data-ar="تسجيل الدخول">Log in</a>
+            <!-- href/visibility set at runtime from VITE_APP_URL in LandingPage.tsx;
+                 hidden by default so a dead link is never clickable. -->
+            <a class="site-login-link" id="site-login-link" href="#cinema" hidden data-ar="تسجيل الدخول">Log in</a>
             <button class="language-switcher" aria-label="Change language" type="button">
               <span class="language-switcher-label">EN</span>
               <span aria-hidden="true">⌄</span>
@@ -29,49 +37,49 @@ export const LANDING_MARKUP = `
         </header>
 
         <div class="back-stack">
-          <img class="scene-img back-img back-four" alt="" src="https://upload.wikimedia.org/wikipedia/commons/8/88/Kingdom_Tower_at_night.JPG" />
+          <img class="scene-img back-img back-four" alt="Kingdom Tower in Riyadh lit up at night" width="1600" height="1200" src="https://upload.wikimedia.org/wikipedia/commons/8/88/Kingdom_Tower_at_night.JPG" />
 
           <section class="sights-slider" aria-label="Truepoint modules slider">
             <div class="sights-track">
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Approvals Workflow card"
+              <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Approvals Workflow card"
                 data-kicker-ar="وحدة أساسية" data-title-ar="سير عمل الاعتماد" data-body-ar="الحواف الثلاث — الاستماع، الفهم، الموافقة — قبل اعتماد أي توقيع.">
                 <span class="sight-kicker">Core Module</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
+                <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Approvals Workflow</h3>
                 <p>The 3 Edges — Hearing, Understanding, Agreeing — before any sign-off counts.</p>
               </article>
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Trust and Evidence card"
+              <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Trust and Evidence card"
                 data-kicker-ar="النواة الأساسية" data-title-ar="الثقة والأدلة" data-body-ar="معالم مُعتمدة وسجل تدقيق جاهز لتقديمه في أي نزاع.">
                 <span class="sight-kicker">Domain Kernel</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
+                <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
                 <h3>Trust &amp; Evidence</h3>
                 <p>Verified milestones and a dispute-ready audit trail.</p>
               </article>
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Owner Dashboard card"
+              <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Owner Dashboard card"
                 data-kicker-ar="واجهات الأدوار" data-title-ar="لوحة تحكم المالك" data-body-ar="واجهات مخصصة للمالك والمستثمر والاستشاري والمقاول.">
                 <span class="sight-kicker">Role Views</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230448_825949c9-ccdb-4857-b4a6-e349eccc9010.png" />
+                <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230448_825949c9-ccdb-4857-b4a6-e349eccc9010.png" />
                 <h3>Owner Dashboard</h3>
                 <p>Role-specific views for Owner, Investor, Consultant, Contractor.</p>
               </article>
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Unified Timeline card"
+              <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Unified Timeline card"
                 data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحّد" data-body-ar="دمج واتساب والبريد الإلكتروني والتصاريح في سجل واحد.">
                 <span class="sight-kicker">Core Module</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
+                <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Unified Timeline</h3>
                 <p>WhatsApp, email, and permit threads merged into one record.</p>
               </article>
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Contract and Payments card"
+              <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Contract and Payments card"
                 data-kicker-ar="متوافق مع زاتكا" data-title-ar="العقود والمدفوعات" data-body-ar="دفعات مرتبطة بأدلة مُعتمدة، لا بتصريح ذاتي.">
                 <span class="sight-kicker">ZATCA Ready</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
+                <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
                 <h3>Contract &amp; Payments</h3>
                 <p>Payment milestones gated on verified evidence, not self-assertion.</p>
               </article>
             </div>
           </section>
 
-          <img class="scene-img back-img back-bazaar" alt="" src="https://upload.wikimedia.org/wikipedia/commons/6/64/At-Turaif_District_in_ad-Dir%27iyah_%288%29.jpg" />
+          <img class="scene-img back-img back-bazaar" alt="At-Turaif district in ad-Dir'iyah, traditional Najdi mud-brick architecture" width="4000" height="3000" src="https://upload.wikimedia.org/wikipedia/commons/6/64/At-Turaif_District_in_ad-Dir%27iyah_%288%29.jpg" />
         </div>
 
         <div class="sights-controls" aria-label="Slider controls">
@@ -81,11 +89,11 @@ export const LANDING_MARKUP = `
 
         <h1 class="hero-title">TRUEPOINT</h1>
 
-        <img class="scene-img splitframe-img splitframe-left" alt="" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
-        <img class="scene-img splitframe-img splitframe-right" alt="" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
+        <img class="scene-img splitframe-img splitframe-left" alt="Riyadh skyline with the King Abdullah Financial District and Kingdom Tower" width="5184" height="3456" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
+        <img class="scene-img splitframe-img splitframe-right" alt="" aria-hidden="true" width="5184" height="3456" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
 
-        <img class="scene-img bridge-img" alt="" src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Masmak_castle.jpg" />
-        <img class="scene-img frame-two-img" alt="" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Lake_at_Wadi_Hanifah_%285218227168%29.jpg" />
+        <img class="scene-img bridge-img" alt="Masmak fortress in Riyadh" width="1600" height="1200" src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Masmak_castle.jpg" />
+        <img class="scene-img frame-two-img" alt="Lake at Wadi Hanifah near Riyadh" loading="lazy" width="1024" height="683" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Lake_at_Wadi_Hanifah_%285218227168%29.jpg" />
 
         <div class="shade"></div>
       </div>
@@ -273,7 +281,7 @@ export const LANDING_MARKUP = `
       </div>
       <blockquote class="credibility-quote">
         <p data-ar="بنينا الخط الزمني وسير الاعتماد أولاً، لأنهما ما انتهت إليه كل نزاعات درسناها: من عَلِم بماذا، ومن وقّع على ماذا.">"We built the timeline and the approval flow first, because those are the two things every dispute we studied came down to: who knew what, and who signed off on it."</p>
-        <cite data-ar="— فريق Truepoint">— The Truepoint team</cite>
+        <p class="credibility-cite" data-ar="— فريق Truepoint">— The Truepoint team</p>
       </blockquote>
     </div>
   </section>
@@ -310,6 +318,24 @@ export const LANDING_MARKUP = `
       </div>
     </div>
   </section>
+
+  <section class="landing-section legal-section" id="legal" aria-label="Privacy and terms">
+    <div class="section-inner">
+      <p class="section-eyebrow" data-ar="قانوني">Legal</p>
+      <div class="legal-grid">
+        <article class="legal-block" id="privacy">
+          <h2 class="legal-heading" data-ar="سياسة الخصوصية">Privacy policy</h2>
+          <p data-ar="نجمع فقط البيانات التي تشاركها معنا أثناء الوصول المبكر — اسمك وبريدك الإلكتروني وتفاصيل المشروع — ونستخدمها حصراً للتواصل معك حول Truepoint. لا نبيع بياناتك ولا نشاركها مع أي طرف ثالث.">During early access we collect only the data you share with us — your name, email, and project details — and use it solely to follow up with you about Truepoint. We never sell your data or share it with third parties.</p>
+          <p data-ar="تخضع إقامة البيانات والوصول إليها لمتطلبات نظام حماية البيانات الشخصية السعودي (PDPL). راسلنا في أي وقت لطلب حذف بياناتك.">Data residency and access follow Saudi PDPL requirements. Contact us at any time to have your data deleted.</p>
+        </article>
+        <article class="legal-block" id="terms">
+          <h2 class="legal-heading" data-ar="شروط الخدمة">Terms of service</h2>
+          <p data-ar="Truepoint في مرحلة الوصول المبكر: تُتاح المنصة للملاك والمطورين المسجّلين بموجب اتفاقية تجريبية تُوقَّع أثناء التأهيل، وتُحدَّد فيها نطاقات الاستخدام ومستويات الخدمة لكل مشروع.">Truepoint is in early access: the platform is made available to onboarded owners and developers under a pilot agreement signed during onboarding, which defines usage scope and service levels per project.</p>
+          <p data-ar="لا يشكّل محتوى هذا الموقع استشارة قانونية أو تعاقدية. الأسعار النهائية والشروط الكاملة تُؤكَّد كتابياً مع فريق التأهيل الخاص بك.">Nothing on this site constitutes legal or contractual advice. Final pricing and full terms are confirmed in writing with your onboarding team.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer class="site-footer">
@@ -334,7 +360,7 @@ export const LANDING_MARKUP = `
       </button>
     </div>
     <div class="footer-col">
-      <h4 data-ar="المنتج">Product</h4>
+      <h3 data-ar="المنتج">Product</h3>
       <ul>
         <li><a href="#features" data-ar="المزايا">Features</a></li>
         <li><a href="#pricing" data-ar="الأسعار">Pricing</a></li>
@@ -342,13 +368,13 @@ export const LANDING_MARKUP = `
       </ul>
     </div>
     <div class="footer-col">
-      <h4 data-ar="الشركة">Company</h4>
+      <h3 data-ar="الشركة">Company</h3>
       <ul>
         <li><a href="#credibility" data-ar="San3 وبرنامج مسار">San3 &amp; the Masar program</a></li>
       </ul>
     </div>
     <div class="footer-col">
-      <h4 data-ar="قانوني">Legal</h4>
+      <h3 data-ar="قانوني">Legal</h3>
       <ul>
         <li><a href="#privacy" data-ar="سياسة الخصوصية">Privacy policy</a></li>
         <li><a href="#terms" data-ar="شروط الخدمة">Terms of service</a></li>
@@ -372,7 +398,7 @@ export const LANDING_MARKUP = `
 
 <div class="modal-overlay" id="modal-overlay" hidden>
   <div class="modal-backdrop" id="modal-backdrop"></div>
-  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
     <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
     <h3 id="modal-title"></h3>
     <div id="modal-body"></div>

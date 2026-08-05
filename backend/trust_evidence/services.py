@@ -5,6 +5,7 @@ references/audit-log-schema.md. Every write to AuditEvent goes through
 """
 
 from django.db import transaction
+from django.db.models import Max
 from django.utils import timezone
 
 from .models import ActorRole, AuditEvent, Channel, EvidenceRecord, SilenceFlag
@@ -104,9 +105,14 @@ def verify_evidence(record: EvidenceRecord, verifier) -> EvidenceRecord:
     return record
 
 
-def get_verification_status(subject_type: str, subject_id) -> dict:
-    """Consumed by contract-payments-style callers: is there verified evidence backing this subject?"""
-    records = EvidenceRecord.objects.filter(subject_type=subject_type, subject_id=str(subject_id))
+def get_verification_status(project, subject_type: str, subject_id) -> dict:
+    """
+    Consumed by contract-payments-style callers: is there verified evidence
+    backing this subject? Scoped to the caller's project - subject ids are
+    only unique per (project, subject_type), so an unscoped lookup would let
+    evidence on one project's subject satisfy another's gate.
+    """
+    records = EvidenceRecord.objects.filter(project=project, subject_type=subject_type, subject_id=str(subject_id))
     verified = records.filter(verified=True)
     return {
         "has_verified_evidence": verified.exists(),
@@ -116,12 +122,15 @@ def get_verification_status(subject_type: str, subject_id) -> dict:
     }
 
 
-def get_evidence_for_subject(subject_type: str, subject_id) -> list[EvidenceRecord]:
-    return list(EvidenceRecord.objects.filter(subject_type=subject_type, subject_id=str(subject_id)))
+def get_evidence_for_subject(project, subject_type: str, subject_id) -> list[EvidenceRecord]:
+    return list(
+        EvidenceRecord.objects.filter(project=project, subject_type=subject_type, subject_id=str(subject_id))
+        .select_related("submitted_by", "verified_by")
+    )
 
 
-def get_evidence_for_project(project) -> list[EvidenceRecord]:
-    return list(EvidenceRecord.objects.filter(project=project))
+def get_evidence_for_project(project):
+    return EvidenceRecord.objects.filter(project=project).select_related("submitted_by", "verified_by")
 
 
 # --- Overdue-update / contractor-silence detection --------------------------
@@ -133,7 +142,7 @@ def flag_if_silent(*, project, subject_type: str, subject_id, expected_by) -> Si
     if timezone.now() <= expected_by:
         return None
     already_open = SilenceFlag.objects.filter(
-        subject_type=subject_type, subject_id=str(subject_id), resolved=False
+        project=project, subject_type=subject_type, subject_id=str(subject_id), resolved=False
     ).exists()
     if already_open:
         return None
@@ -157,20 +166,24 @@ def flag_if_silent(*, project, subject_type: str, subject_id, expected_by) -> Si
     return flag
 
 
-def resolve_silence_flag(subject_type: str, subject_id, resolved_by=None) -> int:
+def resolve_silence_flag(project, subject_type: str, subject_id, resolved_by=None) -> int:
     """Called once activity resumes on the subject (e.g. an RFI gets answered). Returns count resolved."""
-    open_flags = SilenceFlag.objects.filter(subject_type=subject_type, subject_id=str(subject_id), resolved=False)
-    count = open_flags.update(resolved=True, resolved_at=timezone.now())
-    if count:
-        flag = SilenceFlag.objects.filter(subject_type=subject_type, subject_id=str(subject_id)).first()
-        record_event(
-            project=flag.project,
-            actor=resolved_by,
-            event_type="silence_resolved",
-            subject_type=subject_type,
-            subject_id=subject_id,
-        )
-    return count
+    # Capture the target rows before the bulk update - re-querying afterwards
+    # could pick up a different (e.g. freshly re-flagged) row.
+    open_flags = list(
+        SilenceFlag.objects.filter(project=project, subject_type=subject_type, subject_id=str(subject_id), resolved=False)
+    )
+    if not open_flags:
+        return 0
+    SilenceFlag.objects.filter(id__in=[flag.id for flag in open_flags]).update(resolved=True, resolved_at=timezone.now())
+    record_event(
+        project=project,
+        actor=resolved_by,
+        event_type="silence_resolved",
+        subject_type=subject_type,
+        subject_id=subject_id,
+    )
+    return len(open_flags)
 
 
 def get_open_silence_flags(project) -> list[SilenceFlag]:
@@ -183,12 +196,26 @@ def get_open_silence_flags(project) -> list[SilenceFlag]:
 
 
 def get_audit_events(project, actor=None, event_type: str | None = None, limit: int = 200) -> list[AuditEvent]:
-    qs = AuditEvent.objects.filter(project=project)
+    """`project=None` reads across all projects - for staff-gated internal
+    consumers (observability's security signal) only, never a member view."""
+    qs = AuditEvent.objects.select_related("actor")
+    if project is not None:
+        qs = qs.filter(project=project)
     if actor is not None:
         qs = qs.filter(actor=actor)
     if event_type:
         qs = qs.filter(event_type=event_type)
     return list(qs[:limit])
+
+
+def get_last_activity_by_project() -> dict:
+    """project_id -> most recent audit-event timestamp, in one query - for
+    observability's quiet-project sweep (staff-gated, cross-project)."""
+    return dict(
+        AuditEvent.objects.values("project_id")
+        .annotate(last=Max("created_at"))
+        .values_list("project_id", "last")
+    )
 
 
 # --- Case-ready dispute export -----------------------------------------------
@@ -200,7 +227,7 @@ def export_dispute_bundle(project) -> list[dict]:
     arbitration use. Always preserves `source_message_ref` verbatim - 
     summarization happens at read time elsewhere, never in this export.
     """
-    events = AuditEvent.objects.filter(project=project).order_by("created_at")
+    events = AuditEvent.objects.filter(project=project).select_related("actor").order_by("created_at")
     return [
         {
             "id": e.id,

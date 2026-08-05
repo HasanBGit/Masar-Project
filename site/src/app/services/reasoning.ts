@@ -296,9 +296,26 @@ Every *Ar field is the same content in formal Arabic, natural for a Saudi constr
 Return only the structured JSON.`;
 }
 
+/** Shape of one topRisks entry as the model may return it — every field is
+ *  unknown until sanitised. */
+interface RawRisk {
+  title?: unknown;
+  titleAr?: unknown;
+  severity?: unknown;
+  eventRefs?: unknown;
+}
+
+/** Shape of one recommendedActions entry as the model may return it. */
+interface RawAction {
+  action?: unknown;
+  actionAr?: unknown;
+  priority?: unknown;
+  eventRefs?: unknown;
+}
+
 function normaliseProjectIntelligence(raw: any, project: Project, events: ConstructionEvent[], table: RefTable): ProjectIntelligence {
-  const risks = Array.isArray(raw?.topRisks) ? raw.topRisks.slice(0, 4) : [];
-  const actions = Array.isArray(raw?.recommendedActions) ? raw.recommendedActions.slice(0, 4) : [];
+  const risks: RawRisk[] = Array.isArray(raw?.topRisks) ? raw.topRisks.slice(0, 4) : [];
+  const actions: RawAction[] = Array.isArray(raw?.recommendedActions) ? raw.recommendedActions.slice(0, 4) : [];
 
   return {
     projectId: project.id,
@@ -310,21 +327,21 @@ function normaliseProjectIntelligence(raw: any, project: Project, events: Constr
     scheduleNote: str(raw?.scheduleNote),
     scheduleNoteAr: str(raw?.scheduleNoteAr),
     topRisks: risks
-      .map((r: any) => ({
+      .map((r) => ({
         title: str(r?.title),
         titleAr: str(r?.titleAr),
         severity: oneOf(r?.severity, RISK_LEVELS, "medium"),
         eventIds: resolveRefs(r?.eventRefs, table, 4),
       }))
-      .filter((r: { title: string }) => r.title),
+      .filter((r) => r.title),
     recommendedActions: actions
-      .map((a: any) => ({
+      .map((a) => ({
         action: str(a?.action),
         actionAr: str(a?.actionAr),
         priority: oneOf(a?.priority, PRIORITIES, "medium"),
         eventIds: resolveRefs(a?.eventRefs, table, 4),
       }))
-      .filter((a: { action: string }) => a.action),
+      .filter((a) => a.action),
     generatedAt: new Date().toISOString(),
     eventCount: events.length,
   };

@@ -7,6 +7,7 @@ composed differently per role. Never four parallel per-role pipelines.
 
 import approvals.services as approvals
 from accounts.services import get_role
+from rest_framework.exceptions import PermissionDenied
 
 # Investor gets an oversight view: aggregate signal, no per-person
 # operational detail. Consultant/Contractor get an action-oriented slice of
@@ -24,7 +25,7 @@ def _redact_for_investor(decisions: list) -> list:
 def get_role_dashboard(user, project) -> dict:
     role = get_role(user, project)
     if role is None:
-        raise PermissionError("User is not a member of this project.")
+        raise PermissionDenied("User is not a member of this project.")
 
     stats = approvals.get_project_decision_stats(project)
 

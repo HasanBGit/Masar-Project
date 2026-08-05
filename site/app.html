@@ -12,7 +12,9 @@
     <!-- Google Identity Services — required for Gmail OAuth -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
-  <body style="margin:0;background:#070c18">
+  <!-- Inline background matches the loaded shell (bg-[#0a1628]) so there is no
+       flash between first paint, the loading spinner, and the mounted app. -->
+  <body style="margin:0;background:#0a1628">
     <div id="app-root"></div>
     <script type="module" src="/src/app/main.tsx"></script>
   </body>

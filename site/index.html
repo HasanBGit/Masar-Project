@@ -16,7 +16,9 @@
       rel="stylesheet"
     />
   </head>
-  <body>
+  <!-- Inline background matches .landing-page (#0b1110) so the first paint
+       doesn't flash the cream body color before React mounts. -->
+  <body style="margin:0;background:#0b1110">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

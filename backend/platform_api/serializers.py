@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import APIKey, WebhookDelivery, WebhookSubscription
+from .models import APIKey, ApiKeyScope, ApiKeyTier, WebhookDelivery, WebhookEventType, WebhookSubscription
 
 
 class APIKeySerializer(serializers.ModelSerializer):
@@ -10,9 +10,24 @@ class APIKeySerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class APIKeyCreateSerializer(serializers.Serializer):
+    """Input validation for key issuance - the project itself comes from the
+    membership-checked `_project()` lookup in the view, never from here."""
+
+    label = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
+    scope = serializers.ChoiceField(choices=ApiKeyScope.choices)
+    tier = serializers.ChoiceField(choices=ApiKeyTier.choices, default=ApiKeyTier.STANDARD)
+
+
 class WebhookSubscriptionSerializer(serializers.ModelSerializer):
+    event_types = serializers.ListField(
+        child=serializers.ChoiceField(choices=WebhookEventType.choices), allow_empty=True
+    )
+
     class Meta:
         model = WebhookSubscription
+        # `secret` is deliberately absent - it is returned exactly once, in
+        # the create response (see WebhookSubscriptionViewSet.create).
         fields = ["id", "project", "target_url", "event_types", "is_active", "created_at"]
         read_only_fields = ["created_at"]
 

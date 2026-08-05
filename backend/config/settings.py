@@ -8,14 +8,20 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = environ.Env(DEBUG=(bool, True))
+env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(BASE_DIR / ".env")
 
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="dev-only-insecure-secret-key-change-in-production")
-DEBUG = env.bool("DEBUG", default=True)
+_DEV_SECRET_KEY = "dev-only-insecure-secret-key-change-in-production"
+SECRET_KEY = env("DJANGO_SECRET_KEY", default=_DEV_SECRET_KEY)
+DEBUG = env.bool("DEBUG", default=False)
+if not DEBUG and SECRET_KEY == _DEV_SECRET_KEY:
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY must be set to a real secret when DEBUG=False - refusing to start with the dev default."
+    )
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 INSTALLED_APPS = [
@@ -87,8 +93,11 @@ DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 # Supabase (and most managed Postgres) requires TLS. env.db() already turns a
 # "?sslmode=require" query param on DATABASE_URL into OPTIONS, but default to
 # requiring it outside of local dev so a plain DATABASE_URL still connects
-# securely against Supabase.
-if not DEBUG:
+# securely against Supabase. A Unix-socket host (path starting with "/") can
+# never speak TLS, so it is excluded - that keeps a local socket DATABASE_URL
+# working even with DEBUG=False.
+_db_host = str(DATABASES["default"].get("HOST") or "")
+if not DEBUG and _db_host and not _db_host.startswith("/"):
     DATABASES["default"].setdefault("OPTIONS", {}).setdefault("sslmode", "require")
 
 AUTH_USER_MODEL = "accounts.User"
@@ -148,6 +157,18 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 25,
     "EXCEPTION_HANDLER": "config.exception_handlers.custom_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/hour",
+        "user": "1000/hour",
+        # Applied to the JWT token obtain/refresh views (credential-guessing
+        # protection) - see accounts.views / config.urls.
+        "auth": "10/min",
+        "api_key": "100/hour",  # fallback; ApiKeyRateThrottle overrides per-tier
+    },
 }
 
 SPECTACULAR_SETTINGS = {
@@ -184,8 +205,43 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=60)
+    SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000)  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", default=False)
+
+# --- Uploads ------------------------------------------------------------------
+# drawings_studio accepts 3D model files (see DrawingModelSerializer's 100 MB
+# cap). DATA_UPLOAD_MAX_MEMORY_SIZE covers non-file form data only (files are
+# excluded from it); FILE_UPLOAD_MAX_MEMORY_SIZE controls when an upload
+# spools to a temp file on disk instead of RAM.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 25 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB - larger uploads spool to disk
+
+# --- Cache --------------------------------------------------------------------
+# Explicit LocMemCache (Django's default, spelled out): fine for one worker,
+# but throttle counters and any cached state are per-process. Point this at
+# Redis (django-redis) when running multiple gunicorn workers/dynos so rate
+# limits are enforced globally rather than per-worker.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+
+# --- Logging ------------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "{levelname} {asctime} {name} {message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+    },
+    "root": {"handlers": ["console"], "level": "INFO"},
+    "loggers": {
+        "django.request": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+    },
+}
 
 # Saudi data residency (PDPL) as an enforced architecture property, not just
 # a policy citation - see skills/access-control-admin/SKILL.md. This is the
