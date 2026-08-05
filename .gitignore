@@ -9,6 +9,8 @@ venv/
 *.egg-info/
 db.sqlite3
 .env
+.env.*
+!.env.example
 media/
 staticfiles/
 
