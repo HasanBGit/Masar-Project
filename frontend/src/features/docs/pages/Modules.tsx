@@ -6,6 +6,8 @@ const TOC = [
   { id: 'approvals', label: 'Approvals (3 Edges)' },
   { id: 'trust-evidence', label: 'Trust & Evidence' },
   { id: 'rfi', label: 'RFI & Change Control' },
+  { id: 'contract-payments', label: 'Contract & Payments' },
+  { id: 'drawings-studio', label: 'Drawings Studio' },
   { id: 'handover', label: 'Handover' },
   { id: 'access-control', label: 'Access Control' },
   { id: 'observability', label: 'Observability' },
@@ -69,6 +71,27 @@ export function ModulesPage() {
           RFIs, submittals, change orders, permits, supplier deliveries, quality checkpoints - all on the shared
           document lifecycle. RFIs carry a schedule-impact-if-unanswered flag feeding a live at-risk view; change
           orders require structured scope/cost/schedule fields, rejecting free text alone.
+        </DocsP>
+      </Module>
+
+      <DocsH2 id="contract-payments">Contract & Payments</DocsH2>
+      <Module id="contract-payments-detail" name="Evidence-gated money" prefix="/api/v1/contract-payments/">
+        <DocsP>
+          One contract per project, payment milestones released only when their linked evidence is verified in
+          Trust &amp; Evidence (the release is idempotent and emits a <InlineCode>payment.released</InlineCode>{' '}
+          webhook), ZATCA-ready invoices, versioned amendments, a contract-vs-actual rollup fed by approved change
+          orders, and a ceiling-breach check. Includes the RAG legal agent: contract documents are chunked and
+          embedded (pgvector) so owners/consultants can ask compliance questions grounded in the actual contract
+          text. Financial reads are restricted by role.
+        </DocsP>
+      </Module>
+
+      <DocsH2 id="drawings-studio">Drawings Studio</DocsH2>
+      <Module id="drawings-studio-detail" name="2D/3D model viewer" prefix="/api/v1/drawings-studio/">
+        <DocsP>
+          Upload and view 3D models (glTF, OBJ, STL and other mesh formats, size-capped and extension-validated)
+          with measuring, sectioning and snapping tools, plus parametric primitives for quick massing studies.
+          Deleting a model is restricted to its uploader or a project owner/admin.
         </DocsP>
       </Module>
 

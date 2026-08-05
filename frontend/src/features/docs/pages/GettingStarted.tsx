@@ -4,6 +4,7 @@ import { Callout, CodeBlock, DocsH1, DocsH2, DocsLead, DocsLink, DocsP, DocsTabl
 const TOC = [
   { id: 'what-is-truepoint', label: 'What is Truepoint' },
   { id: 'demo-accounts', label: 'Demo accounts' },
+  { id: 'auth-first-call', label: 'Authenticate & first API call' },
   { id: 'roles', label: 'Roles' },
   { id: 'next-steps', label: 'Next steps' },
 ]
@@ -44,6 +45,35 @@ export function GettingStartedPage() {
       />
       <CodeBlock label="password">demo1234</CodeBlock>
 
+      <DocsH2 id="auth-first-call">Authenticate &amp; first API call</DocsH2>
+      <DocsP>
+        The app API is versioned under <InlineCode>/api/v1/</InlineCode> and authenticated with short-lived JWTs.
+        Obtain a token pair with your email + password, then send the access token as a Bearer header. Token
+        endpoints are rate-limited against brute force.
+      </DocsP>
+      <CodeBlock label="1 - obtain tokens">{`POST /api/v1/auth/token/
+Content-Type: application/json
+
+{ "email": "owner@truepoint.sa", "password": "demo1234" }
+
+-> { "access": "<jwt>", "refresh": "<jwt>" }`}</CodeBlock>
+      <CodeBlock label="2 - call the API">{`GET /api/v1/accounts/me/
+Authorization: Bearer <access>
+
+GET /api/v1/accounts/projects/          # your project memberships
+GET /api/v1/dashboard/summary/?project=1  # role-shaped dashboard`}</CodeBlock>
+      <CodeBlock label="3 - refresh when the access token expires">{`POST /api/v1/auth/token/refresh/
+{ "refresh": "<refresh>" }
+
+-> { "access": "<new jwt>" }`}</CodeBlock>
+      <DocsP>
+        List endpoints are DRF-paginated (<InlineCode>{'{ count, next, previous, results }'}</InlineCode>);
+        validation errors return per-field messages with status 400, missing objects 404, and permission failures
+        403 - the same shapes this app's UI consumes. The full machine-readable schema lives at{' '}
+        <InlineCode>/api/schema/</InlineCode> with interactive browsers at <InlineCode>/api/docs/</InlineCode>{' '}
+        (Swagger) and <InlineCode>/api/redoc/</InlineCode>.
+      </DocsP>
+
       <DocsH2 id="roles">Roles</DocsH2>
       <DocsP>
         Roles are assigned per project via <InlineCode>ProjectMembership</InlineCode> (see{' '}
@@ -83,7 +113,7 @@ export function GettingStartedPage() {
           lifecycle every tracked object shares.
         </li>
         <li>
-          <DocsLink to="/docs/modules">Module reference</DocsLink> - what each of the 8 modules owns and how they
+          <DocsLink to="/docs/modules">Module reference</DocsLink> - what each of the 10 modules owns and how they
           call into each other.
         </li>
         <li>
