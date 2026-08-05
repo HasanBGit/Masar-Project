@@ -235,23 +235,42 @@ def get_amendments(contract: Contract) -> list[ContractAmendment]:
 
 # --- Legal-agent chatbot (RAG) -----------------------------------------------
 
+import math
+import httpx
+
 
 def _embed(text: str) -> list[float]:
     """
-    Pluggable embedding provider, gated on an API key so the rest of the app
-    works with no key set at all. Voyage AI is Anthropic's recommended
-    embeddings partner (Anthropic doesn't run its own embeddings endpoint),
-    so it's the default; swap providers here if that changes.
+    Pluggable embedding provider. Checks OPENROUTER_API_KEY first (using
+    openai/text-embedding-3-small truncated & L2-normalized to 1024 dims),
+    then VOYAGE_API_KEY (voyage-3). Raises LegalAgentNotConfigured if no key is set.
     """
-    api_key = getattr(settings, "VOYAGE_API_KEY", "") or ""
-    if not api_key:
-        raise LegalAgentNotConfigured("VOYAGE_API_KEY is not set - the legal agent has no embedding provider configured.")
+    openrouter_key = getattr(settings, "OPENROUTER_API_KEY", "") or ""
+    if openrouter_key:
+        try:
+            url = "https://openrouter.ai/api/v1/embeddings"
+            headers = {"Authorization": f"Bearer {openrouter_key}", "Content-Type": "application/json"}
+            payload = {"model": "openai/text-embedding-3-small", "input": text}
+            r = httpx.post(url, headers=headers, json=payload, timeout=15.0)
+            if r.status_code == 200:
+                raw_emb = r.json()["data"][0]["embedding"]
+                vec = raw_emb[:1024]
+                if len(vec) < 1024:
+                    vec = vec + [0.0] * (1024 - len(vec))
+                norm = math.sqrt(sum(x * x for x in vec))
+                return [x / norm for x in vec] if norm > 0 else vec
+        except Exception:
+            pass
 
-    import voyageai  # local import: optional dependency, only needed once a key is actually set
+    voyage_key = getattr(settings, "VOYAGE_API_KEY", "") or ""
+    if voyage_key:
+        import voyageai  # local import: optional dependency, only needed once a key is actually set
 
-    client = voyageai.Client(api_key=api_key)
-    result = client.embed([text], model="voyage-3", input_type="document")
-    return result.embeddings[0]
+        client = voyageai.Client(api_key=voyage_key)
+        result = client.embed([text], model="voyage-3", input_type="document")
+        return result.embeddings[0]
+
+    raise LegalAgentNotConfigured("No embedding provider configured (set OPENROUTER_API_KEY or VOYAGE_API_KEY).")
 
 
 def _contract_chunks(contract: Contract) -> list[tuple[str, str]]:
@@ -293,7 +312,7 @@ def ingest_contract_for_legal_agent(contract: Contract) -> int:
             embedding = None
         rows.append(LegalAgentDocument(
             project=contract.project, source_ref=source_ref, content=content,
-            embedding=embedding, embedding_model="voyage-3" if embedding else "",
+            embedding=embedding, embedding_model="openrouter/text-embedding-3-small" if embedding else "",
         ))
     LegalAgentDocument.objects.bulk_create(rows)
     return len(rows)
@@ -312,25 +331,16 @@ def _retrieve_top_chunks(project, question_embedding: list[float], k: int = 5) -
 def ask_legal_agent(*, project, question: str, asked_by=None, language: str = "ar") -> dict:
     """
     Answers a contract/ZATCA question grounded only in this project's own
-    indexed chunks - never free-floating LLM knowledge alone. Every answer
-    carries its source chunks so the response is traceable, matching the
-    "AI-summary sourcing and traceability" principle (Module 10) already
-    used elsewhere on this platform.
+    indexed chunks - supports OpenRouter (Gemini Flash) as primary LLM.
     """
     if not LegalAgentDocument.objects.filter(project=project).exclude(embedding=None).exists():
         raise LegalAgentNotConfigured(
             "This project has no indexed legal-agent documents with embeddings - run ingest_contract_for_legal_agent first, "
-            "and make sure VOYAGE_API_KEY is set."
+            "and make sure OPENROUTER_API_KEY is set."
         )
 
     question_embedding = _embed(question)
     top_chunks = _retrieve_top_chunks(project, question_embedding)
-
-    anthropic_key = getattr(settings, "ANTHROPIC_API_KEY", "") or ""
-    if not anthropic_key:
-        raise LegalAgentNotConfigured("ANTHROPIC_API_KEY is not set - the legal agent has no answer-generation provider configured.")
-
-    import anthropic  # local import: optional dependency, only needed once a key is actually set
 
     context_block = "\n\n".join(f"[{c.source_ref}]\n{c.content}" for c in top_chunks)
     language_name = "Arabic" if language == "ar" else "English"
@@ -342,14 +352,47 @@ def ask_legal_agent(*, project, question: str, asked_by=None, language: str = "a
         f"CONTEXT:\n{context_block}"
     )
 
-    client = anthropic.Anthropic(api_key=anthropic_key)
-    message = client.messages.create(
-        model="claude-sonnet-5",
-        max_tokens=1024,
-        system=system_prompt,
-        messages=[{"role": "user", "content": question}],
-    )
-    answer = "".join(block.text for block in message.content if block.type == "text")
+    openrouter_key = getattr(settings, "OPENROUTER_API_KEY", "") or ""
+    model_name = getattr(settings, "OPENROUTER_MODEL", "google/gemini-2.5-flash")
+    answer = ""
+
+    if openrouter_key:
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {openrouter_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://masar.sa",
+            "X-Title": "Masar Construction Governance",
+        }
+        payload = {
+            "model": model_name,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question},
+            ],
+            "temperature": 0.2,
+            "max_tokens": 1024,
+        }
+        r = httpx.post(url, headers=headers, json=payload, timeout=20.0)
+        if r.status_code == 200:
+            answer = r.json()["choices"][0]["message"]["content"]
+        else:
+            raise LegalAgentNotConfigured(f"OpenRouter API error {r.status_code}: {r.text}")
+    else:
+        anthropic_key = getattr(settings, "ANTHROPIC_API_KEY", "") or ""
+        if not anthropic_key:
+            raise LegalAgentNotConfigured("No LLM provider configured (set OPENROUTER_API_KEY or ANTHROPIC_API_KEY).")
+
+        import anthropic  # local import: optional dependency, only needed once a key is actually set
+
+        client = anthropic.Anthropic(api_key=anthropic_key)
+        message = client.messages.create(
+            model="claude-sonnet-5",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=[{"role": "user", "content": question}],
+        )
+        answer = "".join(block.text for block in message.content if block.type == "text")
 
     import trust_evidence.services as trust_evidence
 
@@ -363,3 +406,4 @@ def ask_legal_agent(*, project, question: str, asked_by=None, language: str = "a
         "sources": [{"source_ref": c.source_ref, "excerpt": c.content[:300]} for c in top_chunks],
         "language": language,
     }
+
