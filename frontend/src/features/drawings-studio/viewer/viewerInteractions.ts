@@ -6,7 +6,7 @@
 // measurement with a line overlay, click-to-select mesh highlighting, and the
 // section/measure mode toggles. Behaviour is unchanged from the inlined
 // originals.
-import { useRef, useState, type RefObject } from 'react';
+import { useCallback, useRef, useState, type RefObject } from 'react';
 import * as THREE from 'three';
 import type { SceneManager } from './SceneManager';
 import type { ClipManager } from './ClipManager';
@@ -105,16 +105,18 @@ export function useViewerInteractions(refs: ViewerInteractionRefs, measureUnit =
     return { point, kind };
   }
 
-  function clearSelection() {
+  // Stable identities (they only touch refs + state setters) so consuming
+  // effects can list them as dependencies without re-running.
+  const clearSelection = useCallback(() => {
     const sel = selectedMeshRef.current;
     if (sel) {
       const mat = sel.mesh.material;
       if (!Array.isArray(mat) && 'color' in mat) (mat as THREE.MeshStandardMaterial).color.copy(sel.color);
       selectedMeshRef.current = null;
     }
-  }
+  }, []);
 
-  function clearMeasure() {
+  const clearMeasure = useCallback(() => {
     measureRef.current = { points: [], distance: null };
     setMeasureText(null);
     const sm = sceneManagerRef.current;
@@ -124,7 +126,7 @@ export function useViewerInteractions(refs: ViewerInteractionRefs, measureUnit =
       measureLineRef.current = null;
       sm.requestRender();
     }
-  }
+  }, [sceneManagerRef]);
 
   function handlePointerDown(ev: React.MouseEvent<HTMLCanvasElement>) {
     pointerDownPosRef.current = { x: ev.clientX, y: ev.clientY };
@@ -222,13 +224,13 @@ export function useViewerInteractions(refs: ViewerInteractionRefs, measureUnit =
     clearMeasure();
   }
 
-  function resetForTeardown() {
+  const resetForTeardown = useCallback(() => {
     selectedMeshRef.current = null;
     measureLineRef.current = null;
     hoverMarkerRef.current = null;
     measureRef.current = { points: [], distance: null };
     pointerDownPosRef.current = null;
-  }
+  }, []);
 
   const cursorClass = measureOn
     ? 'cursor-crosshair'

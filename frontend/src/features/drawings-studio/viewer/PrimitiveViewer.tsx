@@ -89,10 +89,7 @@ export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps
       resetForTeardown();
       setReady(false);
     };
-    // resetForTeardown is recreated per render but only clears refs; the scene
-    // itself must be created exactly once per canvas mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [resetForTeardown]);
 
   // ── Full geometry rebuild — only when the shape or colour changes ──────────
   useEffect(() => {
@@ -133,11 +130,9 @@ export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps
       prevShapeRef.current = shape;
     }
     sm.requestRender();
-    // clearSelection/clearMeasure are stable in behaviour (they only touch
-    // refs + reset local state); dims are intentionally read via dimsRef so
-    // slider ticks rescale instead of rebuilding.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shape, color, sceneManager]);
+    // Dimensions are intentionally read through dimsRef so slider ticks
+    // rescale (effect below) instead of rebuilding all geometry.
+  }, [shape, color, sceneManager, clearSelection, clearMeasure]);
 
   // ── Cheap scale update — numeric dimension changes rescale the built mesh ──
   useEffect(() => {
@@ -170,8 +165,7 @@ export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps
     clearMeasure();
     clipManagerRef.current?.invalidateModelBox();
     sm.requestRender();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shape, width, depth, height, radius]);
+  }, [shape, width, depth, height, radius, clearMeasure]);
 
   if (error) {
     return (

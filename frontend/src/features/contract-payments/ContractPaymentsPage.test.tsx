@@ -1,7 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ContractPaymentsPage } from './ContractPaymentsPage'
+import { LanguageProvider } from '../../lib/i18n'
+import { ToastProvider } from '../../components/ui/Toast'
 import type { Contract, ContractVsActual, PaymentMilestone, Project } from '../../lib/types'
 
 const {
@@ -72,14 +74,72 @@ const testVsActual: ContractVsActual = {
   remaining_balance: '1000000',
 }
 
+function primeHappyPath() {
+  listContractsMock.mockResolvedValue([testContract])
+  listPaymentMilestonesMock.mockResolvedValue([testMilestone])
+  getContractVsActualMock.mockResolvedValue(testVsActual)
+  listAmendmentsMock.mockResolvedValue([])
+}
+
+function renderPage() {
+  return render(
+    <LanguageProvider>
+      <ToastProvider>
+        <ContractPaymentsPage project={testProject} />
+      </ToastProvider>
+    </LanguageProvider>,
+  )
+}
+
+beforeEach(() => {
+  vi.resetAllMocks()
+})
+
 describe('ContractPaymentsPage', () => {
-  it('renders the contract, its milestones, and the contract-vs-actual tracker', async () => {
+  it('shows a loading skeleton while the contract is being fetched', () => {
+    listContractsMock.mockReturnValue(new Promise(() => {}))
+    renderPage()
+
+    expect(screen.getByRole('status', { name: 'Loading page' })).toBeInTheDocument()
+  })
+
+  it('shows an ErrorState (not an eternal loading state) when listContracts rejects, and retry recovers', async () => {
+    listContractsMock.mockRejectedValueOnce(new Error('Network unreachable'))
+    primeHappyPath()
+
+    const user = userEvent.setup()
+    renderPage()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Network unreachable')
+    expect(screen.queryByRole('status', { name: 'Loading page' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(await screen.findByText('Villa build contract')).toBeInTheDocument()
+  })
+
+  it('offers the create-contract form when the project has no contract yet', async () => {
+    listContractsMock.mockResolvedValue([])
+    renderPage()
+
+    expect(await screen.findByText('No contract on this project yet')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create contract' })).toBeInTheDocument()
+  })
+
+  it('renders empty states for milestones and amendments instead of bare text', async () => {
     listContractsMock.mockResolvedValue([testContract])
-    listPaymentMilestonesMock.mockResolvedValue([testMilestone])
+    listPaymentMilestonesMock.mockResolvedValue([])
     getContractVsActualMock.mockResolvedValue(testVsActual)
     listAmendmentsMock.mockResolvedValue([])
+    renderPage()
 
-    render(<ContractPaymentsPage project={testProject} />)
+    expect(await screen.findByText('No payment milestones yet')).toBeInTheDocument()
+    expect(await screen.findByText('No amendments yet')).toBeInTheDocument()
+  })
+
+  it('renders the contract, its milestones, and the contract-vs-actual tracker', async () => {
+    primeHappyPath()
+    renderPage()
 
     expect(await screen.findByText('Villa build contract')).toBeInTheDocument()
     expect(await screen.findByText('Structural completion')).toBeInTheDocument()
@@ -89,10 +149,7 @@ describe('ContractPaymentsPage', () => {
   })
 
   it('asks the legal agent and renders a sourced answer', async () => {
-    listContractsMock.mockResolvedValue([testContract])
-    listPaymentMilestonesMock.mockResolvedValue([testMilestone])
-    getContractVsActualMock.mockResolvedValue(testVsActual)
-    listAmendmentsMock.mockResolvedValue([])
+    primeHappyPath()
     askLegalAgentMock.mockResolvedValue({
       answer: 'The retention percentage is 5%.',
       sources: [{ source_ref: 'contract:5:terms', excerpt: 'Retention percentage: 5%.' }],
@@ -100,7 +157,7 @@ describe('ContractPaymentsPage', () => {
     })
 
     const user = userEvent.setup()
-    render(<ContractPaymentsPage project={testProject} />)
+    renderPage()
 
     const input = await screen.findByPlaceholderText('Ask a question about this contract…')
     await user.type(input, 'What is the retention percentage?')
@@ -109,5 +166,18 @@ describe('ContractPaymentsPage', () => {
     await waitFor(() => expect(askLegalAgentMock).toHaveBeenCalledWith(5, 'What is the retention percentage?', 'en'))
     expect(await screen.findByText('The retention percentage is 5%.')).toBeInTheDocument()
     expect(await screen.findByText('contract:5:terms')).toBeInTheDocument()
+  })
+
+  it('submits a legal agent question when Enter is pressed in the form', async () => {
+    primeHappyPath()
+    askLegalAgentMock.mockResolvedValue({ answer: 'Yes.', sources: [], language: 'en' })
+
+    const user = userEvent.setup()
+    renderPage()
+
+    const input = await screen.findByPlaceholderText('Ask a question about this contract…')
+    await user.type(input, 'Does ZATCA invoicing apply?{Enter}')
+
+    await waitFor(() => expect(askLegalAgentMock).toHaveBeenCalledWith(5, 'Does ZATCA invoicing apply?', 'en'))
   })
 })

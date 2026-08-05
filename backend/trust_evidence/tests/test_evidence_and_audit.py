@@ -34,12 +34,12 @@ def test_evidence_only_counts_after_verification(project, contractor_user, owner
         project=project, subject_type="milestone", subject_id=1, submitted_by=contractor_user,
         caption="Level 5 slab poured", captured_at=timezone.now(),
     )
-    status_before = get_verification_status("milestone", 1)
+    status_before = get_verification_status(project, "milestone", 1)
     assert status_before["has_verified_evidence"] is False
     assert status_before["pending_count"] == 1
 
     verify_evidence(record, owner_user)
-    status_after = get_verification_status("milestone", 1)
+    status_after = get_verification_status(project, "milestone", 1)
     assert status_after["has_verified_evidence"] is True
     assert status_after["verified_count"] == 1
 
@@ -65,7 +65,7 @@ def test_resolve_silence_flag(project):
     expected_by = timezone.now() - timedelta(hours=1)
     flag_if_silent(project=project, subject_type="rfi", subject_id=7, expected_by=expected_by)
 
-    count = resolve_silence_flag("rfi", 7)
+    count = resolve_silence_flag(project, "rfi", 7)
     assert count == 1
 
     # a fresh breach after resolution opens a new flag rather than reopening

@@ -95,3 +95,111 @@ def test_legal_agent_ask_endpoint_returns_503_when_not_configured(contract, owne
         {"question": "What is the retention percentage?"},
     )
     assert response.status_code == 503
+
+
+# --- P1 regressions: idempotent release, duplicate-guarded creates, RBAC ---
+
+
+@pytest.mark.django_db
+def test_double_release_is_400_with_single_webhook_and_audit_event(contract, owner_user, contractor_user):
+    from unittest.mock import Mock, patch
+
+    from django.utils import timezone
+
+    import trust_evidence.services as trust_evidence
+    from platform_api.models import WebhookDelivery
+    from platform_api.services import create_webhook_subscription
+
+    create_webhook_subscription(
+        project=contract.project, target_url="https://example.com/hook",
+        event_types=["payment.released"], created_by=owner_user,
+    )
+    milestone = PaymentMilestone.objects.create(
+        contract=contract, project=contract.project, name="Structural", due_condition="40%", amount=Decimal("100000"),
+    )
+    record = trust_evidence.submit_evidence(
+        project=contract.project, subject_type="payment_milestone", subject_id=milestone.id,
+        submitted_by=contractor_user, caption="Slab poured", captured_at=timezone.now(),
+    )
+    trust_evidence.verify_evidence(record, owner_user)
+
+    client = APIClient()
+    client.force_authenticate(owner_user)
+    with patch("platform_api.services.requests.post", return_value=Mock(status_code=200)):
+        first = client.post(f"/api/v1/contract-payments/payment-milestones/{milestone.id}/release/")
+        second = client.post(f"/api/v1/contract-payments/payment-milestones/{milestone.id}/release/")
+
+    assert first.status_code == 200
+    assert second.status_code == 400
+    assert WebhookDelivery.objects.filter(event_type="payment.released").count() == 1
+    audit = trust_evidence.get_audit_events(contract.project, event_type="payment_milestone_released")
+    assert len(audit) == 1
+
+
+@pytest.mark.django_db
+def test_duplicate_amendment_version_returns_400(contract, owner_user):
+    client = APIClient()
+    client.force_authenticate(owner_user)
+    payload = {"contract": contract.id, "version_number": 2, "summary": "Add a pool to scope."}
+    assert client.post("/api/v1/contract-payments/amendments/", payload).status_code == 201
+
+    response = client.post("/api/v1/contract-payments/amendments/", payload)
+    assert response.status_code == 400
+
+    from contract_payments.models import ContractAmendment
+
+    assert ContractAmendment.objects.filter(contract=contract, version_number=2).count() == 1
+
+
+@pytest.mark.django_db
+def test_second_contract_for_project_returns_400(contract, project, owner_user):
+    client = APIClient()
+    client.force_authenticate(owner_user)
+    response = client.post(
+        "/api/v1/contract-payments/contracts/",
+        {"project": project.id, "title": "Second contract", "contract_value": "500", "scope_baseline": "Dup."},
+    )
+    assert response.status_code == 400
+    assert Contract.objects.filter(project=project).count() == 1
+
+
+@pytest.mark.django_db
+def test_contractor_blocked_from_contract_vs_actual_and_ceiling(contract, contractor_user):
+    client = APIClient()
+    client.force_authenticate(contractor_user)
+    assert client.get(f"/api/v1/contract-payments/contracts/{contract.id}/contract_vs_actual/").status_code == 403
+    assert client.get(f"/api/v1/contract-payments/contracts/{contract.id}/ceiling_check/").status_code == 403
+    assert client.get(f"/api/v1/contract-payments/ceiling-check/?project={contract.project_id}").status_code == 403
+
+
+@pytest.mark.django_db
+def test_contract_rejects_nonpositive_value_and_bad_retention(project, owner_user):
+    client = APIClient()
+    client.force_authenticate(owner_user)
+    response = client.post(
+        "/api/v1/contract-payments/contracts/",
+        {"project": project.id, "title": "Bad", "contract_value": "0", "scope_baseline": "x"},
+    )
+    assert response.status_code == 400
+    assert "contract_value" in response.data
+
+    response = client.post(
+        "/api/v1/contract-payments/contracts/",
+        {"project": project.id, "title": "Bad", "contract_value": "100", "scope_baseline": "x", "retention_percentage": "150"},
+    )
+    assert response.status_code == 400
+    assert "retention_percentage" in response.data
+
+
+@pytest.mark.django_db
+def test_milestone_project_must_match_contract_project(contract, owner_user):
+    from core.models import Project
+
+    other = Project.objects.create(name="Other", slug="other-cp")
+    client = APIClient()
+    client.force_authenticate(owner_user)
+    response = client.post(
+        "/api/v1/contract-payments/payment-milestones/",
+        {"contract": contract.id, "project": other.id, "name": "M1", "due_condition": "40%", "amount": "1000"},
+    )
+    assert response.status_code == 400

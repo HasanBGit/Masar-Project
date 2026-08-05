@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DecisionDetailPage } from './DecisionDetailPage'
+import { LanguageProvider } from '../../lib/i18n'
+import { ToastProvider } from '../../components/ui/Toast'
 import type { Decision } from '../../lib/types'
 
 vi.mock('../auth/AuthContext', () => ({
@@ -46,13 +48,44 @@ function baseDecision(overrides: Partial<Decision> = {}): Decision {
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/decisions/1']}>
-      <Routes>
-        <Route path="/decisions/:id" element={<DecisionDetailPage />} />
-      </Routes>
-    </MemoryRouter>,
+    <LanguageProvider>
+      <ToastProvider>
+        <MemoryRouter initialEntries={['/decisions/1']}>
+          <Routes>
+            <Route path="/decisions/:id" element={<DecisionDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>
+    </LanguageProvider>,
   )
 }
+
+beforeEach(() => {
+  vi.resetAllMocks()
+})
+
+describe('DecisionDetailPage - loading and failure states', () => {
+  it('shows a loading skeleton while the decision is being fetched', () => {
+    getDecisionMock.mockReturnValue(new Promise(() => {}))
+    renderPage()
+
+    expect(screen.getByRole('status', { name: 'Loading decision' })).toBeInTheDocument()
+  })
+
+  it('shows an ErrorState with retry when the decision fails to load, and retry recovers', async () => {
+    getDecisionMock.mockRejectedValueOnce(new Error('boom'))
+    getDecisionMock.mockResolvedValue(baseDecision())
+
+    const user = userEvent.setup()
+    renderPage()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(/doesn't exist, or you don't have access/i)
+
+    await user.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(await screen.findByText('Approve drainage detail change')).toBeInTheDocument()
+  })
+})
 
 describe('DecisionDetailPage - teach-back understanding gate', () => {
   it('rejects a generic phrase and keeps the confirm button disabled', async () => {
@@ -81,6 +114,19 @@ describe('DecisionDetailPage - teach-back understanding gate', () => {
     await userEvent.click(confirmButton)
 
     expect(recordUnderstandingMock).toHaveBeenCalledWith(1, specificParaphrase)
+  })
+
+  it('re-enables the confirm button and surfaces the error when recordUnderstanding fails', async () => {
+    getDecisionMock.mockResolvedValue(baseDecision())
+    recordUnderstandingMock.mockRejectedValueOnce(new Error('Understanding was rejected'))
+    renderPage()
+
+    const textarea = await screen.findByPlaceholderText(/MEP schedule/i)
+    await userEvent.type(textarea, 'This reroutes the Zone C drain and adds two days to MEP.')
+    await userEvent.click(screen.getByRole('button', { name: /confirm understanding/i }))
+
+    expect(await screen.findAllByText('Understanding was rejected')).not.toHaveLength(0)
+    expect(screen.getByRole('button', { name: /confirm understanding/i })).toBeEnabled()
   })
 })
 
