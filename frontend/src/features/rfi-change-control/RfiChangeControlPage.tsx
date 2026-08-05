@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Badge } from '../../components/Badge'
 import type {
   ChangeOrder,
@@ -543,6 +544,19 @@ export function RfiChangeControlPage({ project }: { project: Project }) {
         <p className="text-sm font-semibold text-gold-ink">{project.name}</p>
         <h1 className="font-[var(--font-display)] text-3xl font-bold text-navy">RFIs &amp; Change Control</h1>
         <p className="mt-1 text-sm text-navy/60">Stop silent cascades - every RFI carries a schedule-impact-if-unanswered flag.</p>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-m)] border border-gold/30 bg-navy-deep px-4 py-3 text-cream">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="rounded-full bg-gold/20 px-2 py-0.5 font-bold text-gold-ink">📧 Gmail Live Sync</span>
+            <span>Automatically parsing incoming consultant &amp; contractor emails into RFIs.</span>
+          </div>
+          <Link
+            to="/email-integrations"
+            className="text-xs font-bold text-gold hover:underline"
+          >
+            View Gmail Extraction Source &amp; Review Queue →
+          </Link>
+        </div>
       </div>
 
       <section>

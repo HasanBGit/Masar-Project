@@ -1,4 +1,4 @@
-# Platform Architecture — Shared Conventions
+# Platform Architecture - Shared Conventions
 
 Source: architecture decisions made for this project (modular monolith, Django + DRF + React/TS/Tailwind + PostgreSQL), plus recurring data-shape patterns identified across the 17 feature modules in `Info/research/platform_features_high_level.md`.
 
@@ -9,12 +9,12 @@ One Django project. One PostgreSQL database. Each feature module (see `skills/RE
 **Boundaries are enforced by convention and code review, not by network separation.** Concretely:
 
 - An app **never imports another app's models directly** and never runs raw queries against another app's tables.
-- Cross-app reads/writes go through the other app's `services.py` (a plain-Python service layer) or its internal DRF viewset — the same interface an external API consumer would use. If app A needs data that lives in app B, A calls a function in `B/services.py`; it does not `from B.models import X`.
+- Cross-app reads/writes go through the other app's `services.py` (a plain-Python service layer) or its internal DRF viewset - the same interface an external API consumer would use. If app A needs data that lives in app B, A calls a function in `B/services.py`; it does not `from B.models import X`.
 - Each module's `SKILL.md` documents this explicitly under `## Owns vs. does not own` and `## Integration with other skills`.
 
 Why this matters: it's what makes "each person owns their feature" actually true day-to-day (nobody's migration breaks someone else's app), and it keeps the door open to splitting any one app into a real separate service later, without a rewrite, if that's ever needed.
 
-**DRF (Django REST Framework) is the assumed API layer** for both the internal service-boundary interfaces and the public API (Module 14) — this is a stated recommendation given Django is confirmed and DRF is the standard choice for REST APIs in the Django ecosystem, not a decision the user separately confirmed. Flag it for confirmation before it becomes load-bearing (e.g. before writing DRF-specific code generators or tooling).
+**DRF (Django REST Framework) is the assumed API layer** for both the internal service-boundary interfaces and the public API (Module 14) - this is a stated recommendation given Django is confirmed and DRF is the standard choice for REST APIs in the Django ecosystem, not a decision the user separately confirmed. Flag it for confirmation before it becomes load-bearing (e.g. before writing DRF-specific code generators or tooling).
 
 ## Shared data-model patterns
 
@@ -44,7 +44,7 @@ Define this once as a shared enum/mixin in `core`, not per-app. Any module deali
 
 ### 3. The audit log as a first-class object
 
-Every instruction, approval, and complaint needs to be queryable with actor + timestamp + channel — this is what makes Module 5's dispute exports and Module 17's access audit logs possible. It is **owned by `trust-evidence`** (Module 5); see `skills/trust-evidence/references/audit-log-schema.md` for the full schema. Other apps write to it via `trust_evidence.services.record_event(...)`, never by writing to its tables directly.
+Every instruction, approval, and complaint needs to be queryable with actor + timestamp + channel - this is what makes Module 5's dispute exports and Module 17's access audit logs possible. It is **owned by `trust-evidence`** (Module 5); see `skills/trust-evidence/references/audit-log-schema.md` for the full schema. Other apps write to it via `trust_evidence.services.record_event(...)`, never by writing to its tables directly.
 
 ## Notification/scheduling conventions
 
@@ -52,5 +52,5 @@ Multi-channel notification delivery (WhatsApp, email, push, voice/TTS) needs to 
 
 ## Compliance requirements that touch architecture, not just one module
 
-- **Saudi data residency + PDPL** (data protection law) — an enforced architecture property (hosting region, data export controls), not just a policy statement. Applies platform-wide; owned operationally by `skills/access-control-admin/SKILL.md` (Module 17) but relevant to any app storing personal data.
-- **ZATCA e-invoicing (Fatoora Phase 2)** — legally mandated for any invoice generated from a verified payment milestone. See `skills/contract-payments/references/zatca-fatoora-compliance.md`.
+- **Saudi data residency + PDPL** (data protection law) - an enforced architecture property (hosting region, data export controls), not just a policy statement. Applies platform-wide; owned operationally by `skills/access-control-admin/SKILL.md` (Module 17) but relevant to any app storing personal data.
+- **ZATCA e-invoicing (Fatoora Phase 2)** - legally mandated for any invoice generated from a verified payment milestone. See `skills/contract-payments/references/zatca-fatoora-compliance.md`.

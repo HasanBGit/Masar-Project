@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Mail, ChevronDown, Sparkles, Zap, Radio, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../features/auth/AuthContext'
 import { Sidebar } from './Sidebar'
 import { NewProjectForm } from './NewProjectForm'
@@ -16,7 +16,9 @@ const ROLE_LABEL: Record<string, string> = {
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
+  '/email-integrations': 'Gmail & Email Integrations',
   '/trust-evidence': 'Trust & Evidence',
+  '/contract-payments': 'Contract & Payment Verification',
   '/rfi-change-control': 'RFIs & Change Orders',
   '/handover': 'Handover & Post-Handover',
   '/drawings-studio': 'Drawings Studio',
@@ -47,8 +49,10 @@ export function AppLayout({
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [integrationsMenuOpen, setIntegrationsMenuOpen] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const integrationsMenuRef = useRef<HTMLDivElement>(null)
   const userMenuButtonRef = useRef<HTMLButtonElement>(null)
   const navToggleButtonRef = useRef<HTMLButtonElement>(null)
   const mobileDrawerRef = useRef<HTMLDivElement>(null)
@@ -57,6 +61,23 @@ export function AppLayout({
     logout()
     navigate('/login')
   }
+
+  // Close the integrations menu on outside click or Escape
+  useEffect(() => {
+    if (!integrationsMenuOpen) return
+    function onPointerDown(e: MouseEvent) {
+      if (!integrationsMenuRef.current?.contains(e.target as Node)) setIntegrationsMenuOpen(false)
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setIntegrationsMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [integrationsMenuOpen])
 
   // Close the user menu on outside click or Escape, returning focus to its trigger.
   useEffect(() => {
@@ -163,6 +184,97 @@ export function AppLayout({
                 </select>
               </label>
             )}
+
+            {/* Main Feature Navbar Button: Email Integrations */}
+            <div className="relative" ref={integrationsMenuRef}>
+              <button
+                onClick={() => setIntegrationsMenuOpen((v) => !v)}
+                className="flex items-center gap-1.5 rounded-[var(--radius-s)] border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs font-bold text-navy hover:bg-gold/20 transition"
+              >
+                <Mail size={15} className="text-gold-ink" />
+                <span className="hidden md:inline">Gmail Integration</span>
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-extrabold text-navy">
+                  3
+                </span>
+                <ChevronDown size={14} className="text-navy/60" />
+              </button>
+
+              {integrationsMenuOpen && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-[var(--radius-m)] border border-sand bg-white p-2 shadow-2xl">
+                  <div className="border-b border-sand/60 px-3 py-2">
+                    <p className="text-xs font-bold text-navy">Gmail & Email Integrations</p>
+                    <p className="text-[11px] text-navy/60">Connected: pm@masar-construction.sa</p>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setIntegrationsMenuOpen(false)
+                        navigate('/email-integrations')
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
+                    >
+                      <Mail size={15} className="text-red-500" />
+                      <div>
+                        <div className="font-semibold">1. OAuth Connection Status</div>
+                        <div className="text-[10px] text-navy/50">Manage accounts & background sync</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIntegrationsMenuOpen(false)
+                        navigate('/email-integrations')
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
+                    >
+                      <Zap size={15} className="text-amber-500" />
+                      <div>
+                        <div className="font-semibold">2. Live Extraction Queue</div>
+                        <div className="text-[10px] text-amber-600 font-bold">3 items pending review</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIntegrationsMenuOpen(false)
+                        navigate('/email-integrations')
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
+                    >
+                      <Sparkles size={15} className="text-gold" />
+                      <div>
+                        <div className="font-semibold">3. AI Intelligence & Rules</div>
+                        <div className="text-[10px] text-navy/50">Bilingual LLM extraction schema</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIntegrationsMenuOpen(false)
+                        navigate('/email-integrations')
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
+                    >
+                      <Radio size={15} className="text-emerald-600" />
+                      <div>
+                        <div className="font-semibold">4. Multi-Channel Stream</div>
+                        <div className="text-[10px] text-navy/50">Gmail, WhatsApp & Site Logs</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIntegrationsMenuOpen(false)
+                        navigate('/email-integrations')
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
+                    >
+                      <ShieldCheck size={15} className="text-blue-600" />
+                      <div>
+                        <div className="font-semibold">5. Sync Health & Webhooks</div>
+                        <div className="text-[10px] text-navy/50">Pub/Sub push metrics & latency</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={() => {

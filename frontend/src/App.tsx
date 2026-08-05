@@ -9,6 +9,8 @@ import { NewProjectForm } from './components/NewProjectForm'
 import { DashboardPage } from './features/owner-dashboard/DashboardPage'
 import { DecisionDetailPage } from './features/approvals-workflow/DecisionDetailPage'
 import { TrustEvidencePage } from './features/trust-evidence/TrustEvidencePage'
+import { ContractPaymentsPage } from './features/contract-payments/ContractPaymentsPage'
+import { EmailIntegrationsPage } from './features/email-integrations/EmailIntegrationsPage'
 import { RfiChangeControlPage } from './features/rfi-change-control/RfiChangeControlPage'
 import { HandoverPage } from './features/handover-closeout/HandoverPage'
 import { AccessControlPage } from './features/access-control-admin/AccessControlPage'
@@ -52,8 +54,10 @@ function Workspace() {
       <ErrorBoundary fallbackTitle="Application Error">
         <Routes>
           <Route path="/dashboard" element={<DashboardPage project={activeProject} />} />
+          <Route path="/email-integrations" element={<EmailIntegrationsPage project={activeProject} />} />
           <Route path="/decisions/:id" element={<DecisionDetailPage />} />
           <Route path="/trust-evidence" element={<TrustEvidencePage project={activeProject} />} />
+          <Route path="/contract-payments" element={<ContractPaymentsPage project={activeProject} />} />
           <Route path="/rfi-change-control" element={<RfiChangeControlPage project={activeProject} />} />
           <Route path="/handover" element={<HandoverPage project={activeProject} />} />
           <Route

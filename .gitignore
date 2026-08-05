@@ -1,4 +1,4 @@
-# Internal reference material (brand assets, research docs) — not source code
+# Internal reference material (brand assets, research docs) - not source code
 /Info/
 
 # Python / Django (reserved for future backend/)
@@ -9,6 +9,8 @@ venv/
 *.egg-info/
 db.sqlite3
 .env
+media/
+staticfiles/
 
 # Node / React (reserved for future frontend/)
 node_modules/

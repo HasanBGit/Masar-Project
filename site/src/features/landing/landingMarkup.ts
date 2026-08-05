@@ -54,13 +54,6 @@ export const LANDING_MARKUP = `
                 <h3>Owner Dashboard</h3>
                 <p>Role-specific views for Owner, Investor, Consultant, Contractor.</p>
               </article>
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Gmail and Email Integration card"
-                data-kicker-ar="ميزة رئيسية" data-title-ar="تكامل البريد و Gmail" data-body-ar="استخراج تلقائي لطلبات المعلومات والتصاريح والدفعات مباشرة من البريد الإلكتروني.">
-                <span class="sight-kicker">Main Feature</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
-                <h3>Gmail &amp; Email Integration</h3>
-                <p>Auto-extract RFIs, submittals, and ZATCA pay claims directly from your project Gmail.</p>
-              </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Unified Timeline card"
                 data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحّد" data-body-ar="دمج واتساب والبريد الإلكتروني والتصاريح في سجل واحد.">
                 <span class="sight-kicker">Core Module</span>

@@ -7,7 +7,9 @@
   --color-gold-soft: #e3c878;
   --color-gold-ink: #8a6416;
   --color-cream: #f4efe7;
-  --color-paper: #fbf8f3;
+  /* Folded into the single documented brand background (brand-identity.md: #F4EFE7) -
+     this used to be an undocumented near-white (#fbf8f3) competing with it. */
+  --color-paper: var(--color-cream);
   --color-sand: #ded2b8;
   --color-text-cream: #2a4650;
   --color-text-navy-muted: #b9cbd2;
@@ -26,7 +28,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Arabic UI runs entirely on the Arabic-capable font stack — Latin display/
+/* Arabic UI runs entirely on the Arabic-capable font stack - Latin display/
    body fonts don't carry Arabic glyphs, so this keeps weight and rhythm
    consistent instead of silently falling back per-browser. */
 html[dir="rtl"] {

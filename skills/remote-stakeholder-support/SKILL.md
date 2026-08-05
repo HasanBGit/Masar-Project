@@ -6,12 +6,12 @@ description: >
   (e.g. an overseas investor or owner). Triggers on: "remote stakeholder",
   "async decision", "timezone escalation", "international investor",
   "no live call needed". Prevents assuming every approver is available for
-  a synchronous call — remote stakeholders need decisions packaged as
+  a synchronous call - remote stakeholders need decisions packaged as
   self-contained async requests, not scheduled meetings.
 allowed-tools: Read, Grep, Glob
 ---
 
-# International & Remote Stakeholder Support (Module 11 — Phase 3)
+# International & Remote Stakeholder Support (Module 11 - Phase 3)
 
 ## Module identity
 
@@ -29,11 +29,11 @@ Asynchronous structured decision requests: photo/video plus a specific question 
 
 **Owns:** the async decision-request packaging format (structured media + question + deadline), timezone-resolution logic for a given stakeholder.
 
-**Does NOT own:** the underlying decision/RACI/SLA machinery — that's `approvals-workflow`'s job; this module supplies it with timezone data and a specific request format for remote participants, it doesn't reimplement decision routing.
+**Does NOT own:** the underlying decision/RACI/SLA machinery - that's `approvals-workflow`'s job; this module supplies it with timezone data and a specific request format for remote participants, it doesn't reimplement decision routing.
 
 ## Integration with other skills
 
-- **`approvals-workflow`** (Module 4): async decision requests are still `Decision` objects there — `remote_participation` supplies the packaging (structured media + question) and timezone metadata via `approvals.services.request_decision(...)`, it doesn't own a separate decision model.
+- **`approvals-workflow`** (Module 4): async decision requests are still `Decision` objects there - `remote_participation` supplies the packaging (structured media + question) and timezone metadata via `approvals.services.request_decision(...)`, it doesn't own a separate decision model.
 - **`multilingual-voice`** (Module 8): built-in translation for async requests is provided by that module's translation service.
 
 ## Rules or Process
@@ -43,8 +43,8 @@ Asynchronous structured decision requests: photo/video plus a specific question 
 
 ## Non-goals / Limitations
 
-- Does not own decision/RACI/SLA logic — see `approvals-workflow`.
-- Does not own translation — see `multilingual-voice`.
+- Does not own decision/RACI/SLA logic - see `approvals-workflow`.
+- Does not own translation - see `multilingual-voice`.
 
 ## See also
 

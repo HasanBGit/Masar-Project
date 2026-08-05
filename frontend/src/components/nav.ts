@@ -4,8 +4,10 @@ import {
   FileStack,
   KeySquare,
   LayoutDashboard,
+  Mail,
   PackageCheck,
   Radar,
+  Receipt,
   ShieldCheck,
   Users,
   type LucideIcon,
@@ -31,6 +33,11 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [{ label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard }],
   },
   {
+    id: 'integrations',
+    label: 'Integrations & Signals',
+    items: [{ label: 'Gmail & Email Integrations', to: '/email-integrations', icon: Mail }],
+  },
+  {
     id: 'trust',
     label: 'Trust & Approvals',
     items: [{ label: 'Trust & Evidence', to: '/trust-evidence', icon: ShieldCheck }],
@@ -39,6 +46,11 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'documents',
     label: 'Documents & Schedule',
     items: [{ label: 'RFIs & Change Orders', to: '/rfi-change-control', icon: FileStack }],
+  },
+  {
+    id: 'contracts',
+    label: 'Contracts & Payments',
+    items: [{ label: 'Contract & Payments', to: '/contract-payments', icon: Receipt }],
   },
   {
     id: 'handover',

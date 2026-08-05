@@ -110,6 +110,37 @@ export function DashboardPage({ project }: { project: Project }) {
         </div>
       </section>
 
+      {/* Gmail & Email Integration Main Feature Widget */}
+      <section className="rounded-[var(--radius-m)] border border-gold/30 bg-navy-deep p-5 text-cream shadow-md">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/20 text-gold-ink font-bold">
+              📧
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-[var(--font-display)] text-base font-bold text-white">
+                  Gmail & Email Intelligence Active
+                </span>
+                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
+                  ● Live OAuth 2.0
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-cream/70">
+                Inbox <span className="font-mono text-gold">pm@masar-construction.sa</span> has <strong>3 extracted items</strong> pending approval (RFI #47, Balady Permit BA-2026-3847, Scaffold Safety Alert).
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/email-integrations"
+            className="shrink-0 rounded-[var(--radius-s)] bg-gold px-4 py-2 text-xs font-bold text-navy transition hover:bg-gold-ink hover:text-white"
+          >
+            Manage Gmail Integration →
+          </Link>
+        </div>
+      </section>
+
       <section>
         <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">All decisions</h2>
         <div className="overflow-x-auto rounded-[var(--radius-m)] border border-sand/70 bg-paper">

@@ -12,7 +12,7 @@ description: >
 allowed-tools: Read, Grep, Glob
 ---
 
-# Portfolio Governance (Module 13 — Phase 4)
+# Portfolio Governance (Module 13 - Phase 4)
 
 ## Module identity
 
@@ -24,7 +24,7 @@ allowed-tools: Read, Grep, Glob
 
 ## Why this exists / Ground truth
 
-For owners/developers running multiple simultaneous projects: consistent approval-rule (RACI/threshold) enforcement across all their projects by default, so a rule doesn't need to be re-configured per project. A cross-project compliance-deadline tracker generalizes permit tracking to any compliance deadline — contract reports, warranty registration, insurance renewal. This module's underlying failure pattern — manual approval routing, no unified audit trail — is the same shape as the platform's core problem, just applied across a portfolio rather than within one project.
+For owners/developers running multiple simultaneous projects: consistent approval-rule (RACI/threshold) enforcement across all their projects by default, so a rule doesn't need to be re-configured per project. A cross-project compliance-deadline tracker generalizes permit tracking to any compliance deadline - contract reports, warranty registration, insurance renewal. This module's underlying failure pattern - manual approval routing, no unified audit trail - is the same shape as the platform's core problem, just applied across a portfolio rather than within one project.
 
 ## Owns vs. does not own
 
@@ -40,13 +40,13 @@ For owners/developers running multiple simultaneous projects: consistent approva
 
 ## Rules or Process
 
-- Portfolio-level rule templates are **defaults**, not hard overrides — a specific project can still have project-level exceptions, tracked explicitly, not silently.
+- Portfolio-level rule templates are **defaults**, not hard overrides - a specific project can still have project-level exceptions, tracked explicitly, not silently.
 - The compliance-deadline tracker aggregates read-only; it doesn't own or duplicate the underlying permit/deadline records.
 
 ## Non-goals / Limitations
 
-- Does not own individual project decisions — see `approvals-workflow`.
-- Does not own permit records — see `unified-timeline`.
+- Does not own individual project decisions - see `approvals-workflow`.
+- Does not own permit records - see `unified-timeline`.
 
 ## See also
 

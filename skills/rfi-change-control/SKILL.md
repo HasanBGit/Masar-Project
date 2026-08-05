@@ -12,7 +12,7 @@ description: >
 allowed-tools: Read, Grep, Glob
 ---
 
-# RFI, Change Order & Version Control (Module 6 — Phase 2)
+# RFI, Change Order & Version Control (Module 6 - Phase 2)
 
 ## Module identity
 
@@ -24,7 +24,7 @@ allowed-tools: Read, Grep, Glob
 
 ## Why this exists / Ground truth
 
-Treats RFIs, submittals, change orders, and permits as tracked objects (shared base per `platform-guidelines/references/platform-architecture.md`) with a "schedule-impact-if-unanswered-by-X" flag and a live at-risk cascade view. Structured change-order forms (baseline scope + delta + cost/schedule impact + evidence — not free text). Revision push notifications with "current as of" tagging. Location-tagged cross-trade coordination threads. Universal document lifecycle status applied uniformly (draft/under_review/approved/superseded/archived). Supplier/material delivery tracking as a tracked object. Quality-checkpoint tracking tied to milestones (e.g. rebar inspection before pour), distinct from safety incidents. AI/computer-vision progress estimation from site photos is flagged in the research as "solved in research, unbuilt in product" — the most-cited gap in the evidence base; treat as a real but unstarted sub-feature, not something to fabricate. Weather-data auto-tagging links delays to recorded conditions for force-majeure evidence. Master schedule/critical-path view ties RFIs + change orders + handover milestones together.
+Treats RFIs, submittals, change orders, and permits as tracked objects (shared base per `platform-guidelines/references/platform-architecture.md`) with a "schedule-impact-if-unanswered-by-X" flag and a live at-risk cascade view. Structured change-order forms (baseline scope + delta + cost/schedule impact + evidence - not free text). Revision push notifications with "current as of" tagging. Location-tagged cross-trade coordination threads. Universal document lifecycle status applied uniformly (draft/under_review/approved/superseded/archived). Supplier/material delivery tracking as a tracked object. Quality-checkpoint tracking tied to milestones (e.g. rebar inspection before pour), distinct from safety incidents. AI/computer-vision progress estimation from site photos is flagged in the research as "solved in research, unbuilt in product" - the most-cited gap in the evidence base; treat as a real but unstarted sub-feature, not something to fabricate. Weather-data auto-tagging links delays to recorded conditions for force-majeure evidence. Master schedule/critical-path view ties RFIs + change orders + handover milestones together.
 
 ## Owns vs. does not own
 
@@ -41,15 +41,15 @@ Treats RFIs, submittals, change orders, and permits as tracked objects (shared b
 
 ## Rules or Process
 
-- Every one of the six object types above inherits the shared `TrackedItem` base and document lifecycle enum — don't redefine status fields per model.
-- Change orders require structured fields (scope delta, cost impact, schedule impact, evidence reference) — reject free-text-only change-order submissions at the API layer.
-- "Current as of" tagging is mandatory on any versioned document view — never show a drawing/spec without a visible revision timestamp.
+- Every one of the six object types above inherits the shared `TrackedItem` base and document lifecycle enum - don't redefine status fields per model.
+- Change orders require structured fields (scope delta, cost impact, schedule impact, evidence reference) - reject free-text-only change-order submissions at the API layer.
+- "Current as of" tagging is mandatory on any versioned document view - never show a drawing/spec without a visible revision timestamp.
 
 ## Non-goals / Limitations
 
-- Does not implement AI/computer-vision progress estimation yet — flagged as a known future capability, not silently stubbed as "done."
-- Does not route or record approvals itself — see `approvals-workflow`.
-- Does not track post-handover defects — see `handover-closeout`.
+- Does not implement AI/computer-vision progress estimation yet - flagged as a known future capability, not silently stubbed as "done."
+- Does not route or record approvals itself - see `approvals-workflow`.
+- Does not track post-handover defects - see `handover-closeout`.
 
 ## See also
 
