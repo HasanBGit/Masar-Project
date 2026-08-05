@@ -83,6 +83,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 _default_db_url = f"postgres://{os.environ.get('USER', 'postgres')}@127.0.0.1:5432/truepoint_dev"
 DATABASES = {"default": env.db("DATABASE_URL", default=_default_db_url)}
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
+DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 # Supabase (and most managed Postgres) requires TLS. env.db() already turns a
 # "?sslmode=require" query param on DATABASE_URL into OPTIONS, but default to
 # requiring it outside of local dev so a plain DATABASE_URL still connects
