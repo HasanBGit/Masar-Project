@@ -1,10 +1,16 @@
-import { useEffect, useState } from 'react'
+import { CheckCircle2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { StatusBadge } from '../../components/StatusBadge'
 import { SlaCountdown } from '../../components/SlaCountdown'
+import { DataTable, type Column } from '../../components/ui/DataTable'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { PageSkeleton } from '../../components/ui/Skeleton'
+import { StatCard } from '../../components/ui/StatCard'
+import { useProjectData } from '../../lib/useProjectData'
 import { getDashboardSummary } from './api'
-import type { DashboardSummary, Project, Role } from '../../lib/types'
+import type { Decision, Project, Role } from '../../lib/types'
 
 const ROLE_COPY: Record<Role, { greeting: string; hint: string }> = {
   owner: {
@@ -26,35 +32,43 @@ const ROLE_COPY: Record<Role, { greeting: string; hint: string }> = {
   admin: { greeting: 'Workspace administration.', hint: 'Roster and access overview.' },
 }
 
-function StatCard({ label, value, tone }: { label: string; value: number; tone?: 'warn' | 'danger' }) {
-  return (
-    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper px-4 py-3.5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">{label}</p>
-      <p
-        className={`mt-1 font-[var(--font-display)] text-2xl font-bold ${
-          tone === 'danger' ? 'text-status-escalated' : tone === 'warn' ? 'text-status-hearing' : 'text-navy'
-        }`}
-      >
-        {value}
-      </p>
-    </div>
-  )
-}
+const DECISION_COLUMNS: Column<Decision>[] = [
+  {
+    key: 'title',
+    header: 'Decision',
+    sortValue: (d) => d.title.toLowerCase(),
+    render: (d) => (
+      <Link to={`/decisions/${d.id}`} className="font-medium text-navy transition hover:underline">
+        {d.title}
+      </Link>
+    ),
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    sortValue: (d) => d.status,
+    render: (d) => <StatusBadge status={d.status} />,
+  },
+  {
+    key: 'sla',
+    header: 'SLA',
+    sortValue: (d) => new Date(d.sla_deadline).getTime(),
+    render: (d) => <SlaCountdown deadline={d.sla_deadline} />,
+  },
+]
 
 export function DashboardPage({ project }: { project: Project }) {
   const { me } = useAuth()
-  const [summary, setSummary] = useState<DashboardSummary | null>(null)
-  const [loading, setLoading] = useState(true)
+  const {
+    data: summary,
+    loading,
+    error,
+    reload,
+  } = useProjectData(project.id, (id) => getDashboardSummary(Number(id)))
 
-  useEffect(() => {
-    setLoading(true)
-    getDashboardSummary(project.id)
-      .then(setSummary)
-      .finally(() => setLoading(false))
-  }, [project.id])
-
-  if (loading || !summary) {
-    return <p className="text-navy/60">Loading dashboard…</p>
+  if (loading) return <PageSkeleton />
+  if (error || !summary) {
+    return <ErrorState message={error ?? 'Could not load the dashboard.'} onRetry={reload} />
   }
 
   const copy = ROLE_COPY[summary.role]
@@ -74,16 +88,19 @@ export function DashboardPage({ project }: { project: Project }) {
           {summary.digest.length} thing{summary.digest.length === 1 ? '' : 's'} need{summary.digest.length === 1 ? 's' : ''} your decision
         </h2>
         {summary.digest.length === 0 ? (
-          <p className="rounded-[var(--radius-m)] border border-dashed border-sand bg-paper/60 px-4 py-6 text-center text-sm text-navy/50">
-            Nothing urgent - you're caught up.
-          </p>
+          <EmptyState
+            compact
+            icon={CheckCircle2}
+            title="Nothing urgent - you're caught up"
+            hint="Decisions that need your input will appear here the moment they are routed to you."
+          />
         ) : (
           <div className="grid gap-3 sm:grid-cols-3">
             {summary.digest.map((d) => (
               <Link
                 key={d.id}
                 to={`/decisions/${d.id}`}
-                className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-4 transition hover:border-navy/40 hover:shadow-[0_10px_30px_-18px_rgba(15,59,77,0.5)]"
+                className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-5 transition hover:border-navy/40 hover:shadow-[0_10px_30px_-18px_rgba(15,59,77,0.5)]"
               >
                 <div className="mb-2 flex items-center justify-between">
                   <StatusBadge status={d.status} />
@@ -104,77 +121,25 @@ export function DashboardPage({ project }: { project: Project }) {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <StatCard label="Total" value={summary.stats.total} />
           <StatCard label="Pending" value={summary.stats.pending} />
-          <StatCard label="Overdue" value={summary.stats.overdue} tone="danger" />
-          <StatCard label="High-stakes" value={summary.stats.high_stakes_pending} tone="warn" />
+          <StatCard label="Overdue" value={<span className="text-status-escalated">{summary.stats.overdue}</span>} />
+          <StatCard
+            label="High-stakes"
+            value={<span className="text-status-hearing">{summary.stats.high_stakes_pending}</span>}
+          />
           <StatCard label="Closed" value={summary.stats.closed} />
-        </div>
-      </section>
-
-      {/* Gmail & Email Integration Main Feature Widget */}
-      <section className="rounded-[var(--radius-m)] border border-gold/30 bg-navy-deep p-5 text-cream shadow-md">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/20 text-gold-ink font-bold">
-              📧
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-[var(--font-display)] text-base font-bold text-white">
-                  Gmail & Email Intelligence Active
-                </span>
-                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
-                  ● Live OAuth 2.0
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-cream/70">
-                Inbox <span className="font-mono text-gold">pm@masar-construction.sa</span> has <strong>3 extracted items</strong> pending approval (RFI #47, Balady Permit BA-2026-3847, Scaffold Safety Alert).
-              </p>
-            </div>
-          </div>
-
-          <Link
-            to="/email-integrations"
-            className="shrink-0 rounded-[var(--radius-s)] bg-gold px-4 py-2 text-xs font-bold text-navy transition hover:bg-gold-ink hover:text-white"
-          >
-            Manage Gmail Integration →
-          </Link>
         </div>
       </section>
 
       <section>
         <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">All decisions</h2>
-        <div className="overflow-x-auto rounded-[var(--radius-m)] border border-sand/70 bg-paper">
-          {summary.decisions.length === 0 ? (
-            <p className="px-4 py-6 text-center text-sm text-navy/50">No decisions in view for your role yet.</p>
-          ) : (
-            <table className="w-full min-w-[480px] text-left text-sm">
-              <thead className="border-b border-sand/70 text-xs uppercase tracking-wide text-navy/50">
-                <tr>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Decision</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Status</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">SLA</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summary.decisions.map((d) => (
-                  <tr key={d.id} className="border-b border-sand/40 last:border-0 hover:bg-cream/60">
-                    <td className="px-4 py-2.5">
-                      <Link to={`/decisions/${d.id}`} className="font-medium text-navy hover:underline">
-                        {d.title}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <StatusBadge status={d.status} />
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <SlaCountdown deadline={d.sla_deadline} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <DataTable
+          columns={DECISION_COLUMNS}
+          rows={summary.decisions}
+          rowKey={(d) => d.id}
+          minWidth={480}
+          emptyTitle="No decisions in view for your role yet"
+          emptyHint="When a decision is routed to your role on this project it will appear here."
+        />
       </section>
     </div>
   )

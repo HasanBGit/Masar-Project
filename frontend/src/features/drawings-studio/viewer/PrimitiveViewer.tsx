@@ -1,17 +1,18 @@
 // PrimitiveViewer – renders a primitive shape (box/cylinder/sphere) live in
-// the browser with no file upload. The parent controls `shape` and `dims`; any
-// prop change swaps the geometry in real time so the user sees the result
-// immediately. Uses the same SceneManager / BIMViewCube / ClipManager stack as
-// ModelViewer so orbit, section and measure all work out of the box.
+// the browser with no file upload. The parent controls `shape` and `dims`; a
+// shape (or colour) change rebuilds the geometry, while numeric dimension
+// changes only rescale the existing mesh so slider drags stay cheap. Uses the
+// same SceneManager / BIMViewCube / ClipManager stack as ModelViewer so orbit,
+// section and measure all work out of the box.
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { AlertTriangle, Ruler, Scissors } from 'lucide-react';
+import { AlertTriangle, Loader2, Ruler, Scissors } from 'lucide-react';
 import { SceneManager } from './SceneManager';
 import { ClipManager } from './ClipManager';
 import { BIMViewCube } from './BIMViewCube';
 import { SnapDetector } from './SnapDetector';
-import { distance3 } from './measureMath';
 import { installBVH, ensureBoundsTree } from './bvh';
+import { useViewerInteractions } from './viewerInteractions';
 import { buildPrimitiveMesh, type PrimitiveShape, type PrimitiveDimensions } from './primitives';
 
 interface PrimitiveViewerProps {
@@ -20,12 +21,11 @@ interface PrimitiveViewerProps {
   className?: string;
 }
 
-interface MeasureState {
-  points: THREE.Vector3[];
-  distance: number | null;
+/** The dimensions a mesh was built with, so later changes can be applied as scale. */
+interface BuiltMeshInfo {
+  dims: PrimitiveDimensions;
+  baseY: number;
 }
-
-const HIGHLIGHT_COLOR = new THREE.Color(0xf5c518);
 
 export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -33,40 +33,33 @@ export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps
   const clipManagerRef = useRef<ClipManager | null>(null);
   const snapDetectorRef = useRef<SnapDetector | null>(null);
   const loadedObjectRef = useRef<THREE.Object3D | null>(null);
-  const measureRef = useRef<MeasureState>({ points: [], distance: null });
-  const selectedMeshRef = useRef<{ mesh: THREE.Mesh; color: THREE.Color } | null>(null);
-  const measureLineRef = useRef<THREE.Line | null>(null);
-  const pointerDownPosRef = useRef<{ x: number; y: number } | null>(null);
-  const hoverMarkerRef = useRef<THREE.Mesh | null>(null);
+  const builtInfoRef = useRef<BuiltMeshInfo | null>(null);
+  const prevShapeRef = useRef<PrimitiveShape | null>(null);
 
   const [sceneManager, setSceneManager] = useState<SceneManager | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [sectionOn, setSectionOn] = useState(false);
-  const [measureOn, setMeasureOn] = useState(false);
-  const [measureText, setMeasureText] = useState<string | null>(null);
-  const [hoveredSnapInfo, setHoveredSnapInfo] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
-  function getHoverMarker(sm: SceneManager): THREE.Mesh {
-    if (!hoverMarkerRef.current) {
-      const geo = new THREE.SphereGeometry(0.12, 16, 16);
-      const mat = new THREE.MeshBasicMaterial({ color: 0xf5c518, depthTest: false });
-      const marker = new THREE.Mesh(geo, mat);
-      marker.renderOrder = 999;
-      marker.visible = false;
-      sm.scene.add(marker);
-      hoverMarkerRef.current = marker;
-    }
-    return hoverMarkerRef.current;
-  }
+  const interactions = useViewerInteractions({
+    canvasRef,
+    sceneManagerRef,
+    clipManagerRef,
+    snapDetectorRef,
+    loadedObjectRef,
+  });
+  const { clearSelection, clearMeasure, resetForTeardown } = interactions;
 
-  const prevShapeRef = useRef<PrimitiveShape>(shape);
-  const isMountedRef = useRef(false);
+  // The rebuild effect reads the latest dims through a ref so that numeric
+  // dimension changes do NOT trigger a full geometry rebuild (they are applied
+  // as a scale update in the effect below instead).
+  const dimsRef = useRef(dims);
+  dimsRef.current = dims;
+  const { width, depth, height, radius, color } = dims;
 
   // ── Scene setup (runs once on mount) ───────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    let disposed = false;
 
     installBVH();
 
@@ -83,40 +76,30 @@ export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps
     clipManagerRef.current = new ClipManager(sm);
     snapDetectorRef.current = new SnapDetector();
     setSceneManager(sm);
-
-    // Initial shape load
-    const mesh = buildPrimitiveMesh(shape, dims);
-    mesh.traverse((obj) => {
-      if (obj instanceof THREE.Mesh) ensureBoundsTree(obj.geometry);
-    });
-    sm.scene.add(mesh);
-    loadedObjectRef.current = mesh;
-    clipManagerRef.current.invalidateModelBox();
-    sm.zoomToFit();
-    sm.requestRender();
-
-    isMountedRef.current = true;
-
-    if (disposed) return;
+    setReady(true);
 
     return () => {
-      disposed = true;
       clipManagerRef.current?.dispose();
       clipManagerRef.current = null;
       sm.dispose();
       sceneManagerRef.current = null;
-      isMountedRef.current = false;
+      loadedObjectRef.current = null;
+      builtInfoRef.current = null;
+      prevShapeRef.current = null;
+      resetForTeardown();
+      setReady(false);
     };
+    // resetForTeardown is recreated per render but only clears refs; the scene
+    // itself must be created exactly once per canvas mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Live geometry swap when shape/dims change ───────────────────────────────
+  // ── Full geometry rebuild — only when the shape or colour changes ──────────
   useEffect(() => {
-    if (!isMountedRef.current) return;
     const sm = sceneManagerRef.current;
     if (!sm) return;
 
-    // Remove old mesh
+    // Remove and dispose the old mesh.
     if (loadedObjectRef.current) {
       sm.scene.remove(loadedObjectRef.current);
       loadedObjectRef.current.traverse((obj) => {
@@ -130,23 +113,19 @@ export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps
       loadedObjectRef.current = null;
     }
 
-    // Clear selection + measure when geometry swaps
-    selectedMeshRef.current = null;
-    if (measureLineRef.current) {
-      sm.scene.remove(measureLineRef.current);
-      measureLineRef.current.geometry.dispose();
-      measureLineRef.current = null;
-    }
-    measureRef.current = { points: [], distance: null };
-    setMeasureText(null);
+    // Clear selection + measure overlays: they referenced the old geometry.
+    clearSelection();
+    clearMeasure();
 
-    // Add new mesh
-    const mesh = buildPrimitiveMesh(shape, dims);
+    // Build the new mesh at the current dimensions.
+    const currentDims = { ...dimsRef.current };
+    const mesh = buildPrimitiveMesh(shape, currentDims);
     mesh.traverse((obj) => {
       if (obj instanceof THREE.Mesh) ensureBoundsTree(obj.geometry);
     });
     sm.scene.add(mesh);
     loadedObjectRef.current = mesh;
+    builtInfoRef.current = { dims: currentDims, baseY: mesh.position.y };
     clipManagerRef.current?.invalidateModelBox();
 
     if (prevShapeRef.current !== shape) {
@@ -154,219 +133,105 @@ export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps
       prevShapeRef.current = shape;
     }
     sm.requestRender();
-  }, [shape, dims]);
+    // clearSelection/clearMeasure are stable in behaviour (they only touch
+    // refs + reset local state); dims are intentionally read via dimsRef so
+    // slider ticks rescale instead of rebuilding.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shape, color, sceneManager]);
 
-  // ── Interaction helpers ────────────────────────────────────────────────────
-  function clearSelection() {
-    const sel = selectedMeshRef.current;
-    if (sel) {
-      const mat = sel.mesh.material;
-      if (!Array.isArray(mat) && 'color' in mat) (mat as THREE.MeshStandardMaterial).color.copy(sel.color);
-      selectedMeshRef.current = null;
-    }
-  }
-
-  function clearMeasure() {
-    measureRef.current = { points: [], distance: null };
-    setMeasureText(null);
+  // ── Cheap scale update — numeric dimension changes rescale the built mesh ──
+  useEffect(() => {
     const sm = sceneManagerRef.current;
-    if (measureLineRef.current && sm) {
-      sm.scene.remove(measureLineRef.current);
-      measureLineRef.current.geometry.dispose();
-      measureLineRef.current = null;
-      sm.requestRender();
-    }
-  }
+    const obj = loadedObjectRef.current;
+    const built = builtInfoRef.current;
+    if (!sm || !obj || !built) return;
 
-  function handlePointerDown(ev: React.MouseEvent<HTMLCanvasElement>) {
-    pointerDownPosRef.current = { x: ev.clientX, y: ev.clientY };
-  }
-
-  function handlePointerMove(ev: React.MouseEvent<HTMLCanvasElement>) {
-    const sm = sceneManagerRef.current;
-    const root = loadedObjectRef.current;
-    if (!sm || !root) return;
-
-    const rect = canvasRef.current!.getBoundingClientRect();
-    const ndc = new THREE.Vector2(
-      ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-      -((ev.clientY - rect.top) / rect.height) * 2 + 1,
-    );
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(ndc, sm.camera);
-
-    const hits = raycaster.intersectObject(root, true);
-    const meshHits = hits.filter((h) => h.object instanceof THREE.Mesh);
-
-    const marker = getHoverMarker(sm);
-
-    if (meshHits.length > 0) {
-      const hit = meshHits[0]!;
-      const mesh = hit.object as THREE.Mesh;
-      let point = hit.point;
-      let snapKind = 'surface';
-
-      if (hit.face) {
-        const snap = snapDetectorRef.current?.refine(
-          hit.point,
-          hit.face,
-          mesh,
-          sm.camera,
-          canvasRef.current!,
-          hit.faceIndex ?? undefined,
-        );
-        if (snap && snap.kind !== 'none') {
-          point = snap.point;
-          snapKind = snap.kind;
-        }
-      }
-
-      marker.position.copy(point);
-      marker.visible = true;
-      setHoveredSnapInfo(`Snap: ${snapKind.replace('_', ' ')}`);
-      sm.requestRender();
+    let sx = 1;
+    let sy = 1;
+    let sz = 1;
+    if (shape === 'sphere') {
+      sx = sy = sz = radius / built.dims.radius;
+    } else if (shape === 'cylinder') {
+      sx = sz = radius / built.dims.radius;
+      sy = height / built.dims.height;
     } else {
-      if (marker.visible) {
-        marker.visible = false;
-        setHoveredSnapInfo(null);
-        sm.requestRender();
-      }
+      // box / saudi_tower
+      sx = width / built.dims.width;
+      sy = height / built.dims.height;
+      sz = depth / built.dims.depth;
     }
-  }
+    obj.scale.set(sx, sy, sz);
+    // Keep the mesh resting on the ground plane (built.baseY was height/2 or
+    // radius for centred geometries, 0 for the ground-anchored tower group).
+    obj.position.y = built.baseY * sy;
+    obj.updateMatrixWorld();
 
-  function handleCanvasClick(ev: React.MouseEvent<HTMLCanvasElement>) {
-    // If the pointer moved more than 5px since pointerdown, it was a camera drag/orbit
-    if (pointerDownPosRef.current) {
-      const dx = Math.abs(ev.clientX - pointerDownPosRef.current.x);
-      const dy = Math.abs(ev.clientY - pointerDownPosRef.current.y);
-      if (dx > 5 || dy > 5) return;
-    }
-
-    const sm = sceneManagerRef.current;
-    const root = loadedObjectRef.current;
-    if (!sm || !root) return;
-    const rect = canvasRef.current!.getBoundingClientRect();
-    const ndc = new THREE.Vector2(
-      ((ev.clientX - rect.left) / rect.width) * 2 - 1,
-      -((ev.clientY - rect.top) / rect.height) * 2 + 1,
-    );
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(ndc, sm.camera);
-    const hits = raycaster.intersectObject(root, true);
-    const meshHits = hits.filter((h) => h.object instanceof THREE.Mesh);
-
-    if (meshHits.length === 0) return;
-    const hit = meshHits[0]!;
-    const mesh = hit.object as THREE.Mesh;
-
-    if (measureOn) {
-      const snap = snapDetectorRef.current;
-      let point = hit.point;
-      if (hit.face && snap) {
-        const refined = snap.refine(hit.point, hit.face, mesh, sm.camera, canvasRef.current!, hit.faceIndex ?? undefined);
-        if (refined && refined.kind !== 'none') point = refined.point;
-      }
-      const points = [...measureRef.current.points, point.clone()];
-      if (points.length > 2) points.shift();
-      measureRef.current.points = points;
-
-      if (measureLineRef.current) {
-        sm.scene.remove(measureLineRef.current);
-        measureLineRef.current.geometry.dispose();
-        measureLineRef.current = null;
-      }
-      if (points.length === 2) {
-        const dist = distance3(points[0]!, points[1]!);
-        measureRef.current.distance = dist;
-        setMeasureText(`${dist.toFixed(3)} m (model units)`);
-        const geo = new THREE.BufferGeometry().setFromPoints(points);
-        const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xf5c518, depthTest: false }));
-        sm.scene.add(line);
-        measureLineRef.current = line;
-      } else {
-        setMeasureText('Pick a second point to measure the distance.');
-      }
-      sm.requestRender();
-      return;
-    }
-
-    clearSelection();
-    const mat = mesh.material;
-    if (!Array.isArray(mat) && 'color' in mat) {
-      const stdMat = mat as THREE.MeshStandardMaterial;
-      selectedMeshRef.current = { mesh, color: stdMat.color.clone() };
-      stdMat.color.copy(HIGHLIGHT_COLOR);
-    }
-    sm.requestRender();
-  }
-
-  function toggleSection() {
-    const cm = clipManagerRef.current;
-    if (!cm) return;
-    const next = !sectionOn;
-    setSectionOn(next);
-    cm.setMode(next ? 'box' : 'none');
-    if (next) cm.setBoxExtent({ maxX: 0.5 });
-    sceneManagerRef.current?.requestRender();
-  }
-
-  function toggleMeasure() {
-    setMeasureOn((v) => !v);
+    // Measurement endpoints no longer lie on the surface after a rescale.
     clearMeasure();
-  }
+    clipManagerRef.current?.invalidateModelBox();
+    sm.requestRender();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shape, width, depth, height, radius]);
 
   if (error) {
     return (
-      <div className={`flex h-[420px] flex-col items-center justify-center gap-2 rounded-[var(--radius-s)] border border-sand bg-white text-center text-navy/70 ${className ?? ''}`}>
-        <AlertTriangle size={24} className="text-gold-ink" />
+      <div
+        className={`flex h-[50svh] max-h-[420px] flex-col items-center justify-center gap-2 rounded-[var(--radius-s)] border border-sand bg-white text-center text-navy/70 ${className ?? ''}`}
+      >
+        <AlertTriangle size={24} className="text-gold-ink" aria-hidden="true" />
         <span className="text-sm">{error}</span>
       </div>
     );
   }
 
-  const cursorClass = measureOn
-    ? 'cursor-crosshair'
-    : hoveredSnapInfo
-    ? 'cursor-pointer'
-    : 'cursor-grab active:cursor-grabbing';
-
   return (
     <div className={`relative w-full overflow-hidden rounded-[var(--radius-s)] border border-sand bg-white ${className ?? ''}`}>
       <canvas
         ref={canvasRef}
-        className={`block h-[420px] w-full ${cursorClass}`}
-        onMouseDown={handlePointerDown}
-        onMouseMove={handlePointerMove}
-        onClick={handleCanvasClick}
+        className={`block h-[50svh] max-h-[420px] w-full ${interactions.cursorClass}`}
+        onMouseDown={interactions.handlePointerDown}
+        onMouseMove={interactions.handlePointerMove}
+        onClick={interactions.handleCanvasClick}
       />
 
-      <BIMViewCube sceneManager={sceneManager} className="absolute right-3 top-3" size={72} />
-
-      <div className="absolute left-3 top-3 flex gap-2">
-        <button
-          type="button"
-          onClick={toggleSection}
-          className={`flex items-center gap-1.5 rounded-[var(--radius-s)] border px-2.5 py-1.5 text-xs font-semibold shadow-sm ${
-            sectionOn ? 'border-navy bg-navy text-cream' : 'border-sand bg-white text-navy hover:bg-cream'
-          }`}
-        >
-          <Scissors size={14} /> Section
-        </button>
-        <button
-          type="button"
-          onClick={toggleMeasure}
-          className={`flex items-center gap-1.5 rounded-[var(--radius-s)] border px-2.5 py-1.5 text-xs font-semibold shadow-sm ${
-            measureOn ? 'border-navy bg-navy text-cream' : 'border-sand bg-white text-navy hover:bg-cream'
-          }`}
-        >
-          <Ruler size={14} /> Measure
-        </button>
-      </div>
-
-      {measureOn && (
-        <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy shadow-sm">
-          {measureText ?? 'Click two points on the model to measure.'}
+      {!ready && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/80 text-navy/60">
+          <Loader2 className="animate-spin" size={24} aria-hidden="true" />
+          <span className="text-sm">Preparing 3D view...</span>
         </div>
+      )}
+
+      {ready && (
+        <>
+          <BIMViewCube sceneManager={sceneManager} className="absolute end-3 top-3" size={72} />
+
+          <div className="absolute start-3 top-3 flex gap-2">
+            <button
+              type="button"
+              onClick={interactions.toggleSection}
+              className={`flex items-center gap-1.5 rounded-[var(--radius-s)] border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition ${
+                interactions.sectionOn ? 'border-navy bg-navy text-cream' : 'border-sand bg-white text-navy hover:bg-cream'
+              }`}
+            >
+              <Scissors size={14} aria-hidden="true" /> Section
+            </button>
+            <button
+              type="button"
+              onClick={interactions.toggleMeasure}
+              className={`flex items-center gap-1.5 rounded-[var(--radius-s)] border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition ${
+                interactions.measureOn ? 'border-navy bg-navy text-cream' : 'border-sand bg-white text-navy hover:bg-cream'
+              }`}
+            >
+              <Ruler size={14} aria-hidden="true" /> Measure
+            </button>
+          </div>
+
+          {interactions.measureOn && (
+            <div className="absolute bottom-3 start-3 flex items-center gap-2 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy shadow-sm">
+              {interactions.measureText ?? 'Click two points on the model to measure.'}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

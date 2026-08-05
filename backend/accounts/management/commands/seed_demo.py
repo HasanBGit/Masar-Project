@@ -10,7 +10,8 @@ from approvals.services import (
     request_decision,
 )
 from core.models import Project
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
@@ -34,6 +35,8 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        if not settings.DEBUG:
+            raise CommandError("seed_demo creates well-known demo credentials - refusing to run with DEBUG=False.")
         project, _ = Project.objects.get_or_create(
             slug="riyadh-tower-phase-1",
             defaults={"name": "Riyadh Tower - Phase 1", "description": "Demo project for Truepoint MVP."},
@@ -192,13 +195,13 @@ class Command(BaseCommand):
         raw_key, _ = platform_api.generate_api_key(
             project=project, label="Demo partner integration", scope=ApiKeyScope.OWNER, tier=ApiKeyTier.PARTNER, created_by=owner,
         )
+        # A placeholder endpoint only - seeding must not fire live HTTP
+        # requests, so no delivery is dispatched here (use the app or
+        # `retry_failed_webhooks` to exercise the real dispatch path).
         subscription = platform_api.create_webhook_subscription(
-            project=project, target_url="https://httpbin.org/post",
+            project=project, target_url="https://example.com/webhooks/truepoint-demo",
             event_types=["approval.requested", "evidence.verified", "contractor.overdue"], created_by=owner,
         )
-        # Fire one real delivery so the demo shows a genuine attempt (success
-        # or failure both demonstrate the real dispatch/retry path - not faked).
-        platform_api.dispatch_webhook_event(project, "approval.requested", {"note": "seed-demo test delivery"})
 
         self.stdout.write(f"  API key (shown once): {raw_key}")
         self.stdout.write(f"  Webhook subscription -> {subscription.target_url}")

@@ -67,6 +67,9 @@ class QualityCheckpointSerializer(serializers.ModelSerializer):
         model = QualityCheckpoint
         fields = ["id", "project", "title", "milestone_ref", "location_tag", "inspector", "inspector_name", "status", "created_at"]
         read_only_fields = ["status", "created_at"]
+        # The frontend doesn't send an inspector - the view defaults it to
+        # the requesting user.
+        extra_kwargs = {"inspector": {"required": False, "allow_null": True}}
 
 
 class CoordinationMessageSerializer(serializers.ModelSerializer):

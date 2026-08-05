@@ -1,11 +1,6 @@
 import { api } from '../../lib/api'
 import type { Decision } from '../../lib/types'
 
-export async function listDecisions(project: number): Promise<Decision[]> {
-  const res = await api.get<Decision[]>('/approvals/decisions/', { params: { project } })
-  return res.data
-}
-
 export async function getDecision(id: number): Promise<Decision> {
   const res = await api.get<Decision>(`/approvals/decisions/${id}/`)
   return res.data

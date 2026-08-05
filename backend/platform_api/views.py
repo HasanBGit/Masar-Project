@@ -12,6 +12,7 @@ from . import services
 from .auth import ApiKeyAuthentication, ApiKeyRateThrottle
 from .models import APIKey, WebhookDelivery, WebhookSubscription
 from .serializers import (
+    APIKeyCreateSerializer,
     APIKeySerializer,
     PublicActivityEventSerializer,
     PublicApprovalSerializer,
@@ -37,14 +38,26 @@ class APIKeyViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gen
         return project
 
     def get_queryset(self):
-        return APIKey.objects.filter(project=self._project())
+        project = self._project()
+        # Same elevated-role bar as issuing/revoking - a non-admin member
+        # shouldn't even enumerate the project's keys.
+        if not has_permission(self.request.user, project, "manage_roster"):
+            raise PermissionDenied("Only project owners/admins can view API keys.")
+        return APIKey.objects.filter(project=project)
 
     def create(self, request, *args, **kwargs):
         project = self._project()
         if not has_permission(request.user, project, "manage_roster"):  # same elevated-role bar as roster management
             raise PermissionDenied("Only project owners/admins can issue API keys.")
-        label, scope, tier = request.data.get("label", ""), request.data.get("scope"), request.data.get("tier", "standard")
-        raw_key, key = services.generate_api_key(project=project, label=label, scope=scope, tier=tier, created_by=request.user)
+        input_serializer = APIKeyCreateSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        raw_key, key = services.generate_api_key(
+            project=project,
+            label=input_serializer.validated_data["label"],
+            scope=input_serializer.validated_data["scope"],
+            tier=input_serializer.validated_data["tier"],
+            created_by=request.user,
+        )
         data = self.get_serializer(key).data
         data["raw_key"] = raw_key  # shown exactly once
         return Response(data, status=201)
@@ -73,6 +86,13 @@ class WebhookSubscriptionViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     def get_queryset(self):
         return WebhookSubscription.objects.filter(project=self._project())
 
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        # The signing secret is exposed exactly once, here at creation time -
+        # the serializer never includes it, so list/retrieve can't leak it.
+        response.data["secret"] = self._created_subscription.secret
+        return response
+
     def perform_create(self, serializer):
         project = self._project()
         if not has_permission(self.request.user, project, "manage_roster"):
@@ -85,6 +105,7 @@ class WebhookSubscriptionViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
         except services.UnsafeWebhookURL as exc:
             raise ValidationError({"target_url": str(exc)})
         serializer.instance = subscription
+        self._created_subscription = subscription
 
 
 class WebhookDeliveryListView(APIView):
@@ -93,6 +114,8 @@ class WebhookDeliveryListView(APIView):
         project = Project.objects.filter(id=project_id).first() if project_id else None
         if project is None or get_role(request.user, project) is None:
             raise NotFound("Project not found.")
+        if not has_permission(request.user, project, "manage_roster"):
+            raise PermissionDenied("Only project owners/admins can view webhook deliveries.")
         deliveries = WebhookDelivery.objects.filter(subscription__project=project).select_related("subscription")[:100]
         return Response(WebhookDeliverySerializer(deliveries, many=True).data)
 

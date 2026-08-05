@@ -3,7 +3,7 @@ from core.models import Project
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -32,18 +32,25 @@ class ProjectScopedViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixin
     """
 
     model = None
+    select_related_fields = ()
+    prefetch_related_fields = ()
 
     def _project(self):
         project_id = self.request.query_params.get("project") or self.request.data.get("project")
         if not project_id:
-            raise NotFound("Missing `project`.")
+            raise NotFound("Missing `project` parameter.")
         project = Project.objects.filter(id=project_id).first()
         if project is None or get_role(self.request.user, project) is None:
             raise NotFound("Project not found.")
         return project
 
     def get_queryset(self):
-        return self.model.objects.filter(project=self._project())
+        qs = self.model.objects.filter(project=self._project())
+        if self.select_related_fields:
+            qs = qs.select_related(*self.select_related_fields)
+        if self.prefetch_related_fields:
+            qs = qs.prefetch_related(*self.prefetch_related_fields)
+        return qs
 
     def get_object(self):
         obj = get_object_or_404(self.model, pk=self.kwargs["pk"])
@@ -55,6 +62,7 @@ class ProjectScopedViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixin
 class RFIViewSet(ProjectScopedViewSet):
     model = RFI
     serializer_class = RFISerializer
+    select_related_fields = ("raised_by",)
 
     def create(self, request, *args, **kwargs):
         project = self._project()
@@ -65,7 +73,7 @@ class RFIViewSet(ProjectScopedViewSet):
             raised_by=request.user,
             title=serializer.validated_data["title"],
             question=serializer.validated_data["question"],
-            respond_by=serializer.validated_data["sla_deadline"],
+            respond_by=serializer.validated_data.get("sla_deadline"),
             schedule_impact_days=serializer.validated_data.get("schedule_impact_days", 0),
             location_tag=serializer.validated_data.get("location_tag", ""),
         )
@@ -94,21 +102,34 @@ class AtRiskRFIView(APIView):
 class ChangeOrderViewSet(ProjectScopedViewSet):
     model = ChangeOrder
     serializer_class = ChangeOrderSerializer
+    select_related_fields = ("raised_by",)
 
     def create(self, request, *args, **kwargs):
         project = self._project()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        co = services.create_change_order(project=project, raised_by=request.user, **serializer.validated_data)
+        # `project` is a writable serializer field but the service takes the
+        # (membership-checked) project explicitly - drop it before splatting.
+        data = dict(serializer.validated_data)
+        data.pop("project", None)
+        co = services.create_change_order(project=project, raised_by=request.user, **data)
         return Response(self.get_serializer(co).data, status=201)
 
 
 class SubmittalViewSet(ProjectScopedViewSet):
     model = Submittal
     serializer_class = SubmittalSerializer
+    select_related_fields = ("submitted_by",)
 
     def perform_create(self, serializer):
-        serializer.save(project=self._project(), submitted_by=self.request.user)
+        serializer.instance = services.create_submittal(
+            project=self._project(),
+            submitted_by=self.request.user,
+            title=serializer.validated_data["title"],
+            spec_section=serializer.validated_data.get("spec_section", ""),
+            description=serializer.validated_data.get("description", ""),
+            revision_number=serializer.validated_data.get("revision_number", 1),
+        )
 
 
 class PermitViewSet(ProjectScopedViewSet):
@@ -116,7 +137,12 @@ class PermitViewSet(ProjectScopedViewSet):
     serializer_class = PermitSerializer
 
     def perform_create(self, serializer):
-        serializer.save(project=self._project())
+        serializer.instance = services.create_permit(
+            project=self._project(),
+            title=serializer.validated_data["title"],
+            authority=serializer.validated_data.get("authority", "Balady"),
+            permit_number=serializer.validated_data.get("permit_number", ""),
+        )
 
 
 class SupplierDeliveryViewSet(ProjectScopedViewSet):
@@ -124,20 +150,34 @@ class SupplierDeliveryViewSet(ProjectScopedViewSet):
     serializer_class = SupplierDeliverySerializer
 
     def perform_create(self, serializer):
-        serializer.save(project=self._project())
+        serializer.instance = services.create_supplier_delivery(
+            project=self._project(),
+            material=serializer.validated_data["material"],
+            supplier_name=serializer.validated_data["supplier_name"],
+            committed_date=serializer.validated_data["committed_date"],
+        )
 
 
 class QualityCheckpointViewSet(ProjectScopedViewSet):
     model = QualityCheckpoint
     serializer_class = QualityCheckpointSerializer
+    select_related_fields = ("inspector",)
 
     def perform_create(self, serializer):
-        serializer.save(project=self._project())
+        serializer.instance = services.create_quality_checkpoint(
+            project=self._project(),
+            title=serializer.validated_data["title"],
+            inspector=serializer.validated_data.get("inspector") or self.request.user,
+            milestone_ref=serializer.validated_data.get("milestone_ref", ""),
+            location_tag=serializer.validated_data.get("location_tag", ""),
+        )
 
 
 class CoordinationThreadViewSet(ProjectScopedViewSet):
     model = CoordinationThread
     serializer_class = CoordinationThreadSerializer
+    select_related_fields = ("created_by",)
+    prefetch_related_fields = ("messages__author",)
 
     def perform_create(self, serializer):
         serializer.save(project=self._project(), created_by=self.request.user)

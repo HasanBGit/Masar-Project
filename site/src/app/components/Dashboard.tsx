@@ -48,7 +48,7 @@ export function Dashboard({
   onReanalyse,
 }: Props) {
   const { i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const isAr = (i18n.resolvedLanguage ?? i18n.language).split("-")[0] === "ar";
 
   const intel = useMemo(() => {
     const byRecency = [...events].sort(

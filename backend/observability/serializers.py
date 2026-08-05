@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import AlertEvent, DigestOpenEvent, IntegrationHealthCheck
+from .models import AlertEvent, IntegrationHealthCheck
 
 
 class IntegrationHealthCheckSerializer(serializers.ModelSerializer):

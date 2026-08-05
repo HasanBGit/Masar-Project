@@ -1,5 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
+import { X } from 'lucide-react'
 import { Badge } from '../../components/Badge'
+import { DataTable, type Column } from '../../components/ui/DataTable'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { SelectField, TextAreaField, TextField } from '../../components/ui/Field'
+import { PageSkeleton } from '../../components/ui/Skeleton'
+import { StatCard } from '../../components/ui/StatCard'
+import { useToast } from '../../components/ui/Toast'
+import { getApiError } from '../../lib/api'
+import { useProjectData } from '../../lib/useProjectData'
 import type {
   CeilingCheck,
   Contract,
@@ -25,89 +34,114 @@ import {
 
 const FINANCIAL_ROLES = new Set(['owner', 'admin'])
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper px-4 py-3.5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">{label}</p>
-      <p className="mt-1 font-[var(--font-display)] text-2xl font-bold text-navy">{value}</p>
-    </div>
-  )
-}
-
 function money(value: string | undefined, currency: string) {
   if (value === undefined) return '-'
   return `${currency} ${Number(value).toLocaleString()}`
 }
 
-function NewContractForm({ project, onCreated }: { project: Project; onCreated: (c: Contract) => void }) {
+/** Positive-amount check for money inputs (type="number" allows e.g. "-3"). */
+function validAmount(value: string): boolean {
+  const parsed = Number(value)
+  return value.trim() !== '' && Number.isFinite(parsed) && parsed > 0
+}
+
+function NewContractForm({ project, onCreated }: { project: Project; onCreated: () => void }) {
+  const toast = useToast()
   const [title, setTitle] = useState('')
   const [value, setValue] = useState('')
+  const [valueError, setValueError] = useState<string | null>(null)
   const [scopeBaseline, setScopeBaseline] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setValueError(null)
+    setError(null)
+    if (!validAmount(value)) {
+      setValueError('Enter a contract value greater than zero.')
+      return
+    }
+    setBusy(true)
+    try {
+      await createContract({
+        project: project.id,
+        title: title.trim(),
+        contract_value: value.trim(),
+        scope_baseline: scopeBaseline.trim(),
+      })
+      toast.success('Contract created.')
+      onCreated()
+    } catch (err) {
+      const message = getApiError(err, 'Could not create contract.')
+      setError(message)
+      toast.error(message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
-    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-4 text-navy">
+    <form onSubmit={handleSubmit} className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-5 text-navy">
       <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-navy">No contract on this project yet</h3>
       <p className="mb-3 text-sm text-navy/60">
         Create the structured contract record - payment schedule, milestones, and scope live here as queryable data,
         not locked inside a PDF.
       </p>
       <div className="mb-2 flex flex-wrap gap-2">
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Contract title"
-          className="min-w-48 flex-1 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
-        />
-        <input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Contract value (SAR)"
-          inputMode="decimal"
-          className="w-40 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
+        <div className="min-w-48 flex-1">
+          <TextField
+            label="Contract title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Contract title"
+            required
+          />
+        </div>
+        <div className="w-44">
+          <TextField
+            label="Contract value (SAR)"
+            type="number"
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="0.00"
+            error={valueError}
+            required
+          />
+        </div>
+      </div>
+      <div className="mb-2">
+        <TextAreaField
+          label="Baseline scope of work"
+          value={scopeBaseline}
+          onChange={(e) => setScopeBaseline(e.target.value)}
+          rows={2}
+          placeholder="Baseline scope of work"
+          required
         />
       </div>
-      <textarea
-        value={scopeBaseline}
-        onChange={(e) => setScopeBaseline(e.target.value)}
-        rows={2}
-        placeholder="Baseline scope of work"
-        className="mb-2 w-full rounded-[var(--radius-s)] border border-sand bg-white px-3 py-2 text-xs text-navy"
-      />
-      {error && <p className="mb-2 text-xs text-status-escalated">{error}</p>}
+      {error && <p role="alert" className="mb-2 text-xs text-status-escalated">{error}</p>}
       <button
+        type="submit"
         disabled={busy || !title.trim() || !value.trim() || !scopeBaseline.trim()}
-        onClick={async () => {
-          setBusy(true)
-          setError(null)
-          try {
-            const contract = await createContract({
-              project: project.id,
-              title: title.trim(),
-              contract_value: value.trim(),
-              scope_baseline: scopeBaseline.trim(),
-            })
-            onCreated(contract)
-          } catch (e: any) {
-            setError(e?.response?.data?.detail ?? 'Could not create contract.')
-          } finally {
-            setBusy(false)
-          }
-        }}
-        className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream disabled:opacity-60"
+        className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep disabled:opacity-60"
       >
-        Create contract
+        {busy ? 'Creating…' : 'Create contract'}
       </button>
-    </div>
+    </form>
   )
 }
 
 function NewMilestoneForm({ contract, onCreated }: { contract: Contract; onCreated: () => void }) {
+  const toast = useToast()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [dueCondition, setDueCondition] = useState('')
   const [amount, setAmount] = useState('')
+  const [amountError, setAmountError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -115,84 +149,137 @@ function NewMilestoneForm({ contract, onCreated }: { contract: Contract; onCreat
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream hover:bg-navy-deep"
+        className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep"
       >
         + Add milestone
       </button>
     )
   }
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setAmountError(null)
+    setError(null)
+    if (!validAmount(amount)) {
+      setAmountError('Enter an amount greater than zero.')
+      return
+    }
+    setBusy(true)
+    try {
+      await createPaymentMilestone({
+        project: contract.project,
+        contract: contract.id,
+        name: name.trim(),
+        due_condition: dueCondition.trim(),
+        amount: amount.trim(),
+      })
+      toast.success('Milestone added.')
+      setOpen(false)
+      setName('')
+      setDueCondition('')
+      setAmount('')
+      onCreated()
+    } catch (err) {
+      const message = getApiError(err, 'Could not create milestone.')
+      setError(message)
+      toast.error(message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
-    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-4 text-navy">
+    <form onSubmit={handleSubmit} className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-5 text-navy">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-xs font-bold uppercase tracking-wider text-navy">New Payment Milestone</h3>
-        <button onClick={() => setOpen(false)} className="text-xs text-navy/40 hover:text-navy">
-          ✕
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label="Close milestone form"
+          className="rounded p-1 text-navy/40 transition hover:text-navy"
+        >
+          <X size={14} aria-hidden="true" />
         </button>
       </div>
       <div className="mb-2 flex flex-wrap gap-2">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Milestone name"
-          className="min-w-40 flex-1 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
-        />
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Amount"
-          inputMode="decimal"
-          className="w-32 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
+        <div className="min-w-40 flex-1">
+          <TextField
+            label="Milestone name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Milestone name"
+            required
+          />
+        </div>
+        <div className="w-36">
+          <TextField
+            label="Amount"
+            type="number"
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0.00"
+            error={amountError}
+            required
+          />
+        </div>
+      </div>
+      <div className="mb-2">
+        <TextField
+          label="Due condition"
+          value={dueCondition}
+          onChange={(e) => setDueCondition(e.target.value)}
+          placeholder='Due condition (e.g. "40% structural complete")'
+          required
         />
       </div>
-      <input
-        value={dueCondition}
-        onChange={(e) => setDueCondition(e.target.value)}
-        placeholder='Due condition (e.g. "40% structural complete")'
-        className="mb-2 w-full rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
-      />
-      {error && <p className="mb-2 text-xs text-status-escalated">{error}</p>}
+      {error && <p role="alert" className="mb-2 text-xs text-status-escalated">{error}</p>}
       <div className="flex gap-2">
         <button
+          type="submit"
           disabled={busy || !name.trim() || !dueCondition.trim() || !amount.trim()}
-          onClick={async () => {
-            setBusy(true)
-            setError(null)
-            try {
-              await createPaymentMilestone({
-                project: contract.project, contract: contract.id, name: name.trim(),
-                due_condition: dueCondition.trim(), amount: amount.trim(),
-              })
-              setOpen(false)
-              setName('')
-              setDueCondition('')
-              setAmount('')
-              onCreated()
-            } catch (e: any) {
-              setError(e?.response?.data?.detail ?? 'Could not create milestone.')
-            } finally {
-              setBusy(false)
-            }
-          }}
-          className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream disabled:opacity-60"
+          className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep disabled:opacity-60"
         >
-          Add milestone
+          {busy ? 'Adding…' : 'Add milestone'}
         </button>
-        <button onClick={() => setOpen(false)} className="text-xs text-navy/50">
+        <button type="button" onClick={() => setOpen(false)} className="text-xs text-navy/50 transition hover:text-navy">
           Cancel
         </button>
       </div>
-    </div>
+    </form>
   )
 }
 
 function CeilingCheckWidget({ contract }: { contract: Contract }) {
   const [amount, setAmount] = useState('')
+  const [amountError, setAmountError] = useState<string | null>(null)
   const [result, setResult] = useState<CeilingCheck | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setAmountError(null)
+    setError(null)
+    if (!validAmount(amount)) {
+      setAmountError('Enter an amount greater than zero.')
+      return
+    }
+    setBusy(true)
+    try {
+      setResult(await getCeilingCheck(contract.id, amount.trim()))
+    } catch (err) {
+      setResult(null)
+      setError(getApiError(err, 'Could not run the ceiling check.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
-    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-4 text-navy">
+    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-5 text-navy">
       <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-navy">
         Ceiling check - before you approve, not after
       </h3>
@@ -200,29 +287,31 @@ function CeilingCheckWidget({ contract }: { contract: Contract }) {
         Enter a pending change order or payment amount to see whether it would push cumulative spend past this
         contract's {contract.ceiling_threshold_percentage}% ceiling threshold.
       </p>
-      <div className="flex flex-wrap gap-2">
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Pending amount"
-          inputMode="decimal"
-          className="w-40 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
-        />
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-start gap-2">
+        <div className="w-44">
+          <TextField
+            label="Pending amount"
+            hideLabel
+            type="number"
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Pending amount"
+            error={amountError}
+            required
+          />
+        </div>
         <button
+          type="submit"
           disabled={busy || !amount.trim()}
-          onClick={async () => {
-            setBusy(true)
-            try {
-              setResult(await getCeilingCheck(contract.id, amount.trim()))
-            } finally {
-              setBusy(false)
-            }
-          }}
-          className="rounded-[var(--radius-s)] border border-navy/20 px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5 disabled:opacity-60"
+          className="rounded-[var(--radius-s)] border border-navy/20 px-3 py-2 text-xs font-semibold text-navy transition hover:bg-navy/5 disabled:opacity-60"
         >
-          Check
+          {busy ? 'Checking…' : 'Check'}
         </button>
-      </div>
+      </form>
+      {error && <p role="alert" className="mt-2 text-xs text-status-escalated">{error}</p>}
       {result && (
         <div className="mt-3 flex items-center gap-2">
           {result.would_breach ? (
@@ -240,8 +329,10 @@ function CeilingCheckWidget({ contract }: { contract: Contract }) {
 }
 
 function NewAmendmentForm({ contract, onCreated }: { contract: Contract; onCreated: () => void }) {
+  const toast = useToast()
   const [open, setOpen] = useState(false)
   const [versionNumber, setVersionNumber] = useState('')
+  const [versionError, setVersionError] = useState<string | null>(null)
   const [summary, setSummary] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -250,75 +341,99 @@ function NewAmendmentForm({ contract, onCreated }: { contract: Contract; onCreat
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream hover:bg-navy-deep"
+        className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep"
       >
         + Request amendment signing
       </button>
     )
   }
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setVersionError(null)
+    setError(null)
+    const version = Number(versionNumber)
+    if (!Number.isInteger(version) || version < 1) {
+      setVersionError('Enter a whole version number of 1 or more.')
+      return
+    }
+    setBusy(true)
+    try {
+      await requestContractAmendment({ contract: contract.id, version_number: version, summary: summary.trim() })
+      toast.success('Amendment signing requested.')
+      setOpen(false)
+      setVersionNumber('')
+      setSummary('')
+      onCreated()
+    } catch (err) {
+      const message = getApiError(err, 'Could not request amendment.')
+      setError(message)
+      toast.error(message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
-    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-4 text-navy">
+    <form onSubmit={handleSubmit} className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-5 text-navy">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-xs font-bold uppercase tracking-wider text-navy">Request Contract Amendment</h3>
-        <button onClick={() => setOpen(false)} className="text-xs text-navy/40 hover:text-navy">
-          ✕
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label="Close amendment form"
+          className="rounded p-1 text-navy/40 transition hover:text-navy"
+        >
+          <X size={14} aria-hidden="true" />
         </button>
       </div>
       <p className="mb-2 text-xs text-navy/50">
         Routes through the same 3-Edges approval/e-signature workflow as every other high-stakes decision - you'll be
         the sole accountable signer.
       </p>
-      <div className="mb-2 flex flex-wrap gap-2">
-        <input
+      <div className="mb-2 w-28">
+        <TextField
+          label="Version #"
+          type="number"
+          min={1}
+          step={1}
+          inputMode="numeric"
           value={versionNumber}
           onChange={(e) => setVersionNumber(e.target.value)}
-          placeholder="Version #"
-          inputMode="numeric"
-          className="w-24 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
+          placeholder="1"
+          error={versionError}
+          required
         />
       </div>
-      <textarea
-        value={summary}
-        onChange={(e) => setSummary(e.target.value)}
-        rows={2}
-        placeholder="What's changing and why"
-        className="mb-2 w-full rounded-[var(--radius-s)] border border-sand bg-white px-3 py-2 text-xs text-navy"
-      />
-      {error && <p className="mb-2 text-xs text-status-escalated">{error}</p>}
+      <div className="mb-2">
+        <TextAreaField
+          label="What's changing and why"
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          rows={2}
+          placeholder="What's changing and why"
+          required
+        />
+      </div>
+      {error && <p role="alert" className="mb-2 text-xs text-status-escalated">{error}</p>}
       <div className="flex gap-2">
         <button
+          type="submit"
           disabled={busy || !versionNumber.trim() || !summary.trim()}
-          onClick={async () => {
-            setBusy(true)
-            setError(null)
-            try {
-              await requestContractAmendment({
-                contract: contract.id, version_number: Number(versionNumber), summary: summary.trim(),
-              })
-              setOpen(false)
-              setVersionNumber('')
-              setSummary('')
-              onCreated()
-            } catch (e: any) {
-              setError(e?.response?.data?.detail ?? 'Could not request amendment.')
-            } finally {
-              setBusy(false)
-            }
-          }}
-          className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream disabled:opacity-60"
+          className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep disabled:opacity-60"
         >
-          Request signing
+          {busy ? 'Requesting…' : 'Request signing'}
         </button>
-        <button onClick={() => setOpen(false)} className="text-xs text-navy/50">
+        <button type="button" onClick={() => setOpen(false)} className="text-xs text-navy/50 transition hover:text-navy">
           Cancel
         </button>
       </div>
-    </div>
+    </form>
   )
 }
 
 interface ChatTurn {
+  id: number
   question: string
   answer?: string
   sources?: LegalAgentSource[]
@@ -326,35 +441,50 @@ interface ChatTurn {
 }
 
 function LegalAgentChat({ contract, canReindex }: { contract: Contract; canReindex: boolean }) {
+  const toast = useToast()
   const [question, setQuestion] = useState('')
   const [language, setLanguage] = useState<'en' | 'ar'>('en')
   const [turns, setTurns] = useState<ChatTurn[]>([])
   const [busy, setBusy] = useState(false)
   const [reindexing, setReindexing] = useState(false)
-  const [reindexMessage, setReindexMessage] = useState<string | null>(null)
+  const nextTurnId = useRef(1)
 
-  async function handleAsk() {
+  async function handleAsk(e: FormEvent) {
+    e.preventDefault()
     const q = question.trim()
-    if (!q) return
+    if (!q || busy) return
+    const turnId = nextTurnId.current++
     setBusy(true)
     setQuestion('')
-    setTurns((prev) => [...prev, { question: q }])
+    setTurns((prev) => [...prev, { id: turnId, question: q }])
     try {
       const result = await askLegalAgent(contract.id, q, language)
-      setTurns((prev) => prev.map((t, i) => (i === prev.length - 1 ? { ...t, answer: result.answer, sources: result.sources } : t)))
-    } catch (e: any) {
+      setTurns((prev) => prev.map((t) => (t.id === turnId ? { ...t, answer: result.answer, sources: result.sources } : t)))
+    } catch (err) {
       const detail =
-        e?.response?.status === 503
+        (err as { response?: { status?: number } })?.response?.status === 503
           ? 'Legal agent isn’t configured yet - an admin needs to set VOYAGE_API_KEY and ANTHROPIC_API_KEY on the backend.'
-          : (e?.response?.data?.detail ?? 'Could not reach the legal agent.')
-      setTurns((prev) => prev.map((t, i) => (i === prev.length - 1 ? { ...t, error: detail } : t)))
+          : getApiError(err, 'Could not reach the legal agent.')
+      setTurns((prev) => prev.map((t) => (t.id === turnId ? { ...t, error: detail } : t)))
     } finally {
       setBusy(false)
     }
   }
 
+  async function handleReindex() {
+    setReindexing(true)
+    try {
+      const res = await ingestLegalAgent(contract.id)
+      toast.success(`Indexed ${res.chunks_indexed} chunks.`)
+    } catch (err) {
+      toast.error(getApiError(err, 'Could not reindex.'))
+    } finally {
+      setReindexing(false)
+    }
+  }
+
   return (
-    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-4 text-navy">
+    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-5 text-navy">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-xs font-bold uppercase tracking-wider text-navy">Contract legal agent</h3>
@@ -366,43 +496,36 @@ function LegalAgentChat({ contract, canReindex }: { contract: Contract; canReind
         {canReindex && (
           <button
             disabled={reindexing}
-            onClick={async () => {
-              setReindexing(true)
-              setReindexMessage(null)
-              try {
-                const res = await ingestLegalAgent(contract.id)
-                setReindexMessage(`Indexed ${res.chunks_indexed} chunks.`)
-              } catch (e: any) {
-                setReindexMessage(e?.response?.data?.detail ?? 'Could not reindex.')
-              } finally {
-                setReindexing(false)
-              }
-            }}
-            className="rounded-[var(--radius-s)] border border-navy/20 px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5 disabled:opacity-60"
+            onClick={handleReindex}
+            className="rounded-[var(--radius-s)] border border-navy/20 px-3 py-1.5 text-xs font-semibold text-navy transition hover:bg-navy/5 disabled:opacity-60"
           >
             {reindexing ? 'Indexing…' : 'Re-index contract'}
           </button>
         )}
       </div>
-      {reindexMessage && <p className="mb-2 text-xs text-navy/60">{reindexMessage}</p>}
 
-      <div className="mb-3 max-h-80 overflow-y-auto rounded-[var(--radius-s)] border border-sand/50 bg-white p-3">
+      <div
+        role="log"
+        aria-label="Legal agent conversation"
+        aria-live="polite"
+        className="mb-3 max-h-80 overflow-y-auto rounded-[var(--radius-s)] border border-sand/50 bg-white p-3"
+      >
         {turns.length === 0 ? (
           <p className="text-sm text-navy/40">
             Ask something like "what is the retention percentage?" or "when does ZATCA invoicing apply?"
           </p>
         ) : (
           <div className="flex flex-col gap-3">
-            {turns.map((turn, i) => (
-              <div key={i} className="flex flex-col gap-1">
+            {turns.map((turn) => (
+              <div key={turn.id} className="flex flex-col gap-1">
                 <p className="self-end rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-sm text-cream">{turn.question}</p>
                 {turn.answer && (
                   <div className="rounded-[var(--radius-s)] bg-navy/5 px-3 py-2 text-sm text-navy">
                     <p>{turn.answer}</p>
                     {turn.sources && turn.sources.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {turn.sources.map((s, j) => (
-                          <span key={j} title={s.excerpt} className="rounded-full bg-navy/10 px-2 py-0.5 text-[10px] text-navy/60">
+                        {turn.sources.map((s) => (
+                          <span key={s.source_ref} title={s.excerpt} className="rounded-full bg-navy/10 px-2 py-0.5 text-xs text-navy/60">
                             {s.source_ref}
                           </span>
                         ))}
@@ -410,91 +533,163 @@ function LegalAgentChat({ contract, canReindex }: { contract: Contract; canReind
                     )}
                   </div>
                 )}
-                {turn.error && <p className="text-xs text-status-escalated">{turn.error}</p>}
+                {turn.error && <p role="alert" className="text-xs text-status-escalated">{turn.error}</p>}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
-          className="rounded-[var(--radius-s)] border border-sand bg-white px-2.5 py-1.5 text-xs text-navy"
-        >
-          <option value="en">English</option>
-          <option value="ar">العربية</option>
-        </select>
-        <input
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !busy) handleAsk()
-          }}
-          placeholder="Ask a question about this contract…"
-          className="min-w-48 flex-1 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
-        />
+      <form onSubmit={handleAsk} className="flex flex-wrap items-start gap-2">
+        <div className="w-32">
+          <SelectField
+            label="Answer language"
+            hideLabel
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
+          >
+            <option value="en">English</option>
+            <option value="ar">العربية</option>
+          </SelectField>
+        </div>
+        <div className="min-w-48 flex-1">
+          <TextField
+            label="Question for the legal agent"
+            hideLabel
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Ask a question about this contract…"
+          />
+        </div>
         <button
+          type="submit"
           disabled={busy || !question.trim()}
-          onClick={handleAsk}
-          className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream disabled:opacity-60"
+          className="rounded-[var(--radius-s)] bg-navy px-3 py-2 text-xs font-semibold text-cream transition hover:bg-navy-deep disabled:opacity-60"
         >
           {busy ? 'Asking…' : 'Ask'}
         </button>
-      </div>
+      </form>
     </div>
   )
 }
 
-export function ContractPaymentsPage({ project }: { project: Project }) {
-  const [contract, setContract] = useState<Contract | null>(null)
-  const [milestones, setMilestones] = useState<PaymentMilestone[]>([])
-  const [vsActual, setVsActual] = useState<ContractVsActual | null>(null)
-  const [amendments, setAmendments] = useState<ContractAmendment[]>([])
-  const [loading, setLoading] = useState(true)
-  const [busyMilestoneId, setBusyMilestoneId] = useState<number | null>(null)
-  const [releaseError, setReleaseError] = useState<string | null>(null)
-  const canManage = FINANCIAL_ROLES.has(project.role)
+interface ContractPageData {
+  contract: Contract | null
+  milestones: PaymentMilestone[]
+  vsActual: ContractVsActual | null
+  amendments: ContractAmendment[]
+}
 
-  async function load() {
-    const contracts = await listContracts(project.id)
-    const current = contracts[0] ?? null
-    setContract(current)
-    if (current) {
-      const [ms, va, am] = await Promise.all([
-        listPaymentMilestones(project.id),
-        getContractVsActual(current.id),
-        listAmendments(project.id),
-      ])
-      setMilestones(ms)
-      setVsActual(va)
-      setAmendments(am)
-    }
-    setLoading(false)
+async function loadContractPage(projectId: number): Promise<ContractPageData> {
+  const contracts = await listContracts(projectId)
+  const contract = contracts[0] ?? null
+  if (!contract) {
+    return { contract: null, milestones: [], vsActual: null, amendments: [] }
   }
+  const [milestones, vsActual, amendments] = await Promise.all([
+    listPaymentMilestones(projectId),
+    getContractVsActual(contract.id),
+    listAmendments(projectId),
+  ])
+  return { contract, milestones, vsActual, amendments }
+}
 
-  useEffect(() => {
-    setLoading(true)
-    load()
-  }, [project.id])
+export function ContractPaymentsPage({ project }: { project: Project }) {
+  const toast = useToast()
+  const { data, loading, error, reload } = useProjectData(project.id, (pid) => loadContractPage(Number(pid)))
+  const [busyMilestoneId, setBusyMilestoneId] = useState<number | null>(null)
+  const canManage = FINANCIAL_ROLES.has(project.role)
 
   async function handleRelease(id: number) {
     setBusyMilestoneId(id)
-    setReleaseError(null)
     try {
       await releasePaymentMilestone(id)
-      await load()
-    } catch (e: any) {
-      setReleaseError(e?.response?.data?.detail ?? 'Could not release payment - milestone has no verified evidence yet.')
+      toast.success('Payment released.')
+      await reload()
+    } catch (err) {
+      toast.error(getApiError(err, 'Could not release payment - milestone has no verified evidence yet.'))
     } finally {
       setBusyMilestoneId(null)
     }
   }
 
-  if (loading) {
-    return <p className="p-6 text-sm text-navy/50">Loading…</p>
-  }
+  if (loading) return <PageSkeleton />
+  if (error) return <ErrorState message={error} onRetry={reload} />
+  if (!data) return <PageSkeleton />
+
+  const { contract, milestones, vsActual, amendments } = data
+
+  const milestoneColumns: Column<PaymentMilestone>[] = contract
+    ? [
+        {
+          key: 'name',
+          header: 'Milestone',
+          render: (m) => <span className="text-navy">{m.name}</span>,
+          sortValue: (m) => m.name,
+        },
+        {
+          key: 'due_condition',
+          header: 'Due condition',
+          render: (m) => <span className="text-navy/60">{m.due_condition}</span>,
+        },
+        {
+          key: 'amount',
+          header: 'Amount',
+          render: (m) => <span className="text-navy/60">{money(m.amount, contract.currency)}</span>,
+          sortValue: (m) => Number(m.amount),
+        },
+        {
+          key: 'status',
+          header: 'Status',
+          render: (m) =>
+            m.status === 'released' ? <Badge label="Released" tone="good" /> : <Badge label="Pending" tone="warn" />,
+          sortValue: (m) => m.status,
+        },
+        ...(canManage
+          ? [
+              {
+                key: 'actions',
+                header: <span className="sr-only">Actions</span>,
+                className: 'text-end',
+                render: (m: PaymentMilestone) =>
+                  m.status !== 'released' ? (
+                    <button
+                      disabled={busyMilestoneId === m.id}
+                      onClick={() => handleRelease(m.id)}
+                      className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep disabled:opacity-60"
+                    >
+                      {busyMilestoneId === m.id ? 'Releasing…' : 'Release payment'}
+                    </button>
+                  ) : null,
+              },
+            ]
+          : []),
+      ]
+    : []
+
+  const amendmentColumns: Column<ContractAmendment>[] = [
+    {
+      key: 'version',
+      header: 'Version',
+      render: (a) => <span className="font-semibold text-navy">v{a.version_number}</span>,
+      sortValue: (a) => a.version_number,
+    },
+    {
+      key: 'summary',
+      header: 'Summary',
+      render: (a) => <span className="text-navy/70">{a.summary}</span>,
+    },
+    {
+      key: 'decision',
+      header: 'Approval',
+      render: (a) =>
+        a.decision_id ? (
+          <span className="text-xs text-navy/40">routed via decision #{a.decision_id}</span>
+        ) : (
+          <span className="text-xs text-navy/40">-</span>
+        ),
+    },
+  ]
 
   return (
     <div className="flex flex-col gap-8">
@@ -508,11 +703,11 @@ export function ContractPaymentsPage({ project }: { project: Project }) {
       </div>
 
       {!contract ? (
-        <NewContractForm project={project} onCreated={setContract} />
+        <NewContractForm project={project} onCreated={reload} />
       ) : (
         <>
           <section>
-            <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-4 text-navy">
+            <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-5 text-navy">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="font-[var(--font-display)] text-lg font-bold text-navy">{contract.title}</h2>
                 <Badge label={contract.status.replace('_', ' ')} tone="neutral" />
@@ -548,77 +743,30 @@ export function ContractPaymentsPage({ project }: { project: Project }) {
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-[var(--font-display)] text-lg font-bold text-navy">Payment milestones</h2>
-              {canManage && <NewMilestoneForm contract={contract} onCreated={load} />}
+              {canManage && <NewMilestoneForm contract={contract} onCreated={reload} />}
             </div>
-            {releaseError && <p className="mb-2 text-xs text-status-escalated">{releaseError}</p>}
-            <div className="overflow-x-auto rounded-[var(--radius-m)] border border-sand/70 bg-paper">
-              {milestones.length === 0 ? (
-                <p className="px-4 py-6 text-center text-sm text-navy/50">No payment milestones yet.</p>
-              ) : (
-                <table className="w-full min-w-[720px] text-left text-sm">
-                  <thead className="border-b border-sand/70 text-xs uppercase tracking-wide text-navy/50">
-                    <tr>
-                      <th scope="col" className="px-4 py-2.5 font-semibold">Milestone</th>
-                      <th scope="col" className="px-4 py-2.5 font-semibold">Due condition</th>
-                      <th scope="col" className="px-4 py-2.5 font-semibold">Amount</th>
-                      <th scope="col" className="px-4 py-2.5 font-semibold">Status</th>
-                      {canManage && <th scope="col" className="px-4 py-2.5 font-semibold" />}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {milestones.map((m) => (
-                      <tr key={m.id} className="border-b border-sand/40 last:border-0">
-                        <td className="px-4 py-2.5 text-navy">{m.name}</td>
-                        <td className="px-4 py-2.5 text-navy/60">{m.due_condition}</td>
-                        <td className="px-4 py-2.5 text-navy/60">{money(m.amount, contract.currency)}</td>
-                        <td className="px-4 py-2.5">
-                          {m.status === 'released' ? (
-                            <Badge label="Released" tone="good" />
-                          ) : (
-                            <Badge label="Pending" tone="warn" />
-                          )}
-                        </td>
-                        {canManage && (
-                          <td className="px-4 py-2.5 text-right">
-                            {m.status !== 'released' && (
-                              <button
-                                disabled={busyMilestoneId === m.id}
-                                onClick={() => handleRelease(m.id)}
-                                className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream hover:bg-navy-deep disabled:opacity-60"
-                              >
-                                Release payment
-                              </button>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <DataTable
+              columns={milestoneColumns}
+              rows={milestones}
+              rowKey={(m) => m.id}
+              minWidth={720}
+              emptyTitle="No payment milestones yet"
+              emptyHint="Add milestones so payment can only unlock against verified evidence."
+            />
           </section>
 
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-[var(--font-display)] text-lg font-bold text-navy">Amendments</h2>
-              {canManage && <NewAmendmentForm contract={contract} onCreated={load} />}
+              {canManage && <NewAmendmentForm contract={contract} onCreated={reload} />}
             </div>
-            {amendments.length === 0 ? (
-              <p className="rounded-[var(--radius-m)] border border-sand/70 bg-paper px-4 py-6 text-center text-sm text-navy/50">
-                No amendments yet.
-              </p>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {amendments.map((a) => (
-                  <li key={a.id} className="rounded-[var(--radius-s)] border border-sand/70 bg-paper px-4 py-2.5 text-sm">
-                    <span className="font-semibold text-navy">v{a.version_number}</span>{' '}
-                    <span className="text-navy/70">{a.summary}</span>
-                    {a.decision_id && <span className="ml-2 text-xs text-navy/40">routed via decision #{a.decision_id}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <DataTable
+              columns={amendmentColumns}
+              rows={amendments}
+              rowKey={(a) => a.id}
+              emptyTitle="No amendments yet"
+              emptyHint="Amendments route through the 3-Edges approval and e-signature workflow."
+            />
           </section>
 
           <section>

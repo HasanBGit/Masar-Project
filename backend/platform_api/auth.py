@@ -54,7 +54,9 @@ class ApiKeyRateThrottle(SimpleRateThrottle):
         api_key = getattr(request, "auth", None)
         if api_key is None:
             return True  # no key resolved - ApiKeyAuthentication already rejects this before throttling matters
-        self.rate = TIER_RATES[api_key.tier]
+        # .get with a standard-tier fallback: an unknown tier value (e.g. a
+        # legacy row) must degrade to the default rate, never 500.
+        self.rate = TIER_RATES.get(api_key.tier, "100/hour")
         self.num_requests, self.duration = self.parse_rate(self.rate)
         return super().allow_request(request, view)
 

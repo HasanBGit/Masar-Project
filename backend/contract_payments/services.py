@@ -12,15 +12,18 @@ must use a neutral User-Agent and must not include a personal email address
 or the project name in headers, query params, or referrers.
 """
 
+import math
 from decimal import Decimal
 from pathlib import Path
 
+import httpx
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 from pgvector.django import CosineDistance
 
-from .exceptions import CeilingBreach, LegalAgentNotConfigured, PaymentNotVerified
+from .exceptions import CeilingBreach, LegalAgentNotConfigured, MilestoneAlreadyReleased, PaymentNotVerified
 from .models import (
     Contract,
     ContractAmendment,
@@ -89,9 +92,14 @@ def release_payment_milestone(milestone: PaymentMilestone, released_by) -> Payme
     verified acknowledgment for this milestone - never on contractor
     self-assertion alone. "No teeth without Module 5" per both modules' skills.
     """
+    if milestone.status == PaymentMilestoneStatus.RELEASED:
+        # Idempotency guard: a double release must not re-fire the webhook,
+        # re-log the audit event, or overwrite released_at/released_by.
+        raise MilestoneAlreadyReleased(f"Milestone {milestone.id} has already been released.")
+
     import trust_evidence.services as trust_evidence
 
-    status = trust_evidence.get_verification_status(milestone.evidence_subject_type, milestone.id)
+    status = trust_evidence.get_verification_status(milestone.project, milestone.evidence_subject_type, milestone.id)
     if not status["has_verified_evidence"]:
         raise PaymentNotVerified(
             f"Milestone {milestone.id} has no verified evidence acknowledgment - cannot release payment."
@@ -133,18 +141,12 @@ def get_contract_vs_actual(project) -> dict:
         return {"has_contract": False}
 
     import rfi_change_control.services as rfi_change_control
-    from core.models import DocumentLifecycleStatus
 
-    change_orders = rfi_change_control.get_change_orders(project)
-    approved_change_order_total = sum(
-        (co.cost_impact for co in change_orders if co.status == DocumentLifecycleStatus.APPROVED),
-        start=type(contract.contract_value)("0"),
-    )
+    approved_change_order_total = rfi_change_control.get_approved_change_order_total(project)
 
-    paid_to_date = sum(
-        (m.amount for m in PaymentMilestone.objects.filter(project=project, status=PaymentMilestoneStatus.RELEASED)),
-        start=type(contract.contract_value)("0"),
-    )
+    paid_to_date = PaymentMilestone.objects.filter(project=project, status=PaymentMilestoneStatus.RELEASED).aggregate(
+        total=Sum("amount")
+    )["total"] or Decimal("0")
 
     adjusted_contract_value = contract.contract_value + approved_change_order_total
 
@@ -235,9 +237,6 @@ def get_amendments(contract: Contract) -> list[ContractAmendment]:
 
 # --- Legal-agent chatbot (RAG) -----------------------------------------------
 
-import math
-import httpx
-
 
 def _embed(text: str) -> list[float]:
     """
@@ -297,11 +296,14 @@ def _contract_chunks(contract: Contract) -> list[tuple[str, str]]:
     return chunks
 
 
+@transaction.atomic
 def ingest_contract_for_legal_agent(contract: Contract) -> int:
     """
     (Re)indexes a contract's chunks for the legal agent. Safe to call
     repeatedly (e.g. after editing the contract) - replaces this project's
-    prior chunks rather than accumulating stale duplicates.
+    prior chunks rather than accumulating stale duplicates. Atomic so a
+    mid-ingest failure never leaves the project with its old chunks deleted
+    and no replacements.
     """
     LegalAgentDocument.objects.filter(project=contract.project).delete()
     rows = []

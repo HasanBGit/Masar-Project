@@ -41,7 +41,15 @@ class IntegrationHealthCheck(TimeStampedModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["project", "integration_type"], name="one_health_row_per_project_integration")
+            models.UniqueConstraint(fields=["project", "integration_type"], name="one_health_row_per_project_integration"),
+            # Postgres treats NULLs as distinct in unique constraints, so the
+            # constraint above never dedupes platform-wide (project IS NULL)
+            # rows - this partial constraint does.
+            models.UniqueConstraint(
+                fields=["integration_type"],
+                condition=models.Q(project__isnull=True),
+                name="one_health_row_per_platform_integration",
+            ),
         ]
         indexes = [models.Index(fields=["integration_type", "status"])]
 

@@ -7,6 +7,7 @@ adoption, and security/incident monitoring (read from trust_evidence).
 
 from datetime import timedelta
 
+from django.db.models import Q
 from django.utils import timezone
 
 from core.models import Project
@@ -36,9 +37,12 @@ def report_integration_health(*, integration_type: str, status: str, project=Non
 
 
 def get_integration_health(project=None) -> list[IntegrationHealthCheck]:
-    qs = IntegrationHealthCheck.objects.all()
+    qs = IntegrationHealthCheck.objects.select_related("project")
     if project is not None:
-        qs = qs.filter(project__in=[project, None])
+        # Platform-wide rows (project IS NULL) are visible in every project's
+        # view - `project__in=[project, None]` would silently drop them (SQL
+        # IN never matches NULL).
+        qs = qs.filter(Q(project=project) | Q(project__isnull=True))
     return list(qs)
 
 
@@ -57,13 +61,13 @@ def acknowledge_alert(alert: AlertEvent, user) -> AlertEvent:
     return alert
 
 
-def get_alerts(project=None, unacknowledged_only: bool = False) -> list[AlertEvent]:
-    qs = AlertEvent.objects.all()
+def get_alerts(project=None, unacknowledged_only: bool = False):
+    qs = AlertEvent.objects.select_related("project", "acknowledged_by")
     if project is not None:
         qs = qs.filter(project=project)
     if unacknowledged_only:
         qs = qs.filter(acknowledged=False)
-    return list(qs)
+    return qs
 
 
 # --- Usage / adoption -------------------------------------------------------
@@ -84,16 +88,17 @@ def get_usage_summary(project) -> dict:
 
 
 def get_quiet_projects(quiet_days: int = QUIET_PROJECT_THRESHOLD_DAYS) -> list[dict]:
-    """Projects with no audit-log activity in `quiet_days` - a module/project 'gone quiet' per the skill."""
+    """Projects with no audit-log activity in `quiet_days` - a module/project
+    'gone quiet' per the skill. Two queries total, never one per project."""
     import trust_evidence.services as trust_evidence
 
     cutoff = timezone.now() - timedelta(days=quiet_days)
+    last_activity = trust_evidence.get_last_activity_by_project()
     quiet = []
-    for project in Project.objects.all():
-        last_event = trust_evidence.get_audit_events(project, limit=1)
-        last_at = last_event[0].created_at if last_event else None
+    for project_id, project_name in Project.objects.values_list("id", "name"):
+        last_at = last_activity.get(project_id)
         if last_at is None or last_at < cutoff:
-            quiet.append({"project_id": project.id, "project_name": project.name, "last_activity_at": last_at})
+            quiet.append({"project_id": project_id, "project_name": project_name, "last_activity_at": last_at})
     return quiet
 
 
@@ -121,11 +126,9 @@ def get_sla_compliance_summary() -> dict:
 def get_permission_denied_events(project=None, limit: int = 100) -> list:
     import trust_evidence.services as trust_evidence
 
-    projects = [project] if project is not None else list(Project.objects.all())
-    events = []
-    for p in projects:
-        events.extend(trust_evidence.get_audit_events(p, event_type="permission_denied", limit=limit))
-    return sorted(events, key=lambda e: e.created_at, reverse=True)[:limit]
+    # One query either way: get_audit_events reads across all projects when
+    # project is None (this view is staff-gated, so that's safe here).
+    return trust_evidence.get_audit_events(project, event_type="permission_denied", limit=limit)
 
 
 def record_authentication_failure(email: str) -> AlertEvent:

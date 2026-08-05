@@ -3,7 +3,7 @@ from django.db import connection
 from core.models import Project
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -66,14 +66,13 @@ class AlertViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gene
         project_id = self.request.query_params.get("project")
         project = Project.objects.filter(id=project_id).first() if project_id else None
         unacknowledged_only = self.request.query_params.get("unacknowledged") == "true"
-        ids = [a.id for a in services.get_alerts(project, unacknowledged_only)]
-        return AlertEvent.objects.filter(id__in=ids)
+        return services.get_alerts(project, unacknowledged_only)
 
     @action(detail=True, methods=["post"])
     def acknowledge(self, request, pk=None):
         alert = AlertEvent.objects.filter(pk=pk).first()
         if alert is None:
-            raise PermissionDenied("Not found.")
+            raise NotFound("Not found.")
         services.acknowledge_alert(alert, request.user)
         return Response(self.get_serializer(alert).data)
 

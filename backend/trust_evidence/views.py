@@ -15,7 +15,7 @@ from .serializers import EvidenceRecordSerializer, SilenceFlagSerializer
 def _project_from_query(request) -> Project:
     project_id = request.query_params.get("project")
     if not project_id:
-        raise NotFound("Missing `project` query parameter.")
+        raise NotFound("Missing `project` parameter.")
     project = Project.objects.filter(id=project_id).first()
     if project is None:
         raise NotFound("Project not found.")
@@ -29,7 +29,7 @@ class EvidenceRecordViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixi
 
     def get_queryset(self):
         project = _project_from_query(self.request)
-        qs = EvidenceRecord.objects.filter(project=project)
+        qs = EvidenceRecord.objects.filter(project=project).select_related("submitted_by", "verified_by")
         subject_type = self.request.query_params.get("subject_type")
         subject_id = self.request.query_params.get("subject_id")
         if subject_type:
@@ -47,7 +47,10 @@ class EvidenceRecordViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixi
         return record
 
     def perform_create(self, serializer):
-        project = Project.objects.get(id=self.request.data.get("project"))
+        try:
+            project = Project.objects.get(id=self.request.data.get("project"))
+        except (Project.DoesNotExist, ValueError, TypeError):
+            raise NotFound("Project not found.")
         if get_role(self.request.user, project) is None:
             raise PermissionDenied("You are not a member of this project.")
         serializer.save(submitted_by=self.request.user)
@@ -73,6 +76,11 @@ class SilenceFlagListView(mixins.ListModelMixin, viewsets.GenericViewSet):
 class DisputeExportView(APIView):
     def get(self, request):
         project = _project_from_query(request)
+        # Same elevated bar as the access audit log - the dispute bundle IS
+        # the full audit log, so any project member seeing it would bypass
+        # the view_audit_log gate.
+        if not has_permission(request.user, project, "view_audit_log"):
+            raise PermissionDenied("Only project owners/admins can export the dispute bundle.")
         bundle = services.export_dispute_bundle(project)
         # Data-access audit trail: exporting the dispute bundle is itself a
         # logged access event, so the export mechanism is defensible (Module

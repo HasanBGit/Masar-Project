@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react'
+import i18n, { toBaseLanguage } from '../../i18n'
 import { LANDING_MARKUP } from './landingMarkup'
 import './landing.css'
 
+// Keys must match the data-nav attributes in landingMarkup.ts. (There is no
+// data-nav="Access" element, so no Access entry lives here.)
 const NAV_INFO: Record<string, { en: string; ar: string }> = {
   Product: {
     en: 'Truepoint unifies fragmented construction-project communication — WhatsApp groups, email/RFI threads, PMC PDF reports — into a single, owner-facing, trust-verified project record.',
@@ -15,11 +18,11 @@ const NAV_INFO: Record<string, { en: string; ar: string }> = {
     en: 'The 3 Edges: Hearing, Understanding, Agreeing. A single named, accountable approver signs off.',
     ar: 'الحواف الثلاث: الاستماع، الفهم، الموافقة. معتمِد واحد محدد بالاسم ومسؤول يوقّع الاعتماد.',
   },
-  Access: {
-    en: 'Enforced RBAC, access audit logs, and Saudi data residency as an architecture property, not a policy footnote.',
-    ar: 'صلاحيات RBAC صارمة، وسجلات تدقيق الوصول، وإقامة البيانات داخل السعودية كخاصية معمارية لا كملاحظة سياسة.',
-  },
 }
+
+// Where the mailto: fallback of the early-access form goes when
+// VITE_EARLY_ACCESS_ENDPOINT is not configured.
+const EARLY_ACCESS_EMAIL = 'hello@truepoint.sa'
 
 const GOOGLE_FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;700&display=swap'
 
@@ -33,19 +36,43 @@ function injectFontLinks(): () => void {
   return () => links.forEach((link) => link.remove())
 }
 
+// The site is a static single deploy: /login does not exist here. The header
+// login link points at the app origin when VITE_APP_URL is configured and
+// stays hidden otherwise (it ships hidden in the markup).
+function setupLoginLink(container: HTMLElement): void {
+  const loginLink = container.querySelector<HTMLAnchorElement>('#site-login-link')
+  if (!loginLink) return
+  const appUrl: unknown = import.meta.env.VITE_APP_URL
+  if (typeof appUrl === 'string' && appUrl.length > 0) {
+    loginLink.href = appUrl
+    loginLink.hidden = false
+  } else {
+    loginLink.hidden = true
+  }
+}
+
 // Ported from riyadh-city/script.js: the cinematic scroll story (parallax
-// frames driven by CSS custom properties) plus the sights slider.
+// frames driven by CSS custom properties) plus the sights slider. When the
+// visitor prefers reduced motion the rig is not started at all — the section
+// collapses into a static, fully readable layout instead (see .cinema-static
+// in landing.css) and switches live when the preference changes.
 function setupCinemaScroll(container: HTMLElement): () => void {
   const section = container.querySelector<HTMLElement>('.cinema-scroll')
+  const stage = container.querySelector<HTMLElement>('.stage')
   const root = document.documentElement
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   const track = container.querySelector<HTMLElement>('.sights-track')
+  const slider = container.querySelector<HTMLElement>('.sights-slider')
   const sightsControls = container.querySelector<HTMLElement>('.sights-controls')
   const prevBtn = container.querySelector<HTMLElement>('.sight-prev')
   const nextBtn = container.querySelector<HTMLElement>('.sight-next')
   const originalSightCards = Array.from(container.querySelectorAll<HTMLElement>('.sight-card'))
 
-  if (!section || !track) return () => {}
+  if (!section || !stage || !track || !slider) return () => {}
+
+  // Where the slider lives in animated mode, so static mode can move it into
+  // the document flow and hand it back afterwards.
+  const sliderHome = { parent: slider.parentElement, next: slider.nextSibling }
 
   let targetMouseX = 0
   let targetMouseY = 0
@@ -61,6 +88,10 @@ function setupCinemaScroll(container: HTMLElement): () => void {
   let sightCards: HTMLElement[] = []
   const originalSightCount = originalSightCards.length
   let activeSight = originalSightCount
+
+  // Every custom property this rig sets on <html>, so cleanup can remove them
+  // instead of leaking ~40 properties onto the document element.
+  const setVarNames = new Set<string>()
 
   function clamp(v: number, min = 0, max = 1) {
     return Math.min(max, Math.max(min, v))
@@ -82,6 +113,7 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     return clamp(-rect.top, 0, section!.offsetHeight - window.innerHeight)
   }
   function setVar(name: string, value: string | number) {
+    setVarNames.add(name)
     root.style.setProperty(name, String(value))
   }
 
@@ -90,7 +122,7 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     if (disposed) return
 
     targetScroll = getScrollDistance()
-    if (!initialized || reduceMotion.matches) {
+    if (!initialized) {
       smoothScroll = targetScroll
       initialized = true
     } else {
@@ -119,10 +151,8 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     const sightsScreenTop = Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50
     const sightsParentTop = window.innerHeight - (window.innerHeight - sightsScreenTop) / backScale
 
-    const mxVal = reduceMotion.matches ? 0 : mouseX
-    const myVal = reduceMotion.matches ? 0 : mouseY
-    setVar('--mx', mxVal.toFixed(4))
-    setVar('--my', myVal.toFixed(4))
+    setVar('--mx', mouseX.toFixed(4))
+    setVar('--my', mouseY.toFixed(4))
 
     setVar('--back-opacity', 1 - frame2.active * 0.06)
     setVar('--back-x', `${mouseX * -12}px`)
@@ -173,7 +203,9 @@ function setupCinemaScroll(container: HTMLElement): () => void {
 
     setVar('--sights-opacity', sightsEnter)
     setVar('--sights-controls-opacity', sightsControlsEnter)
-    if (sightsControls) sightsControls.classList.toggle('is-ready', sightsControlsEnter > 0.98)
+    // Controls are interactive whenever they are visible at all (visibility is
+    // what gates hit-testing — see .sights-controls in landing.css).
+    if (sightsControls) sightsControls.classList.toggle('is-ready', sightsControlsEnter > 0.02)
     setVar('--sights-visibility', sightsEnter > 0.01 ? 'visible' : 'hidden')
     setVar('--sights-y', '0px')
     setVar('--sights-enter-x', `${(1 - sightsEnter) * 420}vw`)
@@ -191,7 +223,8 @@ function setupCinemaScroll(container: HTMLElement): () => void {
   }
 
   function requestTick() {
-    if (rafPending || disposed) return
+    // Under prefers-reduced-motion the rAF loop must never start.
+    if (rafPending || disposed || reduceMotion.matches) return
     rafPending = true
     rafId = requestAnimationFrame(update)
   }
@@ -200,10 +233,14 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     if (sightCards.length === 0 || !track) return
     const cardWidth = sightCards[0].offsetWidth
     const gap = parseFloat(getComputedStyle(track).columnGap || '0')
-    setVar('--sights-shift', `${-(cardWidth + gap) * activeSight}px`)
+    // In RTL the track flows the other way, so the shift flips sign.
+    const dirSign = document.documentElement.dir === 'rtl' ? 1 : -1
+    setVar('--sights-shift', `${dirSign * (cardWidth + gap) * activeSight}px`)
     sightCards.forEach((card) => {
       const idx = Number(card.dataset.sightIndex)
-      card.classList.toggle('is-active', idx === activeSight)
+      const isActive = idx === activeSight
+      card.classList.toggle('is-active', isActive)
+      card.setAttribute('aria-pressed', String(isActive))
     })
   }
 
@@ -239,97 +276,157 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     }
   }
 
-  const cardCleanups: Array<() => void> = []
-
-  function setupSightSlider() {
-    if (!track) return
-    track.replaceChildren()
-    const clones: HTMLElement[] = []
-    for (let setIndex = 0; setIndex < 3; setIndex++) {
-      originalSightCards.forEach((card, cardIndex) => {
-        const clone = card.cloneNode(true) as HTMLElement
-        clone.dataset.sightIndex = String(setIndex * originalSightCount + cardIndex)
-        track.appendChild(clone)
-        clones.push(clone)
-      })
+  function attachCardActivation(card: HTMLElement, onActivate: (card: HTMLElement) => void): () => void {
+    const onClick = () => onActivate(card)
+    const onKeydown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        onActivate(card)
+      }
     }
-    sightCards = clones
-    activeSight = originalSightCount
+    card.addEventListener('click', onClick)
+    card.addEventListener('keydown', onKeydown)
+    return () => {
+      card.removeEventListener('click', onClick)
+      card.removeEventListener('keydown', onKeydown)
+    }
+  }
 
-    sightCards.forEach((card) => {
-      const onClick = () => {
-        selectSightCard(card)
-        window.__openCardModal?.(card)
+  // ─── Animated mode (default) ────────────────────────────────────────────────
+  function enableAnimatedMode(): () => void {
+    const cardCleanups: Array<() => void> = []
+    initialized = false
+
+    function setupSightSlider() {
+      if (!track) return
+      track.replaceChildren()
+      const clones: HTMLElement[] = []
+      for (let setIndex = 0; setIndex < 3; setIndex++) {
+        originalSightCards.forEach((card, cardIndex) => {
+          const clone = card.cloneNode(true) as HTMLElement
+          clone.dataset.sightIndex = String(setIndex * originalSightCount + cardIndex)
+          track.appendChild(clone)
+          clones.push(clone)
+        })
       }
-      const onKeydown = (e: KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          selectSightCard(card)
-          window.__openCardModal?.(card)
-        }
-      }
-      card.addEventListener('click', onClick)
-      card.addEventListener('keydown', onKeydown)
-      cardCleanups.push(() => {
-        card.removeEventListener('click', onClick)
-        card.removeEventListener('keydown', onKeydown)
+      sightCards = clones
+      activeSight = originalSightCount
+
+      sightCards.forEach((card) => {
+        cardCleanups.push(
+          attachCardActivation(card, (c) => {
+            selectSightCard(c)
+            window.__openCardModal?.(c)
+          }),
+        )
       })
-    })
 
-    track.addEventListener('transitionend', normalizeSightSlider)
-    cardCleanups.push(() => track.removeEventListener('transitionend', normalizeSightSlider))
+      track.addEventListener('transitionend', normalizeSightSlider)
+      cardCleanups.push(() => track.removeEventListener('transitionend', normalizeSightSlider))
 
+      updateSightSlider()
+    }
+
+    const onPrev = () => moveSightSlider(-1)
+    const onNext = () => moveSightSlider(1)
+    prevBtn?.addEventListener('click', onPrev)
+    nextBtn?.addEventListener('click', onNext)
+
+    const onScroll = () => requestTick()
+    const onResize = () => {
+      updateSightSlider()
+      requestTick()
+    }
+    const onPointerMove = (e: PointerEvent) => {
+      targetMouseX = e.clientX / window.innerWidth - 0.5
+      targetMouseY = e.clientY / window.innerHeight - 0.5
+      requestTick()
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+    window.addEventListener('pointermove', onPointerMove, { passive: true })
+
+    const runInitialSetup = () => {
+      setupSightSlider()
+      requestTick()
+    }
+    if (document.readyState === 'complete') {
+      runInitialSetup()
+    } else {
+      window.addEventListener('load', runInitialSetup, { once: true })
+    }
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId)
+      rafPending = false
+      prevBtn?.removeEventListener('click', onPrev)
+      nextBtn?.removeEventListener('click', onNext)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('load', runInitialSetup)
+      cardCleanups.forEach((fn) => fn())
+      sightCards = []
+    }
+  }
+
+  // ─── Static mode (prefers-reduced-motion) ───────────────────────────────────
+  // No rAF loop, no parallax, no carousel. The original cards go back into the
+  // track, the slider moves into the document flow, and .cinema-static makes
+  // every scroll-story section statically visible.
+  function enableStaticMode(): () => void {
+    section!.classList.add('cinema-static')
+    track.replaceChildren(...originalSightCards)
+    stage!.appendChild(slider!)
+
+    const cardCleanups = originalSightCards.map((card) =>
+      attachCardActivation(card, (c) => window.__openCardModal?.(c)),
+    )
+
+    return () => {
+      section!.classList.remove('cinema-static')
+      cardCleanups.forEach((fn) => fn())
+      if (sliderHome.parent) sliderHome.parent.insertBefore(slider!, sliderHome.next)
+    }
+  }
+
+  let modeCleanup: (() => void) | null = null
+  const applyMode = () => {
+    modeCleanup?.()
+    modeCleanup = reduceMotion.matches ? enableStaticMode() : enableAnimatedMode()
+  }
+  applyMode()
+  reduceMotion.addEventListener('change', applyMode)
+
+  // A language change can flip the document direction, which changes the sign
+  // of the carousel shift.
+  const onLanguageChanged = () => {
     updateSightSlider()
-  }
-
-  const onPrev = () => moveSightSlider(-1)
-  const onNext = () => moveSightSlider(1)
-  prevBtn?.addEventListener('click', onPrev)
-  nextBtn?.addEventListener('click', onNext)
-
-  const onScroll = () => requestTick()
-  const onResize = () => {
-    updateSightSlider()
     requestTick()
   }
-  const onPointerMove = (e: PointerEvent) => {
-    targetMouseX = e.clientX / window.innerWidth - 0.5
-    targetMouseY = e.clientY / window.innerHeight - 0.5
-    requestTick()
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true })
-  window.addEventListener('resize', onResize)
-  window.addEventListener('pointermove', onPointerMove, { passive: true })
-
-  const runInitialSetup = () => {
-    setupSightSlider()
-    requestTick()
-  }
-  if (document.readyState === 'complete') {
-    runInitialSetup()
-  } else {
-    window.addEventListener('load', runInitialSetup, { once: true })
-  }
+  i18n.on('languageChanged', onLanguageChanged)
 
   return () => {
     disposed = true
-    if (rafId) cancelAnimationFrame(rafId)
-    prevBtn?.removeEventListener('click', onPrev)
-    nextBtn?.removeEventListener('click', onNext)
-    window.removeEventListener('scroll', onScroll)
-    window.removeEventListener('resize', onResize)
-    window.removeEventListener('pointermove', onPointerMove)
-    window.removeEventListener('load', runInitialSetup)
-    cardCleanups.forEach((fn) => fn())
+    i18n.off('languageChanged', onLanguageChanged)
+    reduceMotion.removeEventListener('change', applyMode)
+    modeCleanup?.()
+    modeCleanup = null
+    // Remove every custom property this rig set on <html>.
+    setVarNames.forEach((name) => root.style.removeProperty(name))
+    setVarNames.clear()
   }
 }
 
 // Ported from riyadh-city/script.js: nav info modal, early-access modal,
-// per-card modal, and the EN/AR language switcher (with RTL flip).
+// per-card modal, and the EN/AR language switcher. Language state and the
+// document lang/dir now belong to i18next (src/i18n/index.ts) — this module
+// only swaps the data-en/data-ar text inside the landing markup.
 function setupModalsAndLanguage(container: HTMLElement): () => void {
   const modalOverlay = container.querySelector<HTMLElement>('#modal-overlay')
   const modalBackdrop = container.querySelector<HTMLElement>('#modal-backdrop')
+  const modalPanel = container.querySelector<HTMLElement>('.modal-panel')
   const modalClose = container.querySelector<HTMLElement>('#modal-close')
   const modalTitle = container.querySelector<HTMLElement>('#modal-title')
   const modalBody = container.querySelector<HTMLElement>('#modal-body')
@@ -337,18 +434,25 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
   const requestAccessBtns = Array.from(container.querySelectorAll<HTMLElement>('.request-access-btn'))
   const navButtons = Array.from(container.querySelectorAll<HTMLElement>('[data-nav]'))
 
-  let currentLang: 'en' | 'ar' = 'en'
+  // The site UI offers en/ar only (see src/i18n/index.ts); a stored regional
+  // preference such as "ar-SA" must land on Arabic, not English.
+  let currentLang: 'en' | 'ar' = toBaseLanguage(i18n.resolvedLanguage ?? i18n.language) === 'ar' ? 'ar' : 'en'
+  let lastFocused: HTMLElement | null = null
   const cleanups: Array<() => void> = []
 
   function openModal(title: string, bodyHtml: string) {
     if (!modalOverlay || !modalTitle || !modalBody) return
+    lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
     modalTitle.textContent = title
     modalBody.innerHTML = bodyHtml
     modalOverlay.hidden = false
+    modalPanel?.focus()
   }
   function closeModal() {
-    if (!modalOverlay) return
+    if (!modalOverlay || modalOverlay.hidden) return
     modalOverlay.hidden = true
+    lastFocused?.focus()
+    lastFocused = null
   }
 
   if (modalBackdrop) {
@@ -359,48 +463,147 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
     modalClose.addEventListener('click', closeModal)
     cleanups.push(() => modalClose.removeEventListener('click', closeModal))
   }
+
+  // Escape closes; Tab is trapped inside the dialog while it is open.
   const onKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') closeModal()
+    if (!modalOverlay || modalOverlay.hidden) return
+    if (e.key === 'Escape') {
+      closeModal()
+      return
+    }
+    if (e.key !== 'Tab' || !modalPanel) return
+    const focusables = Array.from(
+      modalPanel.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => !el.hasAttribute('disabled') && !el.hidden)
+    if (focusables.length === 0) {
+      e.preventDefault()
+      modalPanel.focus()
+      return
+    }
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+    const active = document.activeElement
+    if (e.shiftKey) {
+      if (active === first || active === modalPanel) {
+        e.preventDefault()
+        last.focus()
+      }
+    } else if (active === last) {
+      e.preventDefault()
+      first.focus()
+    }
   }
   window.addEventListener('keydown', onKeydown)
   cleanups.push(() => window.removeEventListener('keydown', onKeydown))
 
+  function showSuccess(name: string, isAr: boolean) {
+    if (!modalBody) return
+    const namePart = name ? (isAr ? `، ${name}` : `, ${name}`) : ''
+    const p = document.createElement('p')
+    p.className = 'modal-success'
+    p.setAttribute('role', 'status')
+    p.textContent = `${isAr ? `تم الاستلام${namePart}.` : `Got it${namePart}.`} ${
+      isAr ? 'سنتواصل معك عبر البريد الإلكتروني قريباً.' : "We'll follow up by email shortly."
+    }`
+    modalBody.replaceChildren(p)
+  }
+
   function showEarlyAccessModal() {
     const isAr = currentLang === 'ar'
-    const title = isAr ? 'اطلب الوصول المبكر' : 'Request Early Access'
+    const endpoint: unknown = import.meta.env.VITE_EARLY_ACCESS_ENDPOINT
+    const hasEndpoint = typeof endpoint === 'string' && endpoint.length > 0
+    const t = {
+      title: isAr ? 'اطلب الوصول المبكر' : 'Request Early Access',
+      name: isAr ? 'الاسم الكامل' : 'Full name',
+      email: isAr ? 'البريد الإلكتروني' : 'Email',
+      submit: isAr ? 'اطلب الوصول المبكر' : 'Request early access',
+      sending: isAr ? 'جارٍ الإرسال…' : 'Sending…',
+      nameError: isAr ? 'الرجاء إدخال الاسم.' : 'Please enter your name.',
+      emailError: isAr ? 'الرجاء إدخال بريد إلكتروني صحيح.' : 'Please enter a valid email address.',
+      submitError: isAr
+        ? 'تعذّر إرسال الطلب. يرجى المحاولة مرة أخرى.'
+        : 'Something went wrong sending your request. Please try again.',
+    }
     openModal(
-      title,
-      `<form class="modal-form" id="early-access-form">
-        <label for="ea-name">${isAr ? 'الاسم الكامل' : 'Full name'}</label>
-        <input id="ea-name" type="text" required />
-        <label for="ea-email">${isAr ? 'البريد الإلكتروني' : 'Email'}</label>
-        <input id="ea-email" type="email" required />
-        <button type="submit">${isAr ? 'اطلب الوصول المبكر' : 'Request early access'}</button>
+      t.title,
+      `<form class="modal-form" id="early-access-form" novalidate>
+        <label for="ea-name">${t.name}</label>
+        <input id="ea-name" name="name" type="text" autocomplete="name" required aria-describedby="ea-name-error" />
+        <p class="modal-field-error" id="ea-name-error" hidden>${t.nameError}</p>
+        <label for="ea-email">${t.email}</label>
+        <input id="ea-email" name="email" type="email" autocomplete="email" required aria-describedby="ea-email-error" />
+        <p class="modal-field-error" id="ea-email-error" hidden>${t.emailError}</p>
+        <p class="modal-form-error" id="ea-form-error" aria-live="polite" hidden>${t.submitError}</p>
+        <button type="submit">${t.submit}</button>
       </form>`,
     )
     const form = container.querySelector<HTMLFormElement>('#early-access-form')
-    if (!form) return
+    const nameInput = container.querySelector<HTMLInputElement>('#ea-name')
+    const emailInput = container.querySelector<HTMLInputElement>('#ea-email')
+    const nameError = container.querySelector<HTMLElement>('#ea-name-error')
+    const emailError = container.querySelector<HTMLElement>('#ea-email-error')
+    const formError = container.querySelector<HTMLElement>('#ea-form-error')
+    const submitBtn = form?.querySelector<HTMLButtonElement>('button[type="submit"]')
+    if (!form || !nameInput || !emailInput || !submitBtn) return
+
+    const setFieldValidity = (input: HTMLInputElement, errorEl: HTMLElement | null, valid: boolean) => {
+      input.setAttribute('aria-invalid', String(!valid))
+      if (errorEl) errorEl.hidden = valid
+    }
+
     form.addEventListener('submit', (e) => {
       e.preventDefault()
-      const nameInput = container.querySelector<HTMLInputElement>('#ea-name')
-      const name = nameInput ? nameInput.value : ''
-      const namePart = name ? (isAr ? `، ${name}` : `, ${name}`) : ''
-      if (modalBody) {
-        const p = document.createElement('p')
-        p.className = 'modal-success'
-        p.textContent = `${isAr ? `تم الاستلام${namePart}.` : `Got it${namePart}.`} ${
-          isAr ? 'سنتواصل معك عبر البريد الإلكتروني قريباً.' : "We'll follow up by email shortly."
-        }`
-        modalBody.replaceChildren(p)
+      const name = nameInput.value.trim()
+      const email = emailInput.value.trim()
+      const nameValid = name.length > 0
+      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      setFieldValidity(nameInput, nameError, nameValid)
+      setFieldValidity(emailInput, emailError, emailValid)
+      if (!nameValid || !emailValid) {
+        ;(nameValid ? emailInput : nameInput).focus()
+        return
+      }
+      if (formError) formError.hidden = true
+
+      if (hasEndpoint) {
+        submitBtn.disabled = true
+        submitBtn.textContent = t.sending
+        void fetch(endpoint as string, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email }),
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            showSuccess(name, isAr)
+          })
+          .catch(() => {
+            // Keep the form so the visitor can retry; announce the failure.
+            if (formError) formError.hidden = false
+            submitBtn.disabled = false
+            submitBtn.textContent = t.submit
+          })
+      } else {
+        // No endpoint configured: hand off to the visitor's mail client.
+        const subject = encodeURIComponent('Truepoint early access request')
+        const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}`)
+        window.location.href = `mailto:${EARLY_ACCESS_EMAIL}?subject=${subject}&body=${body}`
+        showSuccess(name, isAr)
       }
     })
   }
 
   navButtons.forEach((btn) => {
     const onClick = () => {
-      const info = NAV_INFO[btn.dataset.nav ?? '']
+      const key = btn.dataset.nav ?? ''
+      const info = NAV_INFO[key]
       if (!info) return
-      openModal(btn.textContent ?? '', `<p>${currentLang === 'ar' ? info.ar : info.en}</p>`)
+      // Title from the NAV_INFO key (or its Arabic label) — never from the
+      // button's visible text, which can be a shortened form like "Trust".
+      const title = currentLang === 'ar' ? (btn.dataset.ar ?? key) : key
+      openModal(title, `<p>${currentLang === 'ar' ? info.ar : info.en}</p>`)
     }
     btn.addEventListener('click', onClick)
     cleanups.push(() => btn.removeEventListener('click', onClick))
@@ -424,10 +627,10 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
     )
   }
 
-  function applyLanguage(lang: 'en' | 'ar') {
+  // Swaps the visible landing copy between the data-en/data-ar variants. Does
+  // NOT touch document.documentElement — i18next owns lang/dir.
+  function applyLanguageText(lang: 'en' | 'ar') {
     currentLang = lang
-    document.documentElement.lang = lang
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
 
     container.querySelectorAll<HTMLElement>('[data-ar]').forEach((el) => {
       if (!el.dataset.en) el.dataset.en = el.textContent || ''
@@ -457,8 +660,22 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
     })
   }
 
+  // i18next is the single source of truth: toggling calls changeLanguage (which
+  // persists the choice and updates document lang/dir), and this listener keeps
+  // the markup text in sync — including changes made elsewhere (e.g. the app).
+  const onLanguageChanged = (lng: string) => {
+    applyLanguageText(toBaseLanguage(lng) === 'ar' ? 'ar' : 'en')
+  }
+  i18n.on('languageChanged', onLanguageChanged)
+  cleanups.push(() => i18n.off('languageChanged', onLanguageChanged))
+
+  // A stored Arabic preference must render Arabic text on first paint.
+  if (currentLang === 'ar') applyLanguageText('ar')
+
   langSwitchers.forEach((btn) => {
-    const onClick = () => applyLanguage(currentLang === 'en' ? 'ar' : 'en')
+    const onClick = () => {
+      void i18n.changeLanguage(currentLang === 'en' ? 'ar' : 'en')
+    }
     btn.addEventListener('click', onClick)
     cleanups.push(() => btn.removeEventListener('click', onClick))
   })
@@ -466,8 +683,8 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
   return () => {
     cleanups.forEach((fn) => fn())
     delete window.__openCardModal
-    document.documentElement.lang = 'en'
-    document.documentElement.removeAttribute('dir')
+    // Deliberately no document.documentElement lang/dir reset here: i18next
+    // owns those globally, and resetting them would break the rest of the app.
   }
 }
 
@@ -479,6 +696,7 @@ export function LandingPage() {
     const container = containerRef.current
     if (!container) return removeFonts
 
+    setupLoginLink(container)
     const cleanupCinema = setupCinemaScroll(container)
     const cleanupModals = setupModalsAndLanguage(container)
 

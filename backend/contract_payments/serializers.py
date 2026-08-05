@@ -13,6 +13,16 @@ class ContractSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["status", "created_at"]
 
+    def validate_contract_value(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Contract value must be greater than zero.")
+        return value
+
+    def validate_retention_percentage(self, value):
+        if not (0 <= value <= 100):
+            raise serializers.ValidationError("Retention percentage must be between 0 and 100.")
+        return value
+
 
 class PaymentMilestoneSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,6 +32,16 @@ class PaymentMilestoneSerializer(serializers.ModelSerializer):
             "status", "released_at", "released_by", "created_at",
         ]
         read_only_fields = ["status", "released_at", "released_by", "created_at"]
+        # The view derives `project` from the contract; a client may still
+        # send it, in which case it must match (validated below).
+        extra_kwargs = {"project": {"required": False}}
+
+    def validate(self, attrs):
+        contract = attrs.get("contract")
+        project = attrs.get("project")
+        if contract is not None and project is not None and contract.project_id != project.id:
+            raise serializers.ValidationError({"project": "Milestone project must match the contract's project."})
+        return attrs
 
 
 class InvoiceSerializer(serializers.ModelSerializer):

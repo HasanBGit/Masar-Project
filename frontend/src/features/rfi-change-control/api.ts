@@ -17,11 +17,6 @@ export async function listRFIs(project: number): Promise<RFI[]> {
   return unwrapList(res.data)
 }
 
-export async function getAtRiskRFIs(project: number): Promise<RFI[]> {
-  const res = await api.get<RFI[]>('/rfi-change-control/rfis/at-risk/', { params: { project } })
-  return res.data
-}
-
 export async function createRFI(payload: {
   project: number
   title: string

@@ -9,7 +9,8 @@ from datetime import timedelta
 from decimal import Decimal
 
 from core.models import DocumentLifecycleStatus
-from django.db import transaction
+from django.db import IntegrityError, transaction
+from django.db.models import Sum
 from django.utils import timezone
 
 import trust_evidence.services as trust_evidence
@@ -32,31 +33,46 @@ AT_RISK_WINDOW = timedelta(hours=24)
 
 
 def _next_rfi_number(project) -> str:
-    count = RFI.objects.filter(project=project).count()
-    return f"RFI-{count + 1:03d}"
+    """Max existing number + 1 (never COUNT+1, which collides after a deletion)."""
+    max_number = 0
+    for number in RFI.objects.filter(project=project).values_list("number", flat=True):
+        try:
+            max_number = max(max_number, int(number.rsplit("-", 1)[-1]))
+        except ValueError:
+            continue
+    return f"RFI-{max_number + 1:03d}"
 
 
-@transaction.atomic
 def create_rfi(
-    *, project, raised_by, title: str, question: str, respond_by, schedule_impact_days: int = 0, location_tag: str = ""
+    *, project, raised_by, title: str, question: str, respond_by=None, schedule_impact_days: int = 0, location_tag: str = ""
 ) -> RFI:
-    rfi = RFI.objects.create(
-        project=project,
-        number=_next_rfi_number(project),
-        title=title,
-        question=question,
-        schedule_impact_days=schedule_impact_days,
-        location_tag=location_tag,
-        raised_by=raised_by,
-        status=DocumentLifecycleStatus.UNDER_REVIEW,
-        owner=raised_by,
-        sla_deadline=respond_by,
-    )
-    trust_evidence.record_event(
-        project=project, actor=raised_by, event_type="rfi_raised", subject_type="rfi", subject_id=rfi.id,
-        payload={"title": title, "respond_by": respond_by.isoformat()},
-    )
-    return rfi
+    # Small retry loop: two concurrent creates can compute the same next
+    # number; the unique (project, number) constraint catches the loser,
+    # which just recomputes and retries.
+    for attempt in range(3):
+        try:
+            with transaction.atomic():
+                rfi = RFI.objects.create(
+                    project=project,
+                    number=_next_rfi_number(project),
+                    title=title,
+                    question=question,
+                    schedule_impact_days=schedule_impact_days,
+                    location_tag=location_tag,
+                    raised_by=raised_by,
+                    status=DocumentLifecycleStatus.UNDER_REVIEW,
+                    owner=raised_by,
+                    sla_deadline=respond_by,
+                )
+                trust_evidence.record_event(
+                    project=project, actor=raised_by, event_type="rfi_raised", subject_type="rfi", subject_id=rfi.id,
+                    payload={"title": title, "respond_by": respond_by.isoformat() if respond_by else None},
+                )
+            return rfi
+        except IntegrityError:
+            if attempt == 2:
+                raise
+    raise AssertionError("unreachable")
 
 
 @transaction.atomic
@@ -70,7 +86,7 @@ def respond_to_rfi(rfi: RFI, responder, response_text: str) -> RFI:
     trust_evidence.record_event(
         project=rfi.project, actor=responder, event_type="rfi_answered", subject_type="rfi", subject_id=rfi.id,
     )
-    trust_evidence.resolve_silence_flag("rfi", rfi.id, resolved_by=responder)
+    trust_evidence.resolve_silence_flag(rfi.project, "rfi", rfi.id, resolved_by=responder)
     return rfi
 
 
@@ -121,8 +137,16 @@ def create_change_order(
     )
 
 
-def get_change_orders(project) -> list[ChangeOrder]:
-    return list(ChangeOrder.objects.filter(project=project))
+def get_change_orders(project):
+    return ChangeOrder.objects.filter(project=project)
+
+
+def get_approved_change_order_total(project) -> Decimal:
+    """DB-side sum of approved change orders (consumed by contract_payments' tracker)."""
+    total = ChangeOrder.objects.filter(project=project, status=DocumentLifecycleStatus.APPROVED).aggregate(
+        total=Sum("cost_impact")
+    )["total"]
+    return total if total is not None else Decimal("0")
 
 
 # --- Submittals / Permits / Supplier deliveries / Quality checkpoints -----

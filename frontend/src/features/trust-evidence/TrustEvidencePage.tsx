@@ -1,137 +1,151 @@
-import { useEffect, useState } from 'react'
+import { useState, type FormEvent } from 'react'
+import { X } from 'lucide-react'
 import { Badge } from '../../components/Badge'
-import type { Project } from '../../lib/types'
+import { DataTable, type Column } from '../../components/ui/DataTable'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { SelectField, TextField } from '../../components/ui/Field'
+import { PageSkeleton } from '../../components/ui/Skeleton'
+import { StatCard } from '../../components/ui/StatCard'
+import { useToast } from '../../components/ui/Toast'
+import { getApiError } from '../../lib/api'
+import { useProjectData } from '../../lib/useProjectData'
 import { getChangeOrderRollup, getDisputeExport, listEvidence, listSilenceFlags, submitEvidence, verifyEvidence } from './api'
-import type { ChangeOrderRollup, DisputeExportEvent, EvidenceRecord, SilenceFlag } from '../../lib/types'
+import type { DisputeExportEvent, EvidenceRecord, Project } from '../../lib/types'
 
 const VERIFIER_ROLES = new Set(['owner', 'admin', 'consultant'])
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper px-4 py-3.5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">{label}</p>
-      <p className="mt-1 font-[var(--font-display)] text-2xl font-bold text-navy">{value}</p>
-    </div>
-  )
-}
-
-function NewEvidenceForm({ project, onCreated }: { project: Project; onCreated: () => void }) {
-  const [open, setOpen] = useState(false)
+function NewEvidenceForm({
+  project,
+  onClose,
+  onCreated,
+}: {
+  project: Project
+  onClose: () => void
+  onCreated: () => void
+}) {
+  const toast = useToast()
   const [subjectType, setSubjectType] = useState('milestone')
   const [subjectId, setSubjectId] = useState('')
   const [caption, setCaption] = useState('')
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{ subjectId?: string; caption?: string }>({})
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream hover:bg-navy-deep"
-      >
-        + Submit evidence
-      </button>
-    )
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const errors: { subjectId?: string; caption?: string } = {}
+    if (!subjectId.trim()) errors.subjectId = 'Subject ID is required.'
+    if (!caption.trim()) errors.caption = 'Caption is required.'
+    setFieldErrors(errors)
+    if (errors.subjectId || errors.caption) return
+
+    setBusy(true)
+    try {
+      await submitEvidence({
+        project: project.id,
+        subject_type: subjectType,
+        subject_id: subjectId.trim(),
+        caption: caption.trim(),
+        captured_at: new Date().toISOString(),
+      })
+      toast.success('Evidence submitted.')
+      setSubjectId('')
+      setCaption('')
+      onClose()
+      onCreated()
+    } catch (err) {
+      toast.error(getApiError(err))
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
-    <div className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-4 text-navy">
-      <div className="mb-2 flex items-center justify-between">
+    <form
+      noValidate
+      onSubmit={handleSubmit}
+      className="rounded-[var(--radius-m)] border border-sand/70 bg-paper p-5 text-navy"
+    >
+      <div className="mb-3 flex items-center justify-between">
         <h3 className="text-xs font-bold uppercase tracking-wider text-navy">Submit Evidence Record</h3>
-        <button onClick={() => setOpen(false)} className="text-xs text-navy/40 hover:text-navy">
-          ✕
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close evidence form"
+          className="rounded p-1 text-navy/40 transition hover:text-navy"
+        >
+          <X size={14} aria-hidden="true" />
         </button>
       </div>
-      <div className="mb-2 flex flex-wrap gap-2">
-        <select
-          value={subjectType}
-          onChange={(e) => setSubjectType(e.target.value)}
-          className="rounded-[var(--radius-s)] border border-sand bg-white px-2.5 py-1.5 text-xs text-navy"
-        >
+      <div className="mb-3 grid gap-3 sm:grid-cols-2">
+        <SelectField label="Subject type" value={subjectType} onChange={(e) => setSubjectType(e.target.value)}>
           <option value="milestone">Milestone</option>
           <option value="rfi">RFI</option>
           <option value="punch_item">Punch Item</option>
           <option value="drawing">Drawing</option>
-        </select>
-        <input
+        </SelectField>
+        <TextField
+          label="Subject ID"
           value={subjectId}
           onChange={(e) => setSubjectId(e.target.value)}
-          placeholder="Subject ID (e.g. 1)"
-          className="w-32 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
+          placeholder="e.g. 1"
+          required
+          error={fieldErrors.subjectId}
         />
       </div>
-      <input
+      <TextField
+        label="Caption"
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
-        placeholder="Caption / description of verified state"
-        className="mb-2 w-full rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy"
+        placeholder="Description of the verified state"
+        required
+        error={fieldErrors.caption}
       />
-      {error && <p className="mb-2 text-xs text-status-escalated">{error}</p>}
-      <div className="flex gap-2">
+      <div className="mt-4 flex gap-2">
         <button
-          disabled={busy || !subjectId.trim() || !caption.trim()}
-          onClick={async () => {
-            setBusy(true)
-            setError(null)
-            try {
-              await submitEvidence({
-                project: project.id,
-                subject_type: subjectType,
-                subject_id: subjectId.trim(),
-                caption: caption.trim(),
-                captured_at: new Date().toISOString(),
-              })
-              setOpen(false)
-              setSubjectId('')
-              setCaption('')
-              onCreated()
-            } catch (e: any) {
-              setError(e?.response?.data?.detail ?? 'Could not submit evidence.')
-            } finally {
-              setBusy(false)
-            }
-          }}
-          className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream disabled:opacity-60"
+          type="submit"
+          disabled={busy}
+          className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep disabled:opacity-60"
         >
-          Submit Evidence
+          {busy ? 'Submitting…' : 'Submit evidence'}
         </button>
-        <button onClick={() => setOpen(false)} className="text-xs text-navy/50">
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-[var(--radius-s)] px-3 py-1.5 text-xs font-semibold text-navy/50 transition hover:text-navy"
+        >
           Cancel
         </button>
       </div>
-    </div>
+    </form>
   )
 }
 
 export function TrustEvidencePage({ project }: { project: Project }) {
-  const [evidence, setEvidence] = useState<EvidenceRecord[]>([])
-  const [flags, setFlags] = useState<SilenceFlag[]>([])
-  const [rollup, setRollup] = useState<ChangeOrderRollup | null>(null)
+  const toast = useToast()
+  const [formOpen, setFormOpen] = useState(false)
   const [exportData, setExportData] = useState<DisputeExportEvent[] | null>(null)
   const [exporting, setExporting] = useState(false)
   const [busyId, setBusyId] = useState<number | null>(null)
   const canVerify = VERIFIER_ROLES.has(project.role)
 
-  async function load() {
-    const [ev, fl, ro] = await Promise.all([
-      listEvidence(project.id),
-      listSilenceFlags(project.id),
-      getChangeOrderRollup(project.id),
+  const { data, loading, error, reload } = useProjectData(project.id, async (id) => {
+    const [evidence, flags, rollup] = await Promise.all([
+      listEvidence(Number(id)),
+      listSilenceFlags(Number(id)),
+      getChangeOrderRollup(Number(id)),
     ])
-    setEvidence(ev)
-    setFlags(fl.filter((f) => !f.resolved))
-    setRollup(ro)
-  }
-
-  useEffect(() => {
-    load()
-  }, [project.id])
+    return { evidence, flags: flags.filter((f) => !f.resolved), rollup }
+  })
 
   async function handleVerify(id: number) {
     setBusyId(id)
     try {
       await verifyEvidence(id)
-      await load()
+      toast.success('Evidence verified.')
+      await reload()
+    } catch (err) {
+      toast.error(getApiError(err))
     } finally {
       setBusyId(null)
     }
@@ -140,12 +154,82 @@ export function TrustEvidencePage({ project }: { project: Project }) {
   async function handleExport() {
     setExporting(true)
     try {
-      const data = await getDisputeExport(project.id)
-      setExportData(data.events)
+      const result = await getDisputeExport(project.id)
+      setExportData(result.events)
+    } catch (err) {
+      toast.error(getApiError(err))
     } finally {
       setExporting(false)
     }
   }
+
+  if (loading) return <PageSkeleton />
+  if (error || !data) {
+    return <ErrorState message={error ?? 'Could not load trust and evidence data.'} onRetry={reload} />
+  }
+
+  const { evidence, flags, rollup } = data
+
+  const evidenceColumns: Column<EvidenceRecord>[] = [
+    {
+      key: 'caption',
+      header: 'Caption',
+      sortValue: (e) => e.caption.toLowerCase(),
+      render: (e) => e.caption,
+    },
+    {
+      key: 'subject',
+      header: 'Subject',
+      sortValue: (e) => `${e.subject_type} ${e.subject_id}`,
+      render: (e) => (
+        <span className="text-navy/60">
+          {e.subject_type} #{e.subject_id}
+        </span>
+      ),
+    },
+    {
+      key: 'submitted_by',
+      header: 'Submitted by',
+      sortValue: (e) => (e.submitted_by_name ?? '').toLowerCase(),
+      render: (e) => <span className="text-navy/60">{e.submitted_by_name}</span>,
+    },
+    {
+      key: 'captured',
+      header: 'Captured',
+      sortValue: (e) => new Date(e.captured_at).getTime(),
+      render: (e) => <span className="text-navy/60">{new Date(e.captured_at).toLocaleDateString()}</span>,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortValue: (e) => (e.verified ? 1 : 0),
+      render: (e) =>
+        e.verified ? (
+          <Badge label={`Verified by ${e.verified_by_name}`} tone="good" />
+        ) : (
+          <Badge label="Pending claim" tone="warn" />
+        ),
+    },
+    ...(canVerify
+      ? [
+          {
+            key: 'actions',
+            header: <span className="sr-only">Actions</span>,
+            className: 'text-end',
+            render: (e: EvidenceRecord) =>
+              e.verified ? null : (
+                <button
+                  disabled={busyId === e.id}
+                  onClick={() => handleVerify(e.id)}
+                  className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep disabled:opacity-60"
+                >
+                  Verify
+                </button>
+              ),
+          } satisfies Column<EvidenceRecord>,
+        ]
+      : []),
+  ]
 
   return (
     <div className="flex flex-col gap-8">
@@ -161,9 +245,12 @@ export function TrustEvidencePage({ project }: { project: Project }) {
       <section>
         <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">Change-order impact vs. baseline</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <StatCard label="Change orders" value={rollup?.count ?? '-'} />
-          <StatCard label="Cumulative cost impact" value={rollup ? `SAR ${Number(rollup.cumulative_cost_impact).toLocaleString()}` : '-'} />
-          <StatCard label="Cumulative schedule impact" value={rollup ? `${rollup.cumulative_schedule_impact_days}d` : '-'} />
+          <StatCard label="Change orders" value={rollup.count} />
+          <StatCard
+            label="Cumulative cost impact"
+            value={`SAR ${Number(rollup.cumulative_cost_impact).toLocaleString()}`}
+          />
+          <StatCard label="Cumulative schedule impact" value={`${rollup.cumulative_schedule_impact_days}d`} />
         </div>
       </section>
 
@@ -172,7 +259,10 @@ export function TrustEvidencePage({ project }: { project: Project }) {
           <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">Silence flags - overdue-update detection</h2>
           <ul className="flex flex-col gap-2">
             {flags.map((f) => (
-              <li key={f.id} className="flex flex-col gap-2 rounded-[var(--radius-s)] border border-status-escalated/30 bg-status-escalated/5 px-4 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <li
+                key={f.id}
+                className="flex flex-col gap-2 rounded-[var(--radius-s)] border border-status-escalated/30 bg-status-escalated/5 px-4 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between"
+              >
                 <span className="text-navy">
                   <span className="font-semibold">{f.subject_type}</span> #{f.subject_id} - expected by{' '}
                   {new Date(f.expected_by).toLocaleString()}
@@ -188,66 +278,46 @@ export function TrustEvidencePage({ project }: { project: Project }) {
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-[var(--font-display)] text-lg font-bold text-navy">Verified milestone ledger</h2>
           <div className="flex items-center gap-2">
-            <NewEvidenceForm project={project} onCreated={load} />
+            {!formOpen && (
+              <button
+                onClick={() => setFormOpen(true)}
+                className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep"
+              >
+                + Submit evidence
+              </button>
+            )}
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="rounded-[var(--radius-s)] border border-navy/20 px-3 py-1.5 text-xs font-semibold text-navy hover:bg-navy/5 disabled:opacity-60"
+              className="rounded-[var(--radius-s)] border border-navy/20 px-3 py-1.5 text-xs font-semibold text-navy transition hover:bg-navy/5 disabled:opacity-60"
             >
               {exporting ? 'Preparing…' : 'Export dispute bundle'}
             </button>
           </div>
         </div>
-        <div className="overflow-x-auto rounded-[var(--radius-m)] border border-sand/70 bg-paper">
-          {evidence.length === 0 ? (
-            <p className="px-4 py-6 text-center text-sm text-navy/50">No evidence submitted yet.</p>
-          ) : (
-            <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="border-b border-sand/70 text-xs uppercase tracking-wide text-navy/50">
-                <tr>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Caption</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Subject</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Submitted by</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Captured</th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">Status</th>
-                  {canVerify && <th scope="col" className="px-4 py-2.5 font-semibold" />}
-                </tr>
-              </thead>
-              <tbody>
-                {evidence.map((e) => (
-                  <tr key={e.id} className="border-b border-sand/40 last:border-0">
-                    <td className="px-4 py-2.5 text-navy">{e.caption}</td>
-                    <td className="px-4 py-2.5 text-navy/60">
-                      {e.subject_type} #{e.subject_id}
-                    </td>
-                    <td className="px-4 py-2.5 text-navy/60">{e.submitted_by_name}</td>
-                    <td className="px-4 py-2.5 text-navy/60">{new Date(e.captured_at).toLocaleDateString()}</td>
-                    <td className="px-4 py-2.5">
-                      {e.verified ? (
-                        <Badge label={`Verified by ${e.verified_by_name}`} tone="good" />
-                      ) : (
-                        <Badge label="Pending claim" tone="warn" />
-                      )}
-                    </td>
-                    {canVerify && (
-                      <td className="px-4 py-2.5 text-right">
-                        {!e.verified && (
-                          <button
-                            disabled={busyId === e.id}
-                            onClick={() => handleVerify(e.id)}
-                            className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream hover:bg-navy-deep disabled:opacity-60"
-                          >
-                            Verify
-                          </button>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        {formOpen && (
+          <div className="mb-3">
+            <NewEvidenceForm project={project} onClose={() => setFormOpen(false)} onCreated={reload} />
+          </div>
+        )}
+        <DataTable
+          columns={evidenceColumns}
+          rows={evidence}
+          rowKey={(e) => e.id}
+          minWidth={720}
+          emptyTitle="No evidence submitted yet"
+          emptyHint="Site photos and verification records build the dispute-proof ledger for this project."
+          emptyAction={
+            !formOpen && (
+              <button
+                onClick={() => setFormOpen(true)}
+                className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep"
+              >
+                Submit your first evidence
+              </button>
+            )
+          }
+        />
       </section>
 
       {exportData && (
@@ -255,19 +325,27 @@ export function TrustEvidencePage({ project }: { project: Project }) {
           <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">
             Dispute export - {exportData.length} events, chronological
           </h2>
-          <div className="max-h-96 overflow-auto rounded-[var(--radius-m)] border border-sand/70 bg-paper p-4">
-            <ol className="flex flex-col gap-2 text-sm">
-              {exportData.map((event) => (
-                <li key={event.id} className="border-b border-sand/40 pb-2 last:border-0">
-                  <span className="text-navy/50">{new Date(event.timestamp).toLocaleString()}</span> - {' '}
-                  <span className="font-semibold text-navy">{event.event_type}</span>{' '}
-                  <span className="text-navy/60">
-                    by {event.actor ?? 'system'} ({event.actor_role || 'system'}) via {event.channel}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
+          {exportData.length === 0 ? (
+            <EmptyState
+              compact
+              title="No events in the export yet"
+              hint="Every attributable project event will appear here in chronological order once activity is recorded."
+            />
+          ) : (
+            <div className="max-h-96 overflow-auto rounded-[var(--radius-m)] border border-sand/70 bg-paper p-5">
+              <ol className="flex flex-col gap-2 text-sm">
+                {exportData.map((event) => (
+                  <li key={event.id} className="border-b border-sand/40 pb-2 last:border-0">
+                    <span className="text-navy/50">{new Date(event.timestamp).toLocaleString()}</span> -{' '}
+                    <span className="font-semibold text-navy">{event.event_type}</span>{' '}
+                    <span className="text-navy/60">
+                      by {event.actor ?? 'system'} ({event.actor_role || 'system'}) via {event.channel}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </section>
       )}
     </div>

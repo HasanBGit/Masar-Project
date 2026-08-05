@@ -2,7 +2,7 @@ from accounts.services import get_role
 from core.models import Project
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from . import services
@@ -29,7 +29,7 @@ class DrawingModelViewSet(
     def _project(self):
         project_id = self.request.query_params.get("project") or self.request.data.get("project")
         if not project_id:
-            raise NotFound("Missing `project`.")
+            raise NotFound("Missing `project` parameter.")
         project = Project.objects.filter(id=project_id).first()
         if project is None or get_role(self.request.user, project) is None:
             raise NotFound("Project not found.")
@@ -61,5 +61,8 @@ class DrawingModelViewSet(
 
     def destroy(self, request, *args, **kwargs):
         model = self.get_object()
+        role = get_role(request.user, model.project)
+        if model.uploaded_by_id != request.user.id and role not in ("owner", "admin"):
+            raise PermissionDenied("Only the uploader or a project owner/admin can delete a model.")
         services.delete_drawing_model(model, deleted_by=request.user)
         return Response(status=204)

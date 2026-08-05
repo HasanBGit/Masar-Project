@@ -3,9 +3,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-from rest_framework_simplejwt.views import TokenRefreshView
 
-from accounts.views import MonitoredTokenObtainPairView
+from accounts.views import MonitoredTokenObtainPairView, ThrottledTokenRefreshView
 from observability.views import SystemHealthCheckView
 
 urlpatterns = [
@@ -15,7 +14,7 @@ urlpatterns = [
 
     # already expects {"email": ..., "password": ...} - no override needed.
     path("api/v1/auth/token/", MonitoredTokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/v1/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/v1/auth/token/refresh/", ThrottledTokenRefreshView.as_view(), name="token_refresh"),
     path("api/v1/accounts/", include("accounts.urls")),
     path("api/v1/approvals/", include("approvals.urls")),
     path("api/v1/dashboard/", include("dashboard.urls")),

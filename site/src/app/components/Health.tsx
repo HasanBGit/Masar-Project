@@ -9,7 +9,7 @@ interface Props {
 
 export function Health({ connectors, darkMode }: Props) {
   const { i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const isAr = (i18n.resolvedLanguage ?? i18n.language).split("-")[0] === "ar";
 
   const cardBg = darkMode ? "bg-[#111c2d] border-white/8" : "bg-white border-gray-200";
   const labelCls = darkMode ? "text-white/30" : "text-gray-400";

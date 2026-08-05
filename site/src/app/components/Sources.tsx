@@ -49,7 +49,7 @@ export function Sources({
   darkMode,
 }: Props) {
   const { i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const isAr = (i18n.resolvedLanguage ?? i18n.language).split("-")[0] === "ar";
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const cardBg = darkMode ? "bg-[#111c2d] border-white/8" : "bg-white border-gray-200";
@@ -92,7 +92,7 @@ export function Sources({
             </div>
             {isSyncing && stage !== "idle" && (
               <div className="mt-2 flex items-center gap-2 text-[0.8rem] font-semibold text-[#c9a227]">
-                <span className="animate-spin">↻</span>
+                <span aria-hidden="true" className="animate-spin">↻</span>
                 {isAr ? STAGE_LABEL[stage]?.ar : STAGE_LABEL[stage]?.en}
               </div>
             )}
@@ -116,7 +116,7 @@ export function Sources({
                   : "border-gray-200 text-gray-600 hover:bg-gray-100"
               }`}
             >
-              🧠 {isAr ? "إعادة التحليل" : "Re-analyse"}
+              <span aria-hidden="true">🧠</span> {isAr ? "إعادة التحليل" : "Re-analyse"}
             </button>
             <button
               onClick={() => onSync()}
@@ -125,14 +125,14 @@ export function Sources({
                 isSyncing || !user ? "cursor-not-allowed opacity-50" : "hover:opacity-90 active:scale-95"
               } bg-[#c9a227] text-[#0a1628]`}
             >
-              <span className={isSyncing ? "animate-spin" : ""}>↻</span>
+              <span aria-hidden="true" className={isSyncing ? "animate-spin" : ""}>↻</span>
               {isSyncing ? (isAr ? "جارٍ التحليل…" : "Analysing…") : isAr ? "مزامنة الآن" : "Sync now"}
             </button>
           </div>
         </div>
 
         {syncError && (
-          <div className={`mt-4 rounded-xl border p-3 text-[0.82rem] ${toneClasses("danger", darkMode)}`}>
+          <div role="alert" className={`mt-4 rounded-xl border p-3 text-[0.82rem] ${toneClasses("danger", darkMode)}`}>
             {syncError}
           </div>
         )}
@@ -150,7 +150,7 @@ export function Sources({
       {/* ─── Needs review ────────────────────────────────────────────────── */}
       <div className={`rounded-2xl border p-5 ${reviewQueue.length > 0 ? (darkMode ? "border-amber-500/25 bg-amber-500/4" : "border-amber-200 bg-amber-50/60") : cardBg}`}>
         <div className="mb-1 flex items-center gap-2">
-          <span className="text-[1rem]">🔎</span>
+          <span aria-hidden="true" className="text-[1rem]">🔎</span>
           <span className={`text-[0.8rem] font-semibold uppercase tracking-widest ${reviewQueue.length > 0 ? "text-amber-500" : labelCls}`}>
             {isAr ? "بحاجة لمراجعة بشرية" : "Needs Human Review"}
           </span>
@@ -208,7 +208,7 @@ export function Sources({
                         </div>
                       )}
                     </div>
-                    <span className={`shrink-0 text-[0.7rem] ${labelCls}`}>{isExp ? "▲" : "▼"}</span>
+                    <span aria-hidden="true" className={`shrink-0 text-[0.7rem] ${labelCls}`}>{isExp ? "▲" : "▼"}</span>
                   </button>
 
                   {isExp && (
@@ -263,7 +263,7 @@ export function Sources({
               <div key={c.id} className={`rounded-2xl border p-5 ${cardBg}`}>
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-[1.1rem]">{meta?.icon ?? "🔌"}</span>
+                    <span aria-hidden="true" className="text-[1.1rem]">{meta?.icon ?? "🔌"}</span>
                     <span className={`font-display text-[1rem] font-bold ${textCls}`}>
                       {isAr ? c.nameAr : c.name}
                     </span>

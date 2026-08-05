@@ -114,8 +114,8 @@ export function useWorkspaceState(token: string | null) {
         }
 
         setSyncState("idle");
-      } catch (err: any) {
-        setSyncError(err?.message ?? "Unknown error during sync");
+      } catch (err) {
+        setSyncError(err instanceof Error ? err.message : String(err));
         setSyncState("error");
         setStage("idle");
         setHasSynced(true);
@@ -136,8 +136,8 @@ export function useWorkspaceState(token: string | null) {
       setIntelligence(result.intelligence);
       setStats((s) => ({ ...s, reasoned: result.events.filter((e) => e.reasoning).length }));
       setSyncState("idle");
-    } catch (err: any) {
-      setSyncError(err?.message ?? "Reasoning failed");
+    } catch (err) {
+      setSyncError(err instanceof Error ? err.message : String(err));
       setSyncState("error");
     } finally {
       setStage("idle");

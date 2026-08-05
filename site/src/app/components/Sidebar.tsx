@@ -19,7 +19,7 @@ const NAV_ITEMS = [
 
 export function Sidebar({ projects, activeProject, onSelectProject, activePanel, onSelectPanel, darkMode }: Props) {
   const { i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const isAr = (i18n.resolvedLanguage ?? i18n.language).split("-")[0] === "ar";
 
   const borderCls = darkMode ? "border-white/8" : "border-gray-200";
   const textFaded = darkMode ? "text-white/30" : "text-gray-400";

@@ -25,7 +25,7 @@ interface Props {
 
 export function Timeline({ events, darkMode, syncing }: Props) {
   const { i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const isAr = (i18n.resolvedLanguage ?? i18n.language).split("-")[0] === "ar";
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -90,13 +90,14 @@ export function Timeline({ events, darkMode, syncing }: Props) {
       {/* ─── Search ──────────────────────────────────────────────────────── */}
       <div className="mb-4">
         <div className="relative">
-          <span className={`pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-[0.95rem] ${labelCls}`}>
+          <span aria-hidden="true" className={`pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-[0.95rem] ${labelCls}`}>
             🔍
           </span>
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            aria-label={isAr ? "البحث في سجل المشروع" : "Search the project record"}
             placeholder={
               isAr
                 ? "ابحث في الأحداث، الملخصات، الجهات، المرفقات…"
@@ -112,7 +113,7 @@ export function Timeline({ events, darkMode, syncing }: Props) {
                 darkMode ? "text-white/40 hover:bg-white/8 hover:text-white/80" : "text-gray-400 hover:bg-gray-100 hover:text-gray-700"
               }`}
             >
-              ✕
+              <span aria-hidden="true">✕</span>
             </button>
           )}
         </div>
@@ -123,6 +124,7 @@ export function Timeline({ events, darkMode, syncing }: Props) {
         <div className="mb-4 flex flex-wrap gap-2">
           <button
             onClick={() => setCategory("all")}
+            aria-pressed={category === "all"}
             className={`rounded-full border px-3 py-1.5 text-[0.75rem] font-semibold transition-all ${
               category === "all"
                 ? "border-[#c9a227]/50 bg-[#c9a227]/15 text-[#c9a227]"
@@ -138,11 +140,13 @@ export function Timeline({ events, darkMode, syncing }: Props) {
               <button
                 key={cat}
                 onClick={() => setCategory(active ? "all" : cat)}
+                aria-pressed={active}
                 className={`rounded-full border px-3 py-1.5 text-[0.75rem] font-semibold transition-all ${
                   active ? "border-[#c9a227]/50 bg-[#c9a227]/15 text-[#c9a227]" : toneClasses(meta.tone, darkMode)
                 }`}
               >
-                {meta.icon} {isAr ? meta.labelAr : meta.label} · {count}
+                <span aria-hidden="true">{meta.icon} </span>
+                {isAr ? meta.labelAr : meta.label} · {count}
               </button>
             );
           })}
@@ -160,7 +164,7 @@ export function Timeline({ events, darkMode, syncing }: Props) {
       {/* ─── Record ──────────────────────────────────────────────────────── */}
       {events.length === 0 ? (
         <div className={`flex flex-col items-center justify-center py-20 text-center ${labelCls}`}>
-          <div className="mb-4 text-4xl opacity-50">{syncing ? "🧠" : "🏗️"}</div>
+          <div aria-hidden="true" className="mb-4 text-4xl opacity-50">{syncing ? "🧠" : "🏗️"}</div>
           <p className="max-w-sm">
             {syncing
               ? isAr
@@ -173,7 +177,7 @@ export function Timeline({ events, darkMode, syncing }: Props) {
         </div>
       ) : filtered.length === 0 ? (
         <div className={`flex flex-col items-center justify-center py-20 text-center ${labelCls}`}>
-          <div className="mb-4 text-4xl opacity-50">🔍</div>
+          <div aria-hidden="true" className="mb-4 text-4xl opacity-50">🔍</div>
           <p>{isAr ? "لا توجد أحداث مطابقة." : "No events match your filters."}</p>
           <button
             onClick={() => {
@@ -218,7 +222,7 @@ export function Timeline({ events, darkMode, syncing }: Props) {
                     className="flex w-full items-start gap-4 p-5 text-start"
                     onClick={() => setExpandedId(isExp ? null : event.id)}
                   >
-                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-[1.3rem] ${toneClasses(cat.tone, darkMode)}`}>
+                    <div aria-hidden="true" className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-[1.3rem] ${toneClasses(cat.tone, darkMode)}`}>
                       {cat.icon}
                     </div>
 

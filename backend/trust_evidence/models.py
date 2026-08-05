@@ -116,8 +116,9 @@ class SilenceFlag(TimeStampedModel):
         constraints = [
             # Only one *open* silence flag per subject at a time - resolving
             # one and a fresh breach later creates a new row, not a reopen.
+            # Project-scoped: subject ids are only unique per project.
             models.UniqueConstraint(
-                fields=["subject_type", "subject_id"],
+                fields=["project", "subject_type", "subject_id"],
                 condition=models.Q(resolved=False),
                 name="one_open_silence_flag_per_subject",
             )

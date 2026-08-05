@@ -10,7 +10,7 @@ import { Health } from "./components/Health";
 import { AuthOverlay } from "./components/AuthOverlay";
 
 export function App() {
-  const { token, user, isLoading, error, login, logout } = useGmailAuth();
+  const { token, user, isLoading, error, login, logout, retryInit } = useGmailAuth();
   const workspace = useWorkspaceState(token);
   const [darkMode, setDarkMode] = useState(true);
 
@@ -24,9 +24,12 @@ export function App() {
   );
 
   if (isLoading) {
+    // Same background as the loaded shell so there is no colour flash.
     return (
-      <div className="flex h-screen items-center justify-center bg-[#070c18]">
-        <div className="animate-spin text-4xl text-[#c9a227]">↻</div>
+      <div className="flex h-screen items-center justify-center bg-[#0a1628]">
+        <div role="status" aria-label="Loading" className="animate-spin text-4xl text-[#c9a227]">
+          <span aria-hidden="true">↻</span>
+        </div>
       </div>
     );
   }
@@ -99,7 +102,7 @@ export function App() {
           )}
 
           {/* Auth overlay blocks the content if not signed in */}
-          {!token && <AuthOverlay onLogin={login} error={error} darkMode={darkMode} />}
+          {!token && <AuthOverlay onLogin={login} onRetry={retryInit} error={error} darkMode={darkMode} />}
         </main>
       </div>
     </div>

@@ -5,7 +5,6 @@ import type {
   Contract,
   ContractAmendment,
   ContractVsActual,
-  Invoice,
   LegalAgentAnswer,
   PaymentMilestone,
 } from '../../lib/types'
@@ -73,11 +72,6 @@ export async function createPaymentMilestone(payload: {
 export async function releasePaymentMilestone(id: number): Promise<PaymentMilestone> {
   const res = await api.post<PaymentMilestone>(`/contract-payments/payment-milestones/${id}/release/`)
   return res.data
-}
-
-export async function listInvoices(project: number): Promise<Invoice[]> {
-  const res = await api.get<Paginated<Invoice>>('/contract-payments/invoices/', { params: { project } })
-  return unwrapList(res.data)
 }
 
 export async function listAmendments(project: number): Promise<ContractAmendment[]> {

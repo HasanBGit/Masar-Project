@@ -12,7 +12,7 @@ class DashboardSummaryView(APIView):
     def get(self, request):
         project_id = request.query_params.get("project")
         if not project_id:
-            raise NotFound("Missing `project` query parameter.")
+            raise NotFound("Missing `project` parameter.")
         project = Project.objects.filter(id=project_id).first()
         if project is None:
             raise NotFound("Project not found.")

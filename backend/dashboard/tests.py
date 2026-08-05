@@ -1,4 +1,5 @@
 import pytest
+from rest_framework.exceptions import PermissionDenied
 
 from approvals.models import RaciRole
 from approvals.services import request_decision
@@ -73,5 +74,5 @@ def test_contractor_only_sees_own_participant_decisions(project, owner_user, con
 @pytest.mark.django_db
 def test_unknown_role_raises(project, django_user_model):
     outsider = django_user_model.objects.create(email="outsider2@test.local", username="outsider2@test.local")
-    with pytest.raises(PermissionError):
+    with pytest.raises(PermissionDenied):
         get_role_dashboard(outsider, project)

@@ -62,8 +62,12 @@ export async function fetchAllChannels(
     active.map(async (c) => {
       try {
         return { channel: c.id, messages: await c.fetch(ctx), error: null as string | null };
-      } catch (err: any) {
-        return { channel: c.id, messages: [] as RawMessage[], error: err?.message ?? "Fetch failed" };
+      } catch (err) {
+        return {
+          channel: c.id,
+          messages: [] as RawMessage[],
+          error: err instanceof Error ? err.message : String(err),
+        };
       }
     })
   );

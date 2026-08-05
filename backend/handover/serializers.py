@@ -10,6 +10,14 @@ class HandoverRecordSerializer(serializers.ModelSerializer):
         read_only_fields = ["decennial_liability_expires_at", "recorded_by"]
 
 
+class PracticalCompletionSerializer(serializers.Serializer):
+    """Input validation for HandoverRecordView.post - a plain serializer (not
+    the ModelSerializer above) so re-recording an existing project's date
+    doesn't trip the OneToOne unique validator; the service upserts."""
+
+    practical_completion_date = serializers.DateField()
+
+
 class PunchListItemSerializer(serializers.ModelSerializer):
     raised_by_name = serializers.CharField(source="raised_by.get_full_name", read_only=True)
     assigned_approver_name = serializers.SerializerMethodField()

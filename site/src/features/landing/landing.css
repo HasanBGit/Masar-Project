@@ -131,6 +131,24 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   cursor: pointer;
 }
 .modal-success { font-weight: 600; }
+/* #b3261e is a functional form-error color (readable on the cream panel);
+   it is not part of the brand palette and is used nowhere else. */
+.modal-form input[aria-invalid="true"] { border-color: #b3261e; }
+.modal-form .modal-field-error,
+.modal-form .modal-form-error {
+  margin: -6px 0 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #b3261e;
+}
+.modal-form .modal-form-error {
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+.modal-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 
 /* Scroll rig */
 .cinema-scroll {
@@ -203,6 +221,12 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
   text-decoration: none;
   cursor: pointer;
+  transition: color 160ms ease;
+}
+.site-nav a:hover,
+.site-nav button:hover,
+.language-switcher:hover {
+  color: var(--paper);
 }
 .site-nav a,
 .site-nav button {
@@ -220,6 +244,7 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   font-size: 16px;
   font-weight: 600;
   text-decoration: none;
+  transition: color 160ms ease;
 }
 .site-login-link:hover {
   color: var(--paper);
@@ -338,6 +363,11 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   cursor: pointer;
   pointer-events: auto;
   user-select: none;
+  transition: transform 200ms ease, border-color 200ms ease;
+}
+.sight-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(253, 241, 225, 0.7);
 }
 .sight-card::before,
 .sight-card::after { content: none; }
@@ -348,8 +378,13 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   position: relative;
   z-index: 1;
 }
-.sight-card:focus-visible,
 .sight-card.is-active { outline: none; }
+/* Visible focus ring using the existing cream palette color, offset so it
+   reads against both the card edge and the photographic backdrop. */
+.sight-card:focus-visible {
+  outline: 3px solid #fdf1e1;
+  outline-offset: 3px;
+}
 
 .sight-kicker {
   display: block;
@@ -399,17 +434,21 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
 
 .sights-controls {
   z-index: 5;
-  left: 48px; right: auto;
+  /* Logical positioning so RTL mirrors the controls automatically. */
+  inset-inline-start: 48px;
+  inset-inline-end: auto;
   top: calc(var(--sights-screen-top) + 220px + 16px);
   display: flex;
   justify-content: flex-start;
   gap: 14px;
   opacity: var(--sights-controls-opacity);
   transform: translate3d(0, var(--sights-y), 0);
-  pointer-events: none;
+  /* Visibility (not pointer-events) gates interaction: the buttons work
+     whenever they are visible at all. */
+  visibility: hidden;
   will-change: transform, opacity;
 }
-.sights-controls.is-ready { pointer-events: auto; }
+.sights-controls.is-ready { visibility: visible; }
 
 .sight-nav {
   width: 54px; height: 54px;
@@ -421,7 +460,12 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   background: rgba(253, 241, 225, 0.94);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2);
   cursor: pointer;
+  transition: transform 160ms ease, filter 160ms ease;
 }
+.sight-nav:hover { filter: brightness(1.04); transform: scale(1.06); }
+/* The arrow glyphs (← / →) flip with the reading direction. */
+html[dir="rtl"] .sight-nav { transform: scaleX(-1); }
+html[dir="rtl"] .sight-nav:hover { transform: scaleX(-1) scale(1.06); }
 
 .hero-title {
   z-index: 8;
@@ -608,7 +652,13 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
   pointer-events: auto;
   cursor: pointer;
+  transition: transform 180ms ease, filter 180ms ease;
 }
+.note-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+.note-button:active { transform: translateY(0); }
 .note-button span:first-child {
   font-size: 1.25rem;
   line-height: 1;
@@ -833,6 +883,11 @@ html[dir="rtl"] .cta-band h2 { font-family: "Noto Kufi Arabic", Georgia, serif; 
   border: 1px solid rgba(253, 241, 225, 0.16);
   border-radius: 24px;
   background: rgba(253, 241, 225, 0.04);
+  transition: transform 200ms ease, border-color 200ms ease;
+}
+.price-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(253, 241, 225, 0.32);
 }
 .price-card.is-featured {
   background: var(--paper);
@@ -840,6 +895,7 @@ html[dir="rtl"] .cta-band h2 { font-family: "Noto Kufi Arabic", Georgia, serif; 
   transform: translateY(-10px);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
+.price-card.is-featured:hover { transform: translateY(-13px); }
 .price-badge {
   position: absolute;
   top: -13px;
@@ -954,12 +1010,15 @@ html[dir="rtl"] .price-card h3 { font-family: "Noto Kufi Arabic", Georgia, serif
   line-height: 1.5;
 }
 html[dir="rtl"] .credibility-quote p { font-family: "Noto Kufi Arabic", Georgia, serif; }
-.credibility-quote cite {
+.credibility-quote .credibility-cite {
   display: block;
-  margin-top: 20px;
+  margin: 20px 0 0;
   color: rgba(253, 241, 225, 0.55);
   font-style: normal;
   font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 /* FAQ */
@@ -983,6 +1042,11 @@ html[dir="rtl"] .credibility-quote p { font-family: "Noto Kufi Arabic", Georgia,
   font-weight: 700;
   cursor: pointer;
   list-style: none;
+  transition: color 160ms ease;
+}
+.faq-item summary:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-item summary::after {
@@ -1001,6 +1065,31 @@ html[dir="rtl"] .credibility-quote p { font-family: "Noto Kufi Arabic", Georgia,
 .faq-item p {
   max-width: 62ch;
   margin: 0 0 22px;
+  color: rgba(253, 241, 225, 0.68);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* Legal (privacy policy / terms of service — targets of the footer links) */
+.legal-section { background: #12191b; }
+.legal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+  margin-top: 8px;
+}
+.legal-block { scroll-margin-top: 32px; }
+.legal-heading {
+  margin: 0 0 14px;
+  color: var(--paper);
+  font-family: "Ogg Medium", Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+html[dir="rtl"] .legal-heading { font-family: "Noto Kufi Arabic", Georgia, serif; }
+.legal-block p {
+  max-width: 58ch;
+  margin: 0 0 12px;
   color: rgba(253, 241, 225, 0.68);
   font-size: 0.92rem;
   line-height: 1.6;
@@ -1056,7 +1145,7 @@ html[dir="rtl"] .footer-top h2 { font-family: "Noto Kufi Arabic", Georgia, serif
   border-radius: 999px;
   font-size: 0.78rem;
 }
-.footer-col h4 {
+.footer-col h3 {
   margin: 0 0 16px;
   color: rgba(253, 241, 225, 0.45);
   font-size: 0.72rem;
@@ -1103,8 +1192,19 @@ html[dir="rtl"] .footer-top h2 { font-family: "Noto Kufi Arabic", Georgia, serif
   .steps-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pricing-grid { grid-template-columns: 1fr; }
   .price-card.is-featured { transform: none; }
+  .price-card.is-featured:hover { transform: translateY(-4px); }
   .credibility-inner { grid-template-columns: 1fr; gap: 36px; }
   .footer-columns { grid-template-columns: 1fr 1fr; }
+  .legal-grid { grid-template-columns: 1fr; }
+}
+
+/* Tablet range (~641–899px): keep the two-up grids from the rule above, but
+   tighten the rhythm and stop the fifth feature card sitting as an orphan. */
+@media (min-width: 641px) and (max-width: 899px) {
+  .landing-section { padding: 88px 0; }
+  .feature-grid { gap: 16px; margin-top: 44px; }
+  .feature-card:last-child { grid-column: 1 / -1; }
+  .steps-grid { gap: 28px; margin-top: 44px; }
 }
 
 @media (max-width: 640px) {
@@ -1118,8 +1218,71 @@ html[dir="rtl"] .footer-top h2 { font-family: "Noto Kufi Arabic", Georgia, serif
   .footer-top .note-button { width: 100%; justify-content: center; }
 }
 
+/* ===== Reduced-motion: static presentation of the cinematic scroll =====
+   LandingPage.tsx never starts the parallax rig under prefers-reduced-motion;
+   it adds .cinema-static instead, moves the modules slider into the document
+   flow, and this block renders the scroll story as plain stacked, fully
+   readable sections. Existing palette colors only. */
+.cinema-scroll.cinema-static { height: auto; }
+.cinema-static .stage {
+  position: relative;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  background: #0b1110;
+  padding-bottom: 96px;
+}
+.cinema-static .world {
+  position: relative;
+  inset: auto;
+  height: 100vh;
+  min-height: 620px;
+}
+.cinema-static .intro-copy,
+.cinema-static .story-panel {
+  position: relative;
+  left: auto;
+  right: auto;
+  top: auto;
+  bottom: auto;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  margin: 88px auto 0;
+}
+.cinema-static .sights-slider {
+  position: relative;
+  inset: auto;
+  top: auto;
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  margin: 88px 0 0;
+  padding: 0 24px;
+  overflow-x: auto;
+}
+.cinema-static .sights-track {
+  width: max-content;
+  transform: none;
+  transition: none;
+}
+.cinema-static .sights-controls { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .scene-img, .back-stack, .hero-title, .intro-copy,
-  .story-panel, .sights-track, .sights-slider { transition: none; }
+  .story-panel, .sights-track, .sights-slider,
+  .note-button, .sight-card, .sight-nav, .price-card,
+  .faq-item summary, .site-nav a, .site-nav button,
+  .language-switcher, .site-login-link { transition: none; }
+  .note-button:hover,
+  .sight-card:hover,
+  .price-card:hover,
+  .sight-nav:hover { transform: none; }
+  /* Featured card keeps its resting offset instead of animating on hover. */
+  .price-card.is-featured:hover { transform: translateY(-10px); }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 900px) {
+  .price-card.is-featured:hover { transform: none; }
 }

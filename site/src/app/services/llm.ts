@@ -225,10 +225,10 @@ export async function generateJson<T>({ layer, prompt, schema, cacheKey, maxToke
       saveCache(cache);
     }
     return parsed;
-  } catch (err: any) {
+  } catch (err) {
     s.failures += 1;
-    s.lastError = err?.message ?? "Unknown model error";
-    console.warn(`[san3] ${layer} layer call failed:`, err);
+    // Surfaced through getLayerHealth / the connector health UI, not the console.
+    s.lastError = err instanceof Error ? err.message : String(err);
     return null;
   }
 }

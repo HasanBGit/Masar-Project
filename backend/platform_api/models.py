@@ -59,6 +59,7 @@ class WebhookEventType(models.TextChoices):
     APPROVAL_REQUESTED = "approval.requested", "Approval requested"
     EVIDENCE_VERIFIED = "evidence.verified", "Evidence verified"
     CONTRACTOR_OVERDUE = "contractor.overdue", "Contractor overdue"
+    PAYMENT_RELEASED = "payment.released", "Payment released"
 
 
 class WebhookSubscription(TimeStampedModel):

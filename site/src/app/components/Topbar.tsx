@@ -34,7 +34,8 @@ export function Topbar({
   onOpenSources,
 }: Props) {
   const { i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  // resolvedLanguage + base-code split so regional codes ("ar-SA") count as Arabic.
+  const isAr = (i18n.resolvedLanguage ?? i18n.language).split("-")[0] === "ar";
   const [notifOpen, setNotifOpen] = useState(false);
   const [safetyOpen, setSafetyOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -69,9 +70,10 @@ export function Topbar({
           <button
             onClick={onOpenSources}
             title={isAr ? "بنود بحاجة لمراجعة" : "Items needing review"}
+            aria-label={isAr ? `بنود بحاجة لمراجعة: ${reviewCount}` : `Items needing review: ${reviewCount}`}
             className="flex h-9 items-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 text-[0.78rem] font-bold text-amber-500 transition-all hover:bg-amber-500/20"
           >
-            <span>🔎</span>
+            <span aria-hidden="true">🔎</span>
             <span>{reviewCount}</span>
           </button>
         )}
@@ -85,16 +87,19 @@ export function Topbar({
                 setNotifOpen(false);
               }}
               title={isAr ? "تنبيهات السلامة" : "Safety alerts"}
+              aria-label={isAr ? `تنبيهات السلامة: ${safetyEvents.length}` : `Safety alerts: ${safetyEvents.length}`}
+              aria-expanded={safetyOpen}
               className="flex h-9 items-center gap-1.5 rounded-xl border border-red-500/40 bg-red-500/10 px-3 text-[0.78rem] font-bold text-red-400 transition-all hover:bg-red-500/20"
             >
-              <span>⚠️</span>
+              <span aria-hidden="true">⚠️</span>
               <span>{safetyEvents.length}</span>
             </button>
 
             {safetyOpen && (
               <div className={`absolute end-0 top-11 z-50 w-80 rounded-2xl border p-4 shadow-xl ${darkMode ? "bg-[#111c2d] border-red-500/25" : "bg-white border-red-200"}`}>
                 <div className="mb-3 text-[0.72rem] font-semibold uppercase tracking-widest text-red-400">
-                  ⚠️ {isAr ? "تنبيهات السلامة" : "Safety alerts"}
+                  <span aria-hidden="true">⚠️ </span>
+                  {isAr ? "تنبيهات السلامة" : "Safety alerts"}
                 </div>
                 <div className="space-y-2">
                   {safetyEvents.slice(0, 4).map((e) => (
@@ -109,14 +114,11 @@ export function Topbar({
           </div>
         )}
 
-        {/* Language toggle */}
+        {/* Language toggle — i18next persists the choice and owns document
+            lang/dir via its languageChanged listener (src/i18n/index.ts). */}
         <button
-          onClick={() => {
-            const newLang = isAr ? "en" : "ar";
-            i18n.changeLanguage(newLang);
-            document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
-            document.documentElement.lang = newLang;
-          }}
+          onClick={() => void i18n.changeLanguage(isAr ? "en" : "ar")}
+          aria-label={isAr ? "Switch to English" : "التبديل إلى العربية"}
           className={`flex h-9 items-center justify-center rounded-xl border px-3 text-[0.75rem] font-bold transition-all ${btnCls}`}
         >
           {isAr ? "EN" : "عربي"}
@@ -127,8 +129,10 @@ export function Topbar({
           onClick={onToggleDark}
           className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${btnCls}`}
           title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={isAr ? "الوضع الداكن" : "Dark mode"}
+          aria-pressed={darkMode}
         >
-          {darkMode ? "☀️" : "🌙"}
+          <span aria-hidden="true">{darkMode ? "☀️" : "🌙"}</span>
         </button>
 
         {/* Priority alerts */}
@@ -138,9 +142,11 @@ export function Topbar({
               setNotifOpen((v) => !v);
               setSafetyOpen(false);
             }}
+            aria-label={isAr ? `بنود عاجلة: ${urgentEvents.length}` : `Urgent items: ${urgentEvents.length}`}
+            aria-expanded={notifOpen}
             className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${btnCls}`}
           >
-            🔔
+            <span aria-hidden="true">🔔</span>
           </button>
           {urgentEvents.length > 0 && (
             <span className="absolute -end-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[0.55rem] font-bold text-white shadow-sm ring-2 ring-transparent">
@@ -185,9 +191,11 @@ export function Topbar({
           <div className="relative ms-2">
             <button
               onClick={() => setUserMenuOpen((v) => !v)}
+              aria-label={isAr ? `قائمة الحساب: ${user.name}` : `Account menu: ${user.name}`}
+              aria-expanded={userMenuOpen}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-[#c9a227] text-[0.85rem] font-bold text-[#0a1628] shadow-sm transition-transform hover:scale-105"
             >
-              {user.initials}
+              <span aria-hidden="true">{user.initials}</span>
             </button>
 
             {userMenuOpen && (
