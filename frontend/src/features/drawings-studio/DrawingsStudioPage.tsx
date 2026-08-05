@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import {
   Box,
   Layers,
@@ -10,6 +10,14 @@ import {
   UploadCloud,
 } from 'lucide-react'
 import type { DrawingModel, Project } from '../../lib/types'
+import { getApiError } from '../../lib/api'
+import { useProjectData } from '../../lib/useProjectData'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { ErrorState } from '../../components/ui/ErrorState'
+import { Skeleton } from '../../components/ui/Skeleton'
+import { useToast } from '../../components/ui/Toast'
+import { TextField } from '../../components/ui/Field'
 import { deleteDrawingModel, listDrawingModels, uploadDrawingModel } from './api'
 import { MESH_IMPORT_EXTENSIONS } from './viewer/formats'
 import { ModelViewer } from './viewer/ModelViewer'
@@ -32,6 +40,16 @@ const SHAPE_LABELS: Record<PrimitiveShape, string> = {
   cylinder: 'Cylinder / Column',
   sphere: 'Sphere / Dome',
 }
+
+const SHAPE_BUTTONS: Record<PrimitiveShape, { icon: string; short: string }> = {
+  saudi_tower: { icon: '🇸🇦', short: 'Saudi Tower' },
+  box: { icon: '📦', short: 'Box' },
+  cylinder: { icon: '🏛️', short: 'Pillar' },
+  sphere: { icon: '🛢️', short: 'Sphere' },
+}
+
+/** Numeric dimension keys — colour has its own setter with its own type. */
+type DimKey = 'width' | 'depth' | 'height' | 'radius'
 
 interface PresetBlock {
   id: string
@@ -74,6 +92,8 @@ const PRESET_BLOCKS: PresetBlock[] = [
 
 // ─── Upload modal/form ────────────────────────────────────────────────────────
 function UploadForm({ project, onUploaded }: { project: Project; onUploaded: () => void }) {
+  const toast = useToast()
+  const fileInputId = useId()
   const [open, setOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [name, setName] = useState('')
@@ -85,25 +105,54 @@ function UploadForm({ project, onUploaded }: { project: Project; onUploaded: () 
     return (
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs font-semibold text-navy shadow-sm hover:bg-cream"
+        className="flex items-center gap-1.5 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs font-semibold text-navy shadow-sm transition hover:bg-cream"
       >
-        <UploadCloud size={14} className="text-gold-ink" /> Upload 3D Mesh File
+        <UploadCloud size={14} className="text-gold-ink" aria-hidden="true" /> Upload 3D Mesh File
       </button>
     )
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!file || !name.trim()) return
+    setBusy(true)
+    setError(null)
+    try {
+      await uploadDrawingModel(project.id, file, name.trim())
+      setOpen(false)
+      setFile(null)
+      setName('')
+      if (inputRef.current) inputRef.current.value = ''
+      toast.success(`Uploaded "${name.trim()}" to project models.`)
+      onUploaded()
+    } catch (err) {
+      setError(getApiError(err, 'Could not upload this model.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
-    <div className="rounded-[var(--radius-m)] border border-sand bg-paper p-4 text-navy">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-bold text-navy">Upload 3D Mesh Export</h3>
-        <button onClick={() => setOpen(false)} className="text-xs text-navy/40 hover:text-navy">
-          ✕
+    <form onSubmit={handleSubmit} className="rounded-[var(--radius-m)] border border-sand bg-paper p-5 text-navy">
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="text-sm font-bold text-navy">Upload 3D Mesh Export</h2>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label="Close upload form"
+          className="rounded p-1 text-xs text-navy/40 transition hover:text-navy"
+        >
+          <span aria-hidden="true">✕</span>
         </button>
       </div>
       <p className="mb-3 text-xs text-navy/60">
         Supports glTF, GLB, OBJ, STL, FBX, DAE, 3DS, PLY, USD, or USDZ. Loaded directly in-browser.
       </p>
+      <label htmlFor={fileInputId} className="mb-1 block text-xs font-semibold text-navy/70">
+        Mesh file
+      </label>
       <input
+        id={fileInputId}
         ref={inputRef}
         type="file"
         accept={ACCEPT}
@@ -114,42 +163,29 @@ function UploadForm({ project, onUploaded }: { project: Project; onUploaded: () 
         }}
         className="mb-3 w-full text-xs text-navy"
       />
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Model name (e.g. Phase 1 Podium)"
-        className="mb-3 w-full rounded-[var(--radius-s)] border border-sand bg-white px-3 py-2 text-xs text-navy"
-      />
-      {error && <p className="mb-3 text-xs font-medium text-status-escalated">{error}</p>}
+      <div className="mb-3">
+        <TextField
+          label="Model name"
+          hideLabel
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Model name (e.g. Phase 1 Podium)"
+          error={error}
+        />
+      </div>
       <div className="flex gap-2">
         <button
+          type="submit"
           disabled={busy || !file || !name.trim()}
-          onClick={async () => {
-            if (!file) return
-            setBusy(true)
-            setError(null)
-            try {
-              await uploadDrawingModel(project.id, file, name.trim())
-              setOpen(false)
-              setFile(null)
-              setName('')
-              if (inputRef.current) inputRef.current.value = ''
-              onUploaded()
-            } catch (e: any) {
-              setError(e?.response?.data?.non_field_errors?.[0] ?? e?.response?.data?.file?.[0] ?? 'Could not upload this model.')
-            } finally {
-              setBusy(false)
-            }
-          }}
-          className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream disabled:opacity-60"
+          className="rounded-[var(--radius-s)] bg-navy px-3 py-1.5 text-xs font-semibold text-cream transition hover:bg-navy-deep disabled:opacity-60"
         >
           {busy ? 'Uploading...' : 'Upload Model'}
         </button>
-        <button onClick={() => setOpen(false)} className="text-xs text-navy/50 hover:text-navy">
+        <button type="button" onClick={() => setOpen(false)} className="text-xs text-navy/50 transition hover:text-navy">
           Cancel
         </button>
       </div>
-    </div>
+    </form>
   )
 }
 
@@ -169,6 +205,7 @@ function DimInput({
   max?: number
   step?: number
 }) {
+  const inputId = useId()
   const [strVal, setStrVal] = useState(value.toString())
 
   useEffect(() => {
@@ -176,11 +213,14 @@ function DimInput({
   }, [value])
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex w-full flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">{label}</span>
+        <label htmlFor={inputId} className="text-xs font-semibold uppercase tracking-wider text-navy/60">
+          {label}
+        </label>
         <div className="flex items-center gap-1">
           <input
+            id={inputId}
             type="number"
             min={min}
             max={max}
@@ -200,13 +240,14 @@ function DimInput({
                 setStrVal(n.toString())
               }
             }}
-            className="w-16 rounded border border-sand bg-white px-2 py-1 text-xs font-semibold tabular-nums text-navy focus:border-navy focus:outline-none"
+            className="w-16 rounded-[var(--radius-s)] border border-sand bg-white px-2 py-1 text-xs font-semibold tabular-nums text-navy focus:border-navy"
           />
-          <span className="text-xs text-navy/40 font-medium">m</span>
+          <span className="text-xs font-medium text-navy/40">m</span>
         </div>
       </div>
       <input
         type="range"
+        aria-label={`${label} (metres)`}
         min={min}
         max={max}
         step={step}
@@ -215,17 +256,23 @@ function DimInput({
           const n = parseFloat(e.target.value)
           if (Number.isFinite(n) && n > 0) onChange(n)
         }}
-        className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-sand/60 accent-navy hover:bg-sand"
+        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-sand/60 accent-navy transition hover:bg-sand"
       />
     </div>
   )
 }
 
 // ─── Main Drawings Studio Page ────────────────────────────────────────────────
+const TABS = [
+  { id: 'studio' as const, label: 'Interactive 3D Shape Studio' },
+  { id: 'saved' as const, label: 'Saved Project Models' },
+]
+
 export function DrawingsStudioPage({ project }: { project: Project }) {
-  const [models, setModels] = useState<DrawingModel[]>([])
+  const toast = useToast()
   const [activeTab, setActiveTab] = useState<'studio' | 'saved'>('studio')
   const [selectedModel, setSelectedModel] = useState<DrawingModel | null>(null)
+  const [modelToDelete, setModelToDelete] = useState<DrawingModel | null>(null)
 
   // Interactive 3D Shape State
   const [shape, setShape] = useState<PrimitiveShape>('saudi_tower')
@@ -236,36 +283,43 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
 
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
   const autoSeededRef = useRef(false)
 
-  async function loadModels() {
-    try {
-      const list = await listDrawingModels(project.id)
-      setModels(list)
-      if (list.length === 0 && !autoSeededRef.current) {
-        autoSeededRef.current = true
-        try {
-          const meshGroup = buildSaudiArchitectureMesh(DEFAULT_DIMENSIONS)
-          const file = await exportMeshToGlb(meshGroup, 'Riyadh Landmark Tower — Phase 1.glb')
-          await uploadDrawingModel(project.id, file, 'Riyadh Landmark Tower — Phase 1')
-          const updated = await listDrawingModels(project.id)
-          setModels(updated)
-        } catch {
-          // ignore auto-seed failures
-        }
+  // useProjectData discards stale responses when the active project switches
+  // mid-request, so a slow load for project A can never overwrite project B.
+  const loadModels = useCallback(async (projectId: number | string): Promise<DrawingModel[]> => {
+    const pid = Number(projectId)
+    const list = await listDrawingModels(pid)
+    if (list.length === 0 && !autoSeededRef.current) {
+      autoSeededRef.current = true
+      try {
+        const meshGroup = buildSaudiArchitectureMesh(DEFAULT_DIMENSIONS)
+        const file = await exportMeshToGlb(meshGroup, 'Riyadh Landmark Tower — Phase 1.glb')
+        await uploadDrawingModel(pid, file, 'Riyadh Landmark Tower — Phase 1')
+        return await listDrawingModels(pid)
+      } catch {
+        // ignore auto-seed failures
+        return list
       }
-    } catch {
-      // ignore
     }
-  }
+    return list
+  }, [])
 
+  const { data, loading, error, reload } = useProjectData(project.id, loadModels)
+  const models = data ?? []
+
+  // A selected model belongs to the previous project once the switcher fires.
   useEffect(() => {
-    loadModels()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setSelectedModel(null)
   }, [project.id])
 
-  function setDim(key: keyof PrimitiveDimensions, value: number) {
+  function setDim(key: DimKey, value: number) {
     setDims((d) => ({ ...d, [key]: value }))
+  }
+
+  function setColor(color: string) {
+    setDims((d) => ({ ...d, color }))
   }
 
   function applyPreset(preset: PresetBlock) {
@@ -276,13 +330,9 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
     setActiveTab('studio')
   }
 
-  async function handleDeleteModel(id: number) {
-    await deleteDrawingModel(id)
-    if (selectedModel?.id === id) setSelectedModel(null)
-    await loadModels()
-  }
-
-  async function handleSaveShape() {
+  async function handleSaveShape(e: React.FormEvent) {
+    e.preventDefault()
+    if (savingShape || !shapeName.trim()) return
     setSavingShape(true)
     setSaveError(null)
     setSaveSuccess(null)
@@ -291,18 +341,41 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
       const file = await exportMeshToGlb(meshGroup, `${shapeName.trim()}.glb`)
       await uploadDrawingModel(project.id, file, shapeName.trim())
       setSaveSuccess(`Saved "${shapeName.trim()}" to project models.`)
-      await loadModels()
-    } catch {
-      setSaveError('Failed to save 3D shape as a project model.')
+      toast.success(`Saved "${shapeName.trim()}" to project models.`)
+      reload()
+    } catch (err) {
+      const message = getApiError(err, 'Failed to save 3D shape as a project model.')
+      setSaveError(message)
+      toast.error(message)
     } finally {
       setSavingShape(false)
     }
   }
 
+  const selectedTabId = selectedModel ? 'saved' : activeTab
+
+  function activateTab(id: 'studio' | 'saved') {
+    setActiveTab(id)
+    if (id === 'studio') setSelectedModel(null)
+  }
+
+  function onTabKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    const current = TABS.findIndex((t) => t.id === selectedTabId)
+    let next = -1
+    if (e.key === 'ArrowRight') next = (current + 1) % TABS.length
+    else if (e.key === 'ArrowLeft') next = (current - 1 + TABS.length) % TABS.length
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = TABS.length - 1
+    if (next === -1) return
+    e.preventDefault()
+    activateTab(TABS[next].id)
+    tabRefs.current[next]?.focus()
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-gold-ink">{project.name}</p>
           <h1 className="font-[var(--font-display)] text-3xl font-bold text-navy">Drawings Studio</h1>
@@ -310,51 +383,61 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
             View, orbit, section and measure 3D models — build 3D blocks live or upload CAD/BIM mesh exports.
           </p>
         </div>
-        <UploadForm project={project} onUploaded={loadModels} />
+        <UploadForm project={project} onUploaded={reload} />
       </div>
 
       {/* Navigation Mode Bar */}
       <div className="flex items-center justify-between border-b border-sand pb-3">
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setActiveTab('studio')
-              setSelectedModel(null)
-            }}
-            className={`flex items-center gap-2 rounded-[var(--radius-s)] px-3 py-1.5 text-xs font-semibold transition ${
-              activeTab === 'studio' && !selectedModel
-                ? 'bg-navy text-cream shadow-sm'
-                : 'bg-paper text-navy/70 hover:bg-sand/40'
-            }`}
-          >
-            <Sparkles size={14} className="text-gold-ink" /> Interactive 3D Shape Studio
-          </button>
-          <button
-            onClick={() => setActiveTab('saved')}
-            className={`flex items-center gap-2 rounded-[var(--radius-s)] px-3 py-1.5 text-xs font-semibold transition ${
-              activeTab === 'saved' || selectedModel
-                ? 'bg-navy text-cream shadow-sm'
-                : 'bg-paper text-navy/70 hover:bg-sand/40'
-            }`}
-          >
-            <Layers size={14} /> Saved Project Models ({models.length})
-          </button>
+        <div role="tablist" aria-label="Drawings Studio views" className="flex gap-2">
+          {TABS.map((tab, i) => (
+            <button
+              key={tab.id}
+              ref={(el) => {
+                tabRefs.current[i] = el
+              }}
+              role="tab"
+              id={`tab-${tab.id}`}
+              aria-selected={selectedTabId === tab.id}
+              aria-controls={`panel-${tab.id}`}
+              tabIndex={selectedTabId === tab.id ? 0 : -1}
+              onClick={() => activateTab(tab.id)}
+              onKeyDown={onTabKeyDown}
+              className={`flex items-center gap-2 rounded-[var(--radius-s)] px-3 py-1.5 text-xs font-semibold transition ${
+                selectedTabId === tab.id ? 'bg-navy text-cream shadow-sm' : 'bg-paper text-navy/70 hover:bg-sand/40'
+              }`}
+            >
+              {tab.id === 'studio' ? (
+                <Sparkles size={14} className={selectedTabId === 'studio' ? 'text-gold-soft' : 'text-gold-ink'} aria-hidden="true" />
+              ) : (
+                <Layers size={14} aria-hidden="true" />
+              )}
+              {tab.label}
+              {tab.id === 'saved' ? ` (${models.length})` : ''}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Main 3D Viewport Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* 3D Viewport (3 Cols) */}
-        <div className="lg:col-span-3 flex flex-col gap-3">
+      <div
+        role="tabpanel"
+        id="panel-studio"
+        aria-labelledby="tab-studio"
+        className="grid grid-cols-1 gap-6 lg:grid-cols-4"
+      >
+        {/* 3D Viewport (3 Cols). On mobile the controls come first so the
+            shape/dimension inputs are reachable without scrolling past the
+            tall canvas. */}
+        <div className="order-2 flex flex-col gap-3 lg:order-1 lg:col-span-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-navy uppercase tracking-wider flex items-center gap-1.5">
-              <Box size={14} className="text-gold-ink" />
+            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-navy">
+              <Box size={14} className="text-gold-ink" aria-hidden="true" />
               {selectedModel ? selectedModel.name : `Live 3D Viewport — ${SHAPE_LABELS[shape]}`}
             </span>
             {selectedModel && (
               <button
                 onClick={() => setSelectedModel(null)}
-                className="text-xs font-semibold text-navy/60 hover:text-navy underline"
+                className="text-xs font-semibold text-navy/60 underline transition hover:text-navy"
               >
                 Back to Live Shape Editor
               </button>
@@ -372,7 +455,7 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
               <PrimitiveViewer shape={shape} dims={dims} />
               <div className="flex items-center justify-between rounded-[var(--radius-s)] border border-sand bg-paper px-3 py-2 text-xs font-semibold text-navy">
                 <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-status-active animate-pulse" />
+                  <span className="h-2 w-2 rounded-full bg-status-agreeing animate-pulse" aria-hidden="true" />
                   <span>
                     {shape === 'saudi_tower' && `Saudi Tower: Base ${dims.width}m × ${dims.depth}m | Height ${dims.height}m`}
                     {shape === 'box' && `Box: ${dims.width}m (W) × ${dims.depth}m (D) × ${dims.height}m (H)`}
@@ -396,41 +479,50 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
         </div>
 
         {/* Control Panel (1 Col) */}
-        <div className="flex flex-col gap-4">
+        <div className="order-1 flex flex-col gap-4 lg:order-2">
           {!selectedModel ? (
-            <div className="rounded-[var(--radius-m)] border border-sand bg-paper p-4 flex flex-col gap-4 shadow-sm">
+            <div className="flex flex-col gap-4 rounded-[var(--radius-m)] border border-sand bg-paper p-5 shadow-sm">
               <div className="flex items-center justify-between border-b border-sand/60 pb-2">
-                <h3 className="text-xs font-bold text-navy uppercase tracking-wider flex items-center gap-1.5">
-                  <Shapes size={14} className="text-gold-ink" /> 3D Block Controls
-                </h3>
+                <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-navy">
+                  <Shapes size={14} className="text-gold-ink" aria-hidden="true" /> 3D Block Controls
+                </h2>
                 <button
                   onClick={() => setDims(DEFAULT_DIMENSIONS)}
+                  aria-label="Reset dimensions"
                   title="Reset dimensions"
-                  className="text-navy/40 hover:text-navy"
+                  className="rounded p-1 text-navy/40 transition hover:text-navy"
                 >
-                  <RotateCcw size={13} />
+                  <RotateCcw size={13} aria-hidden="true" />
                 </button>
               </div>
 
               {/* Shape Selection - Selective Button Group */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-navy/50">Geometry Type</label>
-                <div className="grid grid-cols-2 gap-1.5 rounded-[var(--radius-s)] bg-sand/30 p-1 border border-sand">
+                <span id="geometry-type-label" className="text-xs font-semibold uppercase tracking-wider text-navy/50">
+                  Geometry Type
+                </span>
+                <div
+                  role="group"
+                  aria-labelledby="geometry-type-label"
+                  className="grid grid-cols-2 gap-1.5 rounded-[var(--radius-s)] border border-sand bg-sand/30 p-1"
+                >
                   {(Object.keys(SHAPE_LABELS) as PrimitiveShape[]).map((s) => (
                     <button
                       key={s}
                       type="button"
+                      aria-label={SHAPE_LABELS[s]}
+                      aria-pressed={shape === s}
                       onClick={() => {
                         setShape(s)
                         setSelectedPresetId(null)
                       }}
-                      className={`flex items-center justify-center gap-1 py-1.5 text-[11px] font-semibold rounded transition ${
+                      className={`flex items-center justify-center gap-1 rounded-[var(--radius-s)] py-1.5 text-xs font-semibold transition ${
                         shape === s
                           ? 'bg-navy text-cream shadow-sm'
                           : 'text-navy/70 hover:bg-white/60 hover:text-navy'
                       }`}
                     >
-                      {s === 'saudi_tower' ? '🇸🇦 Saudi Tower' : s === 'box' ? '📦 Box' : s === 'cylinder' ? '🏛️ Pillar' : '🛢️ Sphere'}
+                      <span aria-hidden="true">{SHAPE_BUTTONS[s].icon}</span> {SHAPE_BUTTONS[s].short}
                     </button>
                   ))}
                 </div>
@@ -455,22 +547,26 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
 
               {/* Color Presets */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-navy/50">Material Color</label>
-                <div className="flex flex-wrap gap-2">
+                <span id="material-color-label" className="text-xs font-semibold uppercase tracking-wider text-navy/50">
+                  Material Color
+                </span>
+                <div role="group" aria-labelledby="material-color-label" className="flex flex-wrap gap-2">
                   {COLOR_PRESETS.map((c) => {
                     const isSelected = (dims.color ?? '#2563eb') === c.value
                     return (
                       <button
                         key={c.value}
                         type="button"
-                        onClick={() => setDim('color' as keyof PrimitiveDimensions, c.value as any)}
+                        onClick={() => setColor(c.value)}
+                        aria-label={c.name}
+                        aria-pressed={isSelected}
                         title={c.name}
                         style={{ backgroundColor: c.value }}
                         className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-white transition ${
                           isSelected ? 'border-navy scale-110 shadow-md ring-2 ring-navy/30' : 'border-white opacity-80 hover:opacity-100'
                         }`}
                       >
-                        {isSelected && <span className="text-[10px] font-bold">✓</span>}
+                        {isSelected && <span className="text-xs font-bold" aria-hidden="true">✓</span>}
                       </button>
                     )
                   })}
@@ -478,24 +574,27 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
               </div>
 
               {/* Preset Blocks */}
-              <div className="flex flex-col gap-1.5 pt-2 border-t border-sand/60">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-navy/50">Quick 3D Presets</label>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-1.5 border-t border-sand/60 pt-2">
+                <span id="quick-presets-label" className="text-xs font-semibold uppercase tracking-wider text-navy/50">
+                  Quick 3D Presets
+                </span>
+                <div role="group" aria-labelledby="quick-presets-label" className="grid grid-cols-2 gap-2">
                   {PRESET_BLOCKS.map((p) => {
                     const isSelected = selectedPresetId === p.id
                     return (
                       <button
                         key={p.id}
                         type="button"
+                        aria-pressed={isSelected}
                         onClick={() => applyPreset(p)}
-                        className={`flex items-center gap-1.5 rounded-[var(--radius-s)] border p-2 text-left text-xs font-semibold transition ${
+                        className={`flex items-center gap-1.5 rounded-[var(--radius-s)] border p-2 text-start text-xs font-semibold transition ${
                           isSelected
-                            ? 'border-navy bg-navy/15 ring-1 ring-navy text-navy font-bold shadow-sm'
+                            ? 'border-navy bg-navy/15 font-bold text-navy shadow-sm ring-1 ring-navy'
                             : 'border-sand bg-white text-navy/80 hover:border-navy/40 hover:bg-cream/40'
                         }`}
                       >
-                        <span className="text-sm">{p.icon}</span>
-                        <span className="truncate text-[11px]">{p.name}</span>
+                        <span className="text-sm" aria-hidden="true">{p.icon}</span>
+                        <span className="truncate text-xs">{p.name}</span>
                       </button>
                     )
                   })}
@@ -503,29 +602,32 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
               </div>
 
               {/* Save Block Form */}
-              <div className="flex flex-col gap-2 pt-2 border-t border-sand/60">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-navy/50">Save to Project</label>
-                <input
+              <form onSubmit={handleSaveShape} className="flex flex-col gap-2 border-t border-sand/60 pt-2">
+                <TextField
+                  label="Save to Project"
                   value={shapeName}
                   onChange={(e) => setShapeName(e.target.value)}
                   placeholder="Block / Model Name"
-                  className="rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy focus:border-navy focus:outline-none"
+                  error={saveError}
                 />
                 <button
+                  type="submit"
                   disabled={savingShape || !shapeName.trim()}
-                  onClick={handleSaveShape}
-                  className="flex items-center justify-center gap-1.5 rounded-[var(--radius-s)] bg-navy px-3 py-2 text-xs font-semibold text-cream hover:bg-navy/90 disabled:opacity-50"
+                  className="flex items-center justify-center gap-1.5 rounded-[var(--radius-s)] bg-navy px-3 py-2 text-xs font-semibold text-cream transition hover:bg-navy-deep disabled:opacity-50"
                 >
-                  <Save size={13} /> {savingShape ? 'Saving Model...' : 'Save to Project Models'}
+                  <Save size={13} aria-hidden="true" /> {savingShape ? 'Saving Model...' : 'Save to Project Models'}
                 </button>
-                {saveSuccess && <p className="text-[11px] font-semibold text-status-closed">{saveSuccess}</p>}
-                {saveError && <p className="text-[11px] font-semibold text-status-escalated">{saveError}</p>}
-              </div>
+                {saveSuccess && (
+                  <p role="status" className="text-xs font-semibold text-status-agreeing">
+                    {saveSuccess}
+                  </p>
+                )}
+              </form>
             </div>
           ) : (
-            <div className="rounded-[var(--radius-m)] border border-sand bg-paper p-4 flex flex-col gap-3">
-              <h3 className="text-xs font-bold text-navy uppercase tracking-wider">Model Metadata</h3>
-              <div className="text-xs text-navy/70 space-y-1.5">
+            <div className="flex flex-col gap-3 rounded-[var(--radius-m)] border border-sand bg-paper p-5">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-navy">Model Metadata</h2>
+              <div className="space-y-1.5 text-xs text-navy/70">
                 <p>
                   <span className="font-semibold text-navy">Name:</span> {selectedModel.name}
                 </p>
@@ -539,7 +641,7 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
               </div>
               <button
                 onClick={() => setSelectedModel(null)}
-                className="mt-2 flex items-center justify-center gap-1.5 rounded-[var(--radius-s)] border border-navy/30 bg-white py-1.5 text-xs font-semibold text-navy hover:bg-cream"
+                className="mt-2 flex items-center justify-center gap-1.5 rounded-[var(--radius-s)] border border-navy/30 bg-white py-1.5 text-xs font-semibold text-navy transition hover:bg-cream"
               >
                 Switch to 3D Shape Studio
               </button>
@@ -549,17 +651,28 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
       </div>
 
       {/* Saved Models Grid */}
-      <div className="flex flex-col gap-3 mt-4">
+      <div role="tabpanel" id="panel-saved" aria-labelledby="tab-saved" className="mt-4 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="font-[var(--font-display)] text-lg font-bold text-navy">
             Saved Models & 3D Exports ({models.length})
           </h2>
         </div>
 
-        {models.length === 0 ? (
-          <div className="rounded-[var(--radius-m)] border border-dashed border-sand bg-paper p-6 text-center text-xs text-navy/50">
-            No saved models yet. Use the 3D Shape Studio above to save a block, or upload a mesh file.
+        {loading ? (
+          <div role="status" aria-label="Loading saved models" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Skeleton className="h-14" />
+            <Skeleton className="h-14" />
+            <Skeleton className="h-14" />
           </div>
+        ) : error ? (
+          <ErrorState message={error} onRetry={reload} compact />
+        ) : models.length === 0 ? (
+          <EmptyState
+            icon={Layers}
+            title="No saved models yet"
+            hint="Use the 3D Shape Studio above to save a block, or upload a mesh file."
+            compact
+          />
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {models.map((m) => (
@@ -576,26 +689,42 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
                     setSelectedModel(m)
                     setActiveTab('saved')
                   }}
-                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                  className="flex min-w-0 flex-1 items-center gap-2 text-start"
                 >
-                  <Box size={16} className="shrink-0 text-gold-ink" />
+                  <Box size={16} className="shrink-0 text-gold-ink" aria-hidden="true" />
                   <span className="min-w-0">
                     <span className="block truncate font-semibold text-navy">{m.name}</span>
-                    <span className="block text-[10px] uppercase text-navy/40">{m.format}</span>
+                    <span className="block text-xs uppercase text-navy/40">{m.format}</span>
                   </span>
                 </button>
                 <button
-                  onClick={() => handleDeleteModel(m.id)}
+                  onClick={() => setModelToDelete(m)}
+                  aria-label={`Delete ${m.name}`}
                   title="Delete model"
-                  className="shrink-0 rounded p-1 text-navy/40 hover:bg-status-escalated/10 hover:text-status-escalated"
+                  className="shrink-0 rounded p-1 text-navy/40 transition hover:bg-status-escalated/10 hover:text-status-escalated"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={14} aria-hidden="true" />
                 </button>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={modelToDelete !== null}
+        onClose={() => setModelToDelete(null)}
+        title="Delete model"
+        message={`Delete "${modelToDelete?.name ?? ''}" from this project's saved models? This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          if (!modelToDelete) return
+          await deleteDrawingModel(modelToDelete.id)
+          if (selectedModel?.id === modelToDelete.id) setSelectedModel(null)
+          toast.success(`Deleted "${modelToDelete.name}".`)
+          reload()
+        }}
+      />
     </div>
   )
 }

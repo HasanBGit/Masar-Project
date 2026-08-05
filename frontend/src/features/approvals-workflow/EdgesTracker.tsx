@@ -48,7 +48,7 @@ export function EdgesTracker({ decision }: { decision: Decision }) {
                   {done ? '●' : active ? '◐' : '○'} {i + 1}. {step.label}
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-navy/60">{skipped ? step.hint : step.hint}</p>
+              <p className={`mt-0.5 text-xs ${skipped ? 'italic text-navy/40' : 'text-navy/60'}`}>{step.hint}</p>
             </div>
           </li>
         )

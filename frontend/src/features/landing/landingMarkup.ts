@@ -7,7 +7,10 @@ export const LANDING_MARKUP = `
   <section class="cinema-scroll" id="cinema" aria-label="Truepoint cinematic scroll story">
     <div class="stage">
       <div class="world">
-        <img class="scene-img sky-img" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_3GuVL96jjh5izoSrfiVDK7XcMMd/hf_20260805_132834_a787e952-e7bc-4d20-8250-9d91757a603c.png" />
+        <!-- TODO: self-host this image under /public/landing/ before production. The remote
+             host is blocked from this build environment, so the hotlinked URL was kept;
+             width/height are approximate placeholders to reserve layout space. -->
+        <img class="scene-img sky-img" alt="Soft blue sky with drifting clouds over Riyadh" width="1920" height="1080" src="https://d8j0ntlcm91z4.cloudfront.net/user_3GuVL96jjh5izoSrfiVDK7XcMMd/hf_20260805_132834_a787e952-e7bc-4d20-8250-9d91757a603c.png" />
 
         <header class="site-header" aria-label="Primary navigation">
           <a class="site-logo" href="#cinema">Truepoint</a>
@@ -29,56 +32,64 @@ export const LANDING_MARKUP = `
         </header>
 
         <div class="back-stack">
-          <img class="scene-img back-img back-four" alt="" src="https://upload.wikimedia.org/wikipedia/commons/8/88/Kingdom_Tower_at_night.JPG" />
+          <!-- TODO: self-host before production (remote host blocked from this environment). -->
+          <img class="scene-img back-img back-four" alt="Kingdom Centre Tower glowing over the Riyadh skyline at night" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/8/88/Kingdom_Tower_at_night.JPG" />
 
           <section class="sights-slider" aria-label="Truepoint modules slider">
             <div class="sights-track">
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Approvals Workflow card"
                 data-kicker-ar="وحدة أساسية" data-title-ar="سير عمل الاعتماد" data-body-ar="الحواف الثلاث — الاستماع، الفهم، الموافقة — قبل اعتماد أي توقيع.">
                 <span class="sight-kicker">Core Module</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
+                <!-- TODO: self-host before production (remote host blocked from this environment). -->
+                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Approvals Workflow</h3>
                 <p>The 3 Edges — Hearing, Understanding, Agreeing — before any sign-off counts.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Trust and Evidence card"
                 data-kicker-ar="النواة الأساسية" data-title-ar="الثقة والأدلة" data-body-ar="معالم مُعتمدة وسجل تدقيق جاهز لتقديمه في أي نزاع.">
                 <span class="sight-kicker">Domain Kernel</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
+                <!-- TODO: self-host before production (remote host blocked from this environment). -->
+                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
                 <h3>Trust &amp; Evidence</h3>
                 <p>Verified milestones and a dispute-ready audit trail.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Owner Dashboard card"
                 data-kicker-ar="واجهات الأدوار" data-title-ar="لوحة تحكم المالك" data-body-ar="واجهات مخصصة للمالك والمستثمر والاستشاري والمقاول.">
                 <span class="sight-kicker">Role Views</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230448_825949c9-ccdb-4857-b4a6-e349eccc9010.png" />
+                <!-- TODO: self-host before production (remote host blocked from this environment). -->
+                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230448_825949c9-ccdb-4857-b4a6-e349eccc9010.png" />
                 <h3>Owner Dashboard</h3>
                 <p>Role-specific views for Owner, Investor, Consultant, Contractor.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Gmail and Email Integration card"
                 data-kicker-ar="ميزة رئيسية" data-title-ar="تكامل البريد و Gmail" data-body-ar="استخراج تلقائي لطلبات المعلومات والتصاريح والدفعات مباشرة من البريد الإلكتروني.">
                 <span class="sight-kicker">Main Feature</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
+                <!-- TODO: self-host before production (remote host blocked from this environment). -->
+                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Gmail &amp; Email Integration</h3>
                 <p>Auto-extract RFIs, submittals, and ZATCA pay claims directly from your project Gmail.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Unified Timeline card"
                 data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحّد" data-body-ar="دمج واتساب والبريد الإلكتروني والتصاريح في سجل واحد.">
                 <span class="sight-kicker">Core Module</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
+                <!-- TODO: self-host before production (remote host blocked from this environment). -->
+                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Unified Timeline</h3>
                 <p>WhatsApp, email, and permit threads merged into one record.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Contract and Payments card"
                 data-kicker-ar="متوافق مع زاتكا" data-title-ar="العقود والمدفوعات" data-body-ar="دفعات مرتبطة بأدلة مُعتمدة، لا بتصريح ذاتي.">
                 <span class="sight-kicker">ZATCA Ready</span>
-                <img class="sight-pin" alt="" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
+                <!-- TODO: self-host before production (remote host blocked from this environment). -->
+                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
                 <h3>Contract &amp; Payments</h3>
                 <p>Payment milestones gated on verified evidence, not self-assertion.</p>
               </article>
             </div>
           </section>
 
-          <img class="scene-img back-img back-bazaar" alt="" src="https://upload.wikimedia.org/wikipedia/commons/6/64/At-Turaif_District_in_ad-Dir%27iyah_%288%29.jpg" />
+          <!-- TODO: self-host before production (remote host blocked from this environment). -->
+          <img class="scene-img back-img back-bazaar" alt="Mud-brick towers of the historic At-Turaif district in ad-Dir'iyah" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/6/64/At-Turaif_District_in_ad-Dir%27iyah_%288%29.jpg" />
         </div>
 
         <div class="sights-controls" aria-label="Slider controls">
@@ -88,11 +99,12 @@ export const LANDING_MARKUP = `
 
         <h1 class="hero-title">TRUEPOINT</h1>
 
-        <img class="scene-img splitframe-img splitframe-left" alt="" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
-        <img class="scene-img splitframe-img splitframe-right" alt="" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
+        <!-- TODO: self-host the four images below before production (remote host blocked from this environment). -->
+        <img class="scene-img splitframe-img splitframe-left" alt="Riyadh skyline with the King Abdullah Financial District and Kingdom Centre Tower" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
+        <img class="scene-img splitframe-img splitframe-right" alt="Mirrored view of the Riyadh skyline with the King Abdullah Financial District" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
 
-        <img class="scene-img bridge-img" alt="" src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Masmak_castle.jpg" />
-        <img class="scene-img frame-two-img" alt="" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Lake_at_Wadi_Hanifah_%285218227168%29.jpg" />
+        <img class="scene-img bridge-img" alt="Masmak fortress, the historic clay citadel in central Riyadh" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Masmak_castle.jpg" />
+        <img class="scene-img frame-two-img" alt="Still lake between palm groves at Wadi Hanifah" loading="lazy" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Lake_at_Wadi_Hanifah_%285218227168%29.jpg" />
 
         <div class="shade"></div>
       </div>
@@ -280,7 +292,7 @@ export const LANDING_MARKUP = `
       </div>
       <blockquote class="credibility-quote">
         <p data-ar="بنينا الخط الزمني وسير الاعتماد أولاً، لأنهما ما انتهت إليه كل نزاعات درسناها: من عَلِم بماذا، ومن وقّع على ماذا.">"We built the timeline and the approval flow first, because those are the two things every dispute we studied came down to: who knew what, and who signed off on it."</p>
-        <cite data-ar="— فريق Truepoint">— The Truepoint team</cite>
+        <p class="credibility-cite" data-ar="— فريق Truepoint">— The Truepoint team</p>
       </blockquote>
     </div>
   </section>
@@ -317,6 +329,23 @@ export const LANDING_MARKUP = `
       </div>
     </div>
   </section>
+
+  <section class="landing-section legal-section" id="legal" aria-label="Privacy and terms">
+    <div class="section-inner">
+      <p class="section-eyebrow" data-ar="قانوني">Legal</p>
+      <h2 class="section-heading" data-ar="الخصوصية والشروط، باختصار.">Privacy and terms, in short.</h2>
+      <div class="legal-grid">
+        <div class="legal-block" id="privacy">
+          <h3 data-ar="سياسة الخصوصية">Privacy policy</h3>
+          <p data-ar="نجمع فقط بيانات التواصل الخاصة بالمشروع التي تربطها بنفسك — رسائل واتساب والبريد الإلكتروني والأدلة المرفوعة — ونستخدمها حصراً لبناء سجل مشروعك. تُخزَّن البيانات داخل السعودية وفق نظام حماية البيانات الشخصية (PDPL)، ولا تُباع أبداً، ويمكن تصديرها أو حذفها عند الطلب. هذا ملخص — تُشارك السياسة الكاملة أثناء التأهيل.">We collect only the project communication you connect yourself — WhatsApp messages, email threads, and uploaded evidence — and use it solely to build your project record. Data is stored in Saudi Arabia in line with PDPL, is never sold, and can be exported or deleted on request. This is a summary — the full policy is shared during onboarding.</p>
+        </div>
+        <div class="legal-block" id="terms">
+          <h3 data-ar="شروط الخدمة">Terms of service</h3>
+          <p data-ar="تُقدَّم Truepoint بموجب اتفاقية وصول مبكر: تسعير لكل مشروع يُتفق عليه قبل التفعيل، دون تجديد تلقائي، مع احتفاظك بملكية كل بيانات وسجلات مشروعك. تُقدَّم الخدمة كما هي خلال الوصول المبكر — تُشارك الشروط الكاملة مع حزمة التأهيل الخاصة بك.">Truepoint is offered under an early-access agreement: per-project pricing agreed before activation, no auto-renewal, and you keep ownership of all your project data and records. The service is provided as-is during early access — the full terms are shared with your onboarding pack.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer class="site-footer">
@@ -341,7 +370,7 @@ export const LANDING_MARKUP = `
       </button>
     </div>
     <div class="footer-col">
-      <h4 data-ar="المنتج">Product</h4>
+      <h3 data-ar="المنتج">Product</h3>
       <ul>
         <li><a href="#features" data-ar="المزايا">Features</a></li>
         <li><a href="#pricing" data-ar="الأسعار">Pricing</a></li>
@@ -349,13 +378,13 @@ export const LANDING_MARKUP = `
       </ul>
     </div>
     <div class="footer-col">
-      <h4 data-ar="الشركة">Company</h4>
+      <h3 data-ar="الشركة">Company</h3>
       <ul>
         <li><a href="#credibility" data-ar="San3 وبرنامج مسار">San3 &amp; the Masar program</a></li>
       </ul>
     </div>
     <div class="footer-col">
-      <h4 data-ar="قانوني">Legal</h4>
+      <h3 data-ar="قانوني">Legal</h3>
       <ul>
         <li><a href="#privacy" data-ar="سياسة الخصوصية">Privacy policy</a></li>
         <li><a href="#terms" data-ar="شروط الخدمة">Terms of service</a></li>

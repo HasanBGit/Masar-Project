@@ -131,6 +131,26 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   cursor: pointer;
 }
 .modal-success { font-weight: 600; }
+.modal-error {
+  margin: -6px 0 12px;
+  color: var(--color-status-escalated, #b3432b);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.modal-error[hidden] { display: none; }
+.modal-form input[aria-invalid="true"] {
+  border-color: var(--color-status-escalated, #b3432b);
+}
+.modal-status:not(:empty) {
+  margin-top: 14px;
+  font-weight: 600;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+.modal-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 
 /* Scroll rig */
 .cinema-scroll {
@@ -348,8 +368,13 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   position: relative;
   z-index: 1;
 }
-.sight-card:focus-visible,
 .sight-card.is-active { outline: none; }
+/* Cards are keyboard-operable (tabindex=0 role=button): keep a clearly visible
+   focus ring, drawn from the existing paper color. */
+.sight-card:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 3px;
+}
 
 .sight-kicker {
   display: block;
@@ -612,6 +637,66 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
 .note-button span:first-child {
   font-size: 1.25rem;
   line-height: 1;
+}
+
+/* Hover feedback — subtle transform/brightness/alpha shifts built only from
+   colors that already exist in this stylesheet. */
+.note-button,
+.sight-card,
+.sight-nav,
+.faq-item summary,
+.faq-item summary::after,
+.price-card,
+.site-nav a,
+.site-nav button,
+.site-login-link,
+.language-switcher,
+.footer-col a,
+.modal-close,
+.modal-form button {
+  transition:
+    transform 160ms ease,
+    filter 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+.note-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+.note-button:active {
+  transform: translateY(0);
+}
+.modal-form button:hover {
+  filter: brightness(1.18);
+}
+.modal-close:hover {
+  background: rgba(17, 20, 17, 0.16);
+}
+.sight-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(253, 241, 225, 0.8);
+  box-shadow: 0 22px 60px rgba(2, 47, 64, 0.2);
+}
+.sight-nav:hover {
+  transform: translateY(-2px);
+  background: #fdf1e1;
+}
+.faq-item summary:hover::after {
+  color: var(--paper);
+}
+.price-card:hover {
+  border-color: rgba(253, 241, 225, 0.32);
+}
+.price-card:not(.is-featured):hover {
+  transform: translateY(-4px);
+}
+.site-nav a:hover,
+.site-nav button:hover,
+.language-switcher:hover {
+  color: var(--paper);
 }
 
 .photo-credits {
@@ -954,12 +1039,15 @@ html[dir="rtl"] .price-card h3 { font-family: "Noto Kufi Arabic", Georgia, serif
   line-height: 1.5;
 }
 html[dir="rtl"] .credibility-quote p { font-family: "Noto Kufi Arabic", Georgia, serif; }
-.credibility-quote cite {
+.credibility-quote .credibility-cite {
   display: block;
-  margin-top: 20px;
+  margin: 20px 0 0;
   color: rgba(253, 241, 225, 0.55);
   font-style: normal;
   font-size: 0.85rem;
+  font-family: Inter, Satoshi, system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 /* FAQ */
@@ -1001,6 +1089,34 @@ html[dir="rtl"] .credibility-quote p { font-family: "Noto Kufi Arabic", Georgia,
 .faq-item p {
   max-width: 62ch;
   margin: 0 0 22px;
+  color: rgba(253, 241, 225, 0.68);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* Legal (privacy / terms summaries) */
+.legal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  margin-top: 44px;
+}
+.legal-block {
+  scroll-margin-top: 24px;
+  padding: 28px;
+  border: 1px solid rgba(253, 241, 225, 0.14);
+  border-radius: 20px;
+  background: rgba(253, 241, 225, 0.04);
+}
+.legal-block h3 {
+  margin: 0;
+  color: var(--paper);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.legal-block p {
+  margin: 12px 0 0;
+  max-width: 62ch;
   color: rgba(253, 241, 225, 0.68);
   font-size: 0.92rem;
   line-height: 1.6;
@@ -1056,7 +1172,7 @@ html[dir="rtl"] .footer-top h2 { font-family: "Noto Kufi Arabic", Georgia, serif
   border-radius: 999px;
   font-size: 0.78rem;
 }
-.footer-col h4 {
+.footer-col h3 {
   margin: 0 0 16px;
   color: rgba(253, 241, 225, 0.45);
   font-size: 0.72rem;
@@ -1105,6 +1221,25 @@ html[dir="rtl"] .footer-top h2 { font-family: "Noto Kufi Arabic", Georgia, serif
   .price-card.is-featured { transform: none; }
   .credibility-inner { grid-template-columns: 1fr; gap: 36px; }
   .footer-columns { grid-template-columns: 1fr 1fr; }
+  .legal-grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* Tablet (~641-899px): a dedicated two-column treatment so the feature and
+   steps grids don't jump straight from the desktop layout to single column. */
+@media (min-width: 641px) and (max-width: 899px) {
+  .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 44px;
+  }
+  /* Five cards in two columns leaves an orphan: let the last card span. */
+  .feature-card:last-child { grid-column: 1 / -1; }
+  .steps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+    margin-top: 44px;
+  }
+  .steps-grid .step:last-child { grid-column: 1 / -1; max-width: 62ch; }
 }
 
 @media (max-width: 640px) {
@@ -1122,4 +1257,62 @@ html[dir="rtl"] .footer-top h2 { font-family: "Noto Kufi Arabic", Georgia, serif
   html { scroll-behavior: auto; }
   .scene-img, .back-stack, .hero-title, .intro-copy,
   .story-panel, .sights-track, .sights-slider { transition: none; }
+
+  /* The hover micro-interactions' transitions are disabled too. */
+  .note-button, .sight-card, .sight-nav,
+  .faq-item summary, .faq-item summary::after,
+  .price-card, .site-nav a, .site-nav button, .site-login-link,
+  .language-switcher, .footer-col a, .modal-close, .modal-form button {
+    transition: none;
+  }
+  .note-button:hover, .sight-card:hover, .sight-nav:hover,
+  .price-card:not(.is-featured):hover { transform: none; }
+
+  /* Static cinema: the scroll-driven rAF loop is not started (see
+     LandingPage.tsx), so un-stick the stage and let every scene read
+     top-to-bottom without scroll progress. Colors reuse existing values. */
+  .cinema-scroll { height: auto; }
+  .stage {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    background: #0b1110;
+    padding-bottom: 96px;
+  }
+  .world {
+    position: relative;
+    inset: auto;
+    height: 100vh;
+    min-height: 620px;
+    overflow: hidden;
+  }
+  .frame-two-img, .shade, .sights-controls { display: none; }
+  .intro-copy,
+  .story-panel {
+    position: static;
+    width: min(760px, calc(100vw - 42px));
+    margin: 84px auto 0;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .story-panel h2 { font-size: 3.2rem; }
+  /* LandingPage.tsx re-parents the slider out of the hero backdrop in this
+     mode, so the module cards flow as a plain wrapped grid. */
+  .sights-slider {
+    position: static;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    margin-top: 84px;
+    padding: 0 24px;
+  }
+  .sights-track {
+    flex-wrap: wrap;
+    justify-content: center;
+    transform: none;
+  }
+  .sight-card { flex: 0 1 360px; }
 }

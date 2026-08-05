@@ -377,7 +377,7 @@ function setupCinemaScroll(container: HTMLElement): () => void {
   // every scroll-story section statically visible.
   function enableStaticMode(): () => void {
     section!.classList.add('cinema-static')
-    track.replaceChildren(...originalSightCards)
+    track!.replaceChildren(...originalSightCards)
     stage!.appendChild(slider!)
 
     const cardCleanups = originalSightCards.map((card) =>
