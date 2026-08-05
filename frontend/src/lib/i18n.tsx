@@ -73,8 +73,12 @@ interface LanguageState {
 const LanguageContext = createContext<LanguageState | null>(null)
 
 function readStoredLang(): Lang | null {
-  const stored = localStorage.getItem(STORAGE_KEY)
-  return stored === 'ar' || stored === 'en' ? stored : null
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return stored === 'ar' || stored === 'en' ? stored : null
+  } catch {
+    return null
+  }
 }
 
 export function LanguageProvider({ children, initialLang }: { children: ReactNode; initialLang?: string | null }) {
