@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0f3b4d;
+  --color-navy-deep: #0a2530;
+  --color-gold: #c9a227;
+  --color-gold-soft: #e3c878;
+  --color-gold-ink: #8a6416;
+  --color-cream: #f4efe7;
+  --color-paper: #fbf8f3;
+  --color-sand: #ded2b8;
+  --color-text-cream: #2a4650;
+  --color-text-navy-muted: #b9cbd2;
+
+  --color-status-hearing: #8a6416;
+  --color-status-understanding: #0f3b4d;
+  --color-status-agreeing: #1f6f4a;
+  --color-status-escalated: #b3432b;
+
+  --font-display: "Plus Jakarta Sans", "Poppins", "Century Gothic", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Inter", -apple-system, "Segoe UI", sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "Noto Sans Arabic", "Geeza Pro", Tahoma, sans-serif;
+  --font-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+
+  --radius-s: 10px;
+  --radius-m: 16px;
+  --radius-l: 28px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html[dir="rtl"] {
+  --font-display: var(--font-arabic);
+  --font-body: var(--font-arabic);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-paper);
+  color: var(--color-text-cream);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
