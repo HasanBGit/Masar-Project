@@ -98,3 +98,14 @@ def test_sla_compliance_avg_close_time(project, owner_user):
     summary = get_sla_compliance_summary()
     assert summary["closed_count"] >= 1
     assert summary["avg_hours_to_close"] is not None
+
+
+@pytest.mark.django_db
+def test_system_health_check_endpoint(client):
+    response = client.get("/health/")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "healthy"
+    assert data["database"] == "connected"
+    assert data["data_residency_region"] == "sa"
+

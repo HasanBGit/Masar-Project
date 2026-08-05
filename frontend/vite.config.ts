@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
+const backendTarget = process.env.VITE_BACKEND_TARGET || process.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -9,15 +11,16 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8010',
+        target: backendTarget,
         changeOrigin: true,
       },
       '/media': {
-        target: 'http://127.0.0.1:8010',
+        target: backendTarget,
         changeOrigin: true,
       },
     },
   },
+
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

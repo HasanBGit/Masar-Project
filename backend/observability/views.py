@@ -1,14 +1,39 @@
+from django.conf import settings
+from django.db import connection
 from core.models import Project
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from . import services
 from .models import AlertEvent, IntegrationHealthCheck
 from .serializers import AlertEventSerializer, IntegrationHealthCheckSerializer
+
+
+class SystemHealthCheckView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        db_ok = True
+        try:
+            connection.ensure_connection()
+        except Exception:
+            db_ok = False
+
+        status_code = 200 if db_ok else 503
+        return Response(
+            {
+                "status": "healthy" if db_ok else "degraded",
+                "database": "connected" if db_ok else "disconnected",
+                "data_residency_region": getattr(settings, "DATA_RESIDENCY_REGION", "sa"),
+                "version": "1.0.0",
+            },
+            status=status_code,
+        )
+
 
 
 class StaffOnly(IsAuthenticated):

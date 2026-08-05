@@ -6,10 +6,13 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from accounts.views import MonitoredTokenObtainPairView
+from observability.views import SystemHealthCheckView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("health/", SystemHealthCheckView.as_view(), name="health_check"),
     # User.USERNAME_FIELD = "email", so simplejwt's default serializer
+
     # already expects {"email": ..., "password": ...} - no override needed.
     path("api/v1/auth/token/", MonitoredTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/v1/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
