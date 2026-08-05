@@ -240,7 +240,7 @@ class Command(BaseCommand):
             respond_by=timezone.now() + timedelta(hours=6), schedule_impact_days=4, location_tag="Core, Levels 8-10",
         )  # inside the at-risk window
 
-        overdue = rfi_change_control.create_rfi(
+        rfi_change_control.create_rfi(
             project=project, raised_by=contractor, title="Façade curtain-wall bracket spacing",
             question="Bracket spacing for the curtain wall on the east façade - spec sheet is ambiguous between 600mm and 900mm centers.",
             respond_by=timezone.now() - timedelta(days=1), schedule_impact_days=6, location_tag="East façade",

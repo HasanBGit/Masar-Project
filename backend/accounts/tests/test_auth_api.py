@@ -1,33 +1,14 @@
 """HTTP-level auth tests: JWT obtain/refresh plus the `auth`-scope throttle."""
 
+from unittest.mock import patch
+
 import pytest
 from django.core.cache import cache
-from django.test import override_settings
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.test import APIClient
 
 TOKEN_URL = "/api/v1/auth/token/"
 REFRESH_URL = "/api/v1/auth/token/refresh/"
-
-THROTTLED_REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 25,
-    "EXCEPTION_HANDLER": "config.exception_handlers.custom_exception_handler",
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_THROTTLE_CLASSES": (
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
-    ),
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/hour",
-        "user": "1000/hour",
-        "auth": "3/min",  # low so the test trips it quickly
-        "api_key": "100/hour",
-    },
-}
 
 
 @pytest.fixture(autouse=True)
@@ -70,12 +51,15 @@ def test_token_refresh(owner_user):
 
 
 @pytest.mark.django_db
-@override_settings(REST_FRAMEWORK=THROTTLED_REST_FRAMEWORK)
 def test_token_obtain_throttles_rapid_failures(owner_user):
+    # patch.dict rather than override_settings: SimpleRateThrottle captures
+    # THROTTLE_RATES at import time, so swapping REST_FRAMEWORK wholesale
+    # would not reach an already-imported throttle class.
     client = APIClient()
     statuses = []
-    for _ in range(6):  # rate is 3/min in this test
-        response = client.post(TOKEN_URL, {"email": "owner@test.local", "password": "wrong-password"})
-        statuses.append(response.status_code)
+    with patch.dict(ScopedRateThrottle.THROTTLE_RATES, {"auth": "3/min"}):
+        for _ in range(6):  # rate is 3/min in this test
+            response = client.post(TOKEN_URL, {"email": "owner@test.local", "password": "wrong-password"})
+            statuses.append(response.status_code)
     assert 429 in statuses
     assert statuses[-1] == 429

@@ -34,7 +34,7 @@ export function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1.5 text-left">
+          <label className="flex flex-col gap-1.5 text-start">
             <span className="text-xs font-semibold uppercase tracking-wide text-navy/70">Email</span>
             <input
               type="email"
@@ -47,7 +47,7 @@ export function LoginPage() {
             />
           </label>
 
-          <label className="flex flex-col gap-1.5 text-left">
+          <label className="flex flex-col gap-1.5 text-start">
             <span className="text-xs font-semibold uppercase tracking-wide text-navy/70">Password</span>
             <input
               type="password"
