@@ -1,0 +1,30 @@
+{
+  "name": "masar-project-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Masar / San3 - Construction & Infrastructure Management Platform Monorepo",
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:site": "npm --prefix site run dev",
+    "dev:backend": "cd backend && source venv/bin/activate && python manage.py runserver",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:site": "npm --prefix site run build",
+    "build": "npm run build:frontend && npm run build:site",
+    "test:frontend": "npm --prefix frontend run test",
+    "test:backend": "cd backend && ./venv/bin/pytest --reuse-db",
+    "test": "npm run test:frontend && npm run test:backend",
+    "lint:frontend": "npm --prefix frontend run lint",
+    "lint:site": "npm --prefix site run lint",
+    "lint": "npm run lint:frontend && npm run lint:site"
+  },
+  "keywords": [
+    "masar",
+    "san3",
+    "construction",
+    "django",
+    "react",
+    "monorepo"
+  ],
+  "author": "San3 Engineering",
+  "license": "UNLICENSED"
+}
