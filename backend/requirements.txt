@@ -14,6 +14,10 @@ factory-boy>=3.3
 # contract_payments legal-agent chatbot (RAG) - only imported once
 # VOYAGE_API_KEY/ANTHROPIC_API_KEY are actually set; safe to have installed
 # with no keys configured (see contract_payments/services.py).
+drf-spectacular>=0.28.0
+drf-spectacular-sidecar>=2026.1.1
+httpx>=0.27.0
 voyageai>=0.3
 anthropic>=0.40
 pgvector>=0.3
+
