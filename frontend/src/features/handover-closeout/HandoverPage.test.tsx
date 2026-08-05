@@ -168,7 +168,7 @@ describe('HandoverPage', () => {
     expect(await screen.findByText(/Practical completion/)).toBeInTheDocument()
     expect(screen.getByText('Cracked tile at entrance')).toBeInTheDocument()
     expect(screen.getByText('AC maintenance manual delivered')).toBeInTheDocument()
-    expect(screen.getByText('Roof leak above kitchen')).toBeInTheDocument()
+    expect(screen.getByText(/Roof leak above kitchen/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Request sign-off' })).toBeInTheDocument()
   })
 

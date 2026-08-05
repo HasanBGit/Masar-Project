@@ -103,7 +103,7 @@ export function Timeline({ events, darkMode, syncing }: Props) {
                 ? "ابحث في الأحداث، الملخصات، الجهات، المرفقات…"
                 : "Search events, summaries, stakeholders, attachments…"
             }
-            className={`w-full rounded-2xl border py-3 ps-12 pe-12 text-[0.9rem] outline-none transition-all focus:border-[#c9a227]/50 ${inputCls}`}
+            className={`w-full rounded-2xl border py-3 ps-12 pe-12 text-[0.9rem] outline-none transition-all focus:border-[#c9a227]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a227] ${inputCls}`}
           />
           {query && (
             <button
