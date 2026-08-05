@@ -150,13 +150,17 @@ def test_request_contract_signing_routes_through_approvals(contract, owner_user)
 
 
 @pytest.mark.django_db
-def test_ask_legal_agent_fails_closed_with_no_embedding_key(contract):
+def test_ask_legal_agent_fails_closed_with_no_embedding_key(settings, contract):
+    settings.OPENROUTER_API_KEY = ""
+    settings.VOYAGE_API_KEY = ""
     with pytest.raises(LegalAgentNotConfigured):
         ask_legal_agent(project=contract.project, question="What is the retention percentage?")
 
 
 @pytest.mark.django_db
-def test_ingest_falls_back_to_unembedded_rows_without_a_key(contract, milestone):
+def test_ingest_falls_back_to_unembedded_rows_without_a_key(settings, contract, milestone):
+    settings.OPENROUTER_API_KEY = ""
+    settings.VOYAGE_API_KEY = ""
     count = ingest_contract_for_legal_agent(contract)
     assert count > 0
 
@@ -164,12 +168,13 @@ def test_ingest_falls_back_to_unembedded_rows_without_a_key(contract, milestone)
 
     docs = LegalAgentDocument.objects.filter(project=contract.project)
     assert docs.exists()
-    assert all(d.embedding is None for d in docs)  # no VOYAGE_API_KEY in test settings
+    assert all(d.embedding is None for d in docs)
 
 
 @pytest.mark.django_db
 @patch("contract_payments.services._embed", return_value=FAKE_EMBEDDING)
 def test_ingest_and_ask_legal_agent_with_mocked_providers(mock_embed, settings, contract, milestone, owner_user):
+    settings.OPENROUTER_API_KEY = ""
     settings.VOYAGE_API_KEY = "test-voyage-key"
     settings.ANTHROPIC_API_KEY = "test-anthropic-key"
 
@@ -195,3 +200,25 @@ def test_ingest_and_ask_legal_agent_with_mocked_providers(mock_embed, settings, 
 
     events = trust_evidence.get_audit_events(contract.project, event_type="legal_agent_query")
     assert len(events) == 1
+
+
+@pytest.mark.django_db
+@patch("contract_payments.services._embed", return_value=FAKE_EMBEDDING)
+def test_ask_legal_agent_openrouter_gemini_flash(mock_embed, settings, contract, milestone, owner_user):
+    settings.OPENROUTER_API_KEY = "sk-or-v1-testkey"
+    settings.OPENROUTER_MODEL = "google/gemini-2.5-flash"
+
+    ingest_contract_for_legal_agent(contract)
+
+    mock_response = MagicMock(status_code=200)
+    mock_response.json.return_value = {
+        "choices": [{"message": {"content": "According to [contract:1:terms], retention percentage is 0%."}}]
+    }
+
+    with patch("httpx.post", return_value=mock_response):
+        result = ask_legal_agent(project=contract.project, question="What is the retention percentage?", asked_by=owner_user, language="en")
+
+    assert "retention" in result["answer"].lower()
+    assert len(result["sources"]) > 0
+    assert result["language"] == "en"
+

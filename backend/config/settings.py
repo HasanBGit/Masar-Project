@@ -192,9 +192,9 @@ if not DEBUG:
 # accounts.DataRetentionPolicy.data_residency_region should match it.
 DATA_RESIDENCY_REGION = env("DATA_RESIDENCY_REGION", default="sa")
 
-# contract_payments' legal-agent chatbot (RAG) - both left unset by default so
-# the feature fails closed (LegalAgentNotConfigured) with no key, rather than
-# silently doing nothing. Voyage AI is Anthropic's recommended embeddings
-# partner (Anthropic has no embeddings endpoint of its own).
+# AI / LLM Integration - OpenRouter (Gemini Flash) with fallbacks
+OPENROUTER_API_KEY = env("OPENROUTER_API_KEY", default="")
+OPENROUTER_MODEL = env("OPENROUTER_MODEL", default="google/gemini-2.5-flash")
 VOYAGE_API_KEY = env("VOYAGE_API_KEY", default="")
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+
