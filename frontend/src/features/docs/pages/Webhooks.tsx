@@ -22,14 +22,21 @@ export function WebhooksPage() {
           ['approval.requested', 'A new decision enters the Hearing edge (Approvals).'],
           ['evidence.verified', 'An owner/consultant verifies a submitted evidence record (Trust & Evidence).'],
           ['contractor.overdue', 'An RFI (or other tracked item) breaches its expected-response deadline and gets silence-flagged.'],
+          ['payment.released', 'A payment milestone is released after its evidence gate passes (Contract & Payments).'],
         ]}
       />
 
       <DocsH2 id="subscribing">Subscribing</DocsH2>
       <DocsP>
         Add a subscription from <DocsLink to="/platform-api">Platform API</DocsLink> as a project owner/admin - a
-        target URL and the event types you want. One project can have multiple subscriptions.
+        target URL and the event types you want (validated against the table above). One project can have multiple
+        subscriptions.
       </DocsP>
+      <Callout type="warn">
+        The subscription's signing secret is returned <strong>once</strong>, in the create response - it is stored
+        hashed-equivalent server-side and never shown again. If you lose it, delete the subscription and create a
+        new one.
+      </Callout>
 
       <DocsH2 id="payload">Payload &amp; signature</DocsH2>
       <CodeBlock label="POST to your target_url">{`{
@@ -42,8 +49,14 @@ export function WebhooksPage() {
 }`}</CodeBlock>
       <DocsP>
         Every request carries an <InlineCode>X-Truepoint-Signature</InlineCode> header - an HMAC-SHA256 of the raw
-        request body, signed with the subscription's own secret. Verify it before trusting the payload.
+        request body, signed with the subscription's own secret (the one shown at creation). Verify it before
+        trusting the payload:
       </DocsP>
+      <CodeBlock label="verify (python)">{`import hmac, hashlib
+
+def is_valid(raw_body: bytes, header_sig: str, secret: str) -> bool:
+    expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, header_sig)`}</CodeBlock>
 
       <DocsH2 id="delivery">Delivery &amp; retries</DocsH2>
       <DocsP>
