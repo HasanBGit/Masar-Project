@@ -28,8 +28,11 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-[var(--radius-m)] border border-sand bg-paper p-6 text-center text-navy shadow-sm">
-          <AlertTriangle size={32} className="text-gold-ink" />
+        <div
+          role="alert"
+          className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-[var(--radius-m)] border border-sand bg-paper p-6 text-center text-navy shadow-sm"
+        >
+          <AlertTriangle size={32} className="text-gold-ink" aria-hidden="true" />
           <h2 className="font-[var(--font-display)] text-lg font-bold">
             {this.props.fallbackTitle ?? 'Something went wrong displaying this section'}
           </h2>

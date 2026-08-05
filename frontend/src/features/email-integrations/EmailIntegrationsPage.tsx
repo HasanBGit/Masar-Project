@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Mail,
   RefreshCw,
@@ -16,8 +16,13 @@ import {
   Eye,
   Sparkles,
   Building,
+  Info,
+  type LucideIcon,
 } from 'lucide-react'
 import type { Project } from '../../lib/types'
+import { Modal } from '../../components/ui/Modal'
+import { useToast } from '../../components/ui/Toast'
+import { SelectField, TextField } from '../../components/ui/Field'
 
 interface Props {
   project: Project
@@ -140,7 +145,27 @@ const INITIAL_EMAILS: ExtractedEmail[] = [
   },
 ]
 
+const WEBHOOK_URL = 'https://api.masar-construction.sa/v1/webhooks/gmail/pubsub'
+
+const TABS: { id: TabType; label: string; icon: LucideIcon }[] = [
+  { id: 'connection', label: '1. Gmail Connection & OAuth', icon: Mail },
+  { id: 'extraction', label: '2. Live Extraction Pipeline', icon: Zap },
+  { id: 'intelligence', label: '3. AI Intelligence & Rules', icon: Sparkles },
+  { id: 'channels', label: '4. Multi-Channel Feeds', icon: Radio },
+  { id: 'health', label: '5. Sync Health & Webhooks', icon: ShieldCheck },
+]
+
+const CATEGORY_BADGE: Record<ExtractedEmail['category'], string> = {
+  RFI: 'bg-status-understanding/10 text-status-understanding',
+  Permit: 'bg-status-agreeing/10 text-status-agreeing',
+  Safety: 'bg-status-escalated/10 text-status-escalated',
+  Payment: 'bg-status-hearing/10 text-status-hearing',
+  Submittal: 'bg-gold/15 text-gold-ink',
+  Progress: 'bg-gold/15 text-gold-ink',
+}
+
 export function EmailIntegrationsPage({ project }: Props) {
+  const toast = useToast()
   const [activeTab, setActiveTab] = useState<TabType>('connection')
   const [emails, setEmails] = useState<ExtractedEmail[]>(INITIAL_EMAILS)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -149,12 +174,27 @@ export function EmailIntegrationsPage({ project }: Props) {
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [autoSyncEnabled, setAutoSyncEnabled] = useState(true)
   const [syncInterval, setSyncInterval] = useState('5m')
+  const [demoNoticeDismissed, setDemoNoticeDismissed] = useState(false)
+
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const webhookUrlRef = useRef<HTMLSpanElement | null>(null)
+  const syncTimeoutRef = useRef<number | null>(null)
+
+  // The simulated sync uses a timeout; clear it on unmount so it can't fire
+  // setState against an unmounted page.
+  useEffect(() => {
+    return () => {
+      if (syncTimeoutRef.current !== null) window.clearTimeout(syncTimeoutRef.current)
+    }
+  }, [])
 
   const pendingCount = useMemo(() => emails.filter((e) => e.status === 'pending').length, [emails])
 
   function handleSyncNow() {
+    if (isSyncing) return
     setIsSyncing(true)
-    setTimeout(() => {
+    syncTimeoutRef.current = window.setTimeout(() => {
+      syncTimeoutRef.current = null
       setIsSyncing(false)
       // Add a fresh mock email to show real-time extraction working!
       const newEmail: ExtractedEmail = {
@@ -174,6 +214,7 @@ export function EmailIntegrationsPage({ project }: Props) {
         rawBody: 'Civil Defense Inspection Result: Pass. Safety clearance reference CD-2026-8841 issued.',
       }
       setEmails((prev) => [newEmail, ...prev])
+      toast.success('Sample inbox synced — 1 new item extracted.')
     }, 1200)
   }
 
@@ -181,6 +222,46 @@ export function EmailIntegrationsPage({ project }: Props) {
     setEmails((prev) =>
       prev.map((item) => (item.id === id ? { ...item, status: action === 'approve' ? 'approved' : 'dismissed' } : item)),
     )
+    if (action === 'approve') toast.success('Item approved and linked to the project record (demo).')
+    else toast.success('Item dismissed (demo).')
+  }
+
+  async function handleCopyWebhookUrl() {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(WEBHOOK_URL)
+        toast.success('Webhook URL copied to clipboard.')
+        return
+      }
+      // No async clipboard available: select the URL text so a manual
+      // Ctrl/Cmd+C works, and say so.
+      const node = webhookUrlRef.current
+      const selection = window.getSelection()
+      if (node && selection) {
+        const range = document.createRange()
+        range.selectNodeContents(node)
+        selection.removeAllRanges()
+        selection.addRange(range)
+        toast.error('Clipboard unavailable — the URL is selected, press Ctrl+C (or Cmd+C) to copy it.')
+      } else {
+        toast.error('Could not copy the webhook URL.')
+      }
+    } catch {
+      toast.error('Could not copy the webhook URL.')
+    }
+  }
+
+  function onTabKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    const current = TABS.findIndex((t) => t.id === activeTab)
+    let next = -1
+    if (e.key === 'ArrowRight') next = (current + 1) % TABS.length
+    else if (e.key === 'ArrowLeft') next = (current - 1 + TABS.length) % TABS.length
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = TABS.length - 1
+    if (next === -1) return
+    e.preventDefault()
+    setActiveTab(TABS[next].id)
+    tabRefs.current[next]?.focus()
   }
 
   const filteredEmails = useMemo(() => {
@@ -196,17 +277,42 @@ export function EmailIntegrationsPage({ project }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Demo disclosure: everything on this page runs on sample data. */}
+      {!demoNoticeDismissed && (
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-[var(--radius-m)] border border-status-understanding/30 bg-status-understanding/5 p-4 text-navy"
+        >
+          <Info size={18} className="mt-0.5 shrink-0 text-status-understanding" aria-hidden="true" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Demo preview — sample data, not connected to your account</p>
+            <p className="mt-0.5 text-xs text-navy/70">
+              The inbox items, connection details, OAuth scopes, and webhook endpoints below are illustrative sample
+              content. Nothing on this page reads from or writes to a real mailbox.
+            </p>
+          </div>
+          <button
+            onClick={() => setDemoNoticeDismissed(true)}
+            aria-label="Dismiss demo notice"
+            className="shrink-0 rounded-[var(--radius-s)] p-1.5 text-navy/50 transition hover:bg-navy/5 hover:text-navy"
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
       {/* Header Banner following Saudi / Masar Design System */}
       <div className="relative overflow-hidden rounded-[var(--radius-l)] border border-gold/30 bg-navy-deep p-6 text-cream shadow-xl">
-        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-gold/10 blur-3xl pointer-events-none" />
+        <div className="pointer-events-none absolute -end-16 -top-16 h-64 w-64 rounded-full bg-gold/10 blur-3xl" />
         <div className="relative z-10 flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 rounded-full bg-gold/20 px-3 py-1 text-xs font-semibold text-gold-ink">
-                <Sparkles size={13} /> Main Feature · Gmail OAuth 2.0
+              <span className="flex items-center gap-1.5 rounded-full bg-gold/20 px-3 py-1 text-xs font-semibold text-gold-soft">
+                <Sparkles size={13} aria-hidden="true" /> Main Feature · Gmail OAuth 2.0
               </span>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-300">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Active Connection
+              <span className="flex items-center gap-1.5 rounded-full bg-status-agreeing/30 px-2.5 py-1 text-xs font-medium text-cream">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-status-agreeing" aria-hidden="true" /> Sample
+                Connection
               </span>
             </div>
             <h1 className="mt-2 font-[var(--font-display)] text-2xl font-bold text-white sm:text-3xl">
@@ -224,13 +330,13 @@ export function EmailIntegrationsPage({ project }: Props) {
               disabled={isSyncing}
               className="flex items-center gap-2 rounded-[var(--radius-s)] bg-gold px-4 py-2.5 text-sm font-bold text-navy shadow-lg transition hover:bg-gold-ink hover:text-white disabled:opacity-50"
             >
-              <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
+              <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} aria-hidden="true" />
               {isSyncing ? 'Syncing Gmail...' : 'Sync Gmail Now'}
             </button>
             {pendingCount > 0 && (
               <button
                 onClick={() => setActiveTab('extraction')}
-                className="flex items-center gap-2 rounded-[var(--radius-s)] border border-amber-400/40 bg-amber-500/10 px-4 py-2.5 text-sm font-semibold text-amber-300 transition hover:bg-amber-500/20"
+                className="flex items-center gap-2 rounded-[var(--radius-s)] border border-gold-soft/40 bg-gold-soft/10 px-4 py-2.5 text-sm font-semibold text-gold-soft transition hover:bg-gold-soft/20"
               >
                 <span>{pendingCount} Items Needing Review</span>
               </button>
@@ -240,19 +346,19 @@ export function EmailIntegrationsPage({ project }: Props) {
 
         {/* Quick Metrics Bar */}
         <div className="mt-6 grid grid-cols-2 gap-3 border-t border-white/10 pt-4 sm:grid-cols-4">
-          <div className="rounded-lg bg-white/5 p-3">
+          <div className="rounded-[var(--radius-s)] bg-white/5 p-3">
             <div className="text-xs text-cream/60">Connected Email</div>
             <div className="mt-0.5 truncate font-mono text-sm font-semibold text-gold">pm@masar-construction.sa</div>
           </div>
-          <div className="rounded-lg bg-white/5 p-3">
+          <div className="rounded-[var(--radius-s)] bg-white/5 p-3">
             <div className="text-xs text-cream/60">Emails Processed Today</div>
             <div className="mt-0.5 text-sm font-bold text-white">12 Emails</div>
           </div>
-          <div className="rounded-lg bg-white/5 p-3">
+          <div className="rounded-[var(--radius-s)] bg-white/5 p-3">
             <div className="text-xs text-cream/60">AI Extraction Rate</div>
-            <div className="mt-0.5 text-sm font-bold text-emerald-400">98.4% Confidence</div>
+            <div className="mt-0.5 text-sm font-bold text-gold-soft">98.4% Confidence</div>
           </div>
-          <div className="rounded-lg bg-white/5 p-3">
+          <div className="rounded-[var(--radius-s)] bg-white/5 p-3">
             <div className="text-xs text-cream/60">Linked RFIs & Records</div>
             <div className="mt-0.5 text-sm font-bold text-white">247 Total Items</div>
           </div>
@@ -260,92 +366,62 @@ export function EmailIntegrationsPage({ project }: Props) {
       </div>
 
       {/* Navigation Sub-Tabs bar for Email Integration sub-features */}
-      <div className="flex items-center gap-2 overflow-x-auto border-b border-sand pb-1">
-        <button
-          onClick={() => setActiveTab('connection')}
-          className={`flex items-center gap-2 rounded-[var(--radius-s)] px-4 py-2.5 text-sm font-semibold transition whitespace-nowrap ${
-            activeTab === 'connection'
-              ? 'bg-navy text-cream shadow-sm'
-              : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
-          }`}
-        >
-          <Mail size={16} />
-          1. Gmail Connection & OAuth
-        </button>
-        <button
-          onClick={() => setActiveTab('extraction')}
-          className={`flex items-center gap-2 rounded-[var(--radius-s)] px-4 py-2.5 text-sm font-semibold transition whitespace-nowrap ${
-            activeTab === 'extraction'
-              ? 'bg-navy text-cream shadow-sm'
-              : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
-          }`}
-        >
-          <Zap size={16} />
-          2. Live Extraction Pipeline
-          {pendingCount > 0 && (
-            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-navy">
-              {pendingCount}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('intelligence')}
-          className={`flex items-center gap-2 rounded-[var(--radius-s)] px-4 py-2.5 text-sm font-semibold transition whitespace-nowrap ${
-            activeTab === 'intelligence'
-              ? 'bg-navy text-cream shadow-sm'
-              : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
-          }`}
-        >
-          <Sparkles size={16} />
-          3. AI Intelligence & Rules
-        </button>
-        <button
-          onClick={() => setActiveTab('channels')}
-          className={`flex items-center gap-2 rounded-[var(--radius-s)] px-4 py-2.5 text-sm font-semibold transition whitespace-nowrap ${
-            activeTab === 'channels'
-              ? 'bg-navy text-cream shadow-sm'
-              : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
-          }`}
-        >
-          <Radio size={16} />
-          4. Multi-Channel Feeds
-        </button>
-        <button
-          onClick={() => setActiveTab('health')}
-          className={`flex items-center gap-2 rounded-[var(--radius-s)] px-4 py-2.5 text-sm font-semibold transition whitespace-nowrap ${
-            activeTab === 'health'
-              ? 'bg-navy text-cream shadow-sm'
-              : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
-          }`}
-        >
-          <ShieldCheck size={16} />
-          5. Sync Health & Webhooks
-        </button>
+      <div
+        role="tablist"
+        aria-label="Email integration sections"
+        className="flex items-center gap-2 overflow-x-auto border-b border-sand pb-1"
+      >
+        {TABS.map((tab, i) => (
+          <button
+            key={tab.id}
+            ref={(el) => {
+              tabRefs.current[i] = el
+            }}
+            role="tab"
+            id={`tab-${tab.id}`}
+            aria-selected={activeTab === tab.id}
+            aria-controls={`panel-${tab.id}`}
+            tabIndex={activeTab === tab.id ? 0 : -1}
+            onClick={() => setActiveTab(tab.id)}
+            onKeyDown={onTabKeyDown}
+            className={`flex items-center gap-2 whitespace-nowrap rounded-[var(--radius-s)] px-4 py-2.5 text-sm font-semibold transition ${
+              activeTab === tab.id ? 'bg-navy text-cream shadow-sm' : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
+            }`}
+          >
+            <tab.icon size={16} aria-hidden="true" />
+            {tab.label}
+            {tab.id === 'extraction' && pendingCount > 0 && (
+              <span className="rounded-full bg-status-hearing px-2 py-0.5 text-xs font-bold text-cream">
+                {pendingCount}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       {/* TAB 1: GMAIL CONNECTION & OAUTH */}
       {activeTab === 'connection' && (
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div role="tabpanel" id="panel-connection" aria-labelledby="tab-connection" className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
-            <div className="rounded-[var(--radius-m)] border border-sand bg-white p-6 shadow-sm">
+            <div className="rounded-[var(--radius-m)] border border-sand bg-white p-5 shadow-sm transition hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-600">
-                    <Mail size={24} />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-s)] bg-status-escalated/10 text-status-escalated">
+                    <Mail size={24} aria-hidden="true" />
                   </div>
                   <div>
-                    <h3 className="font-[var(--font-display)] text-lg font-bold text-navy">
+                    <h2 className="font-[var(--font-display)] text-lg font-bold text-navy">
                       Google Workspace / Gmail Account
-                    </h3>
-                    <p className="text-xs text-navy/60">OAuth 2.0 Verified Connection</p>
+                    </h2>
+                    <p className="text-xs text-navy/60">OAuth 2.0 Verified Connection (sample)</p>
                   </div>
                 </div>
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
-                  ✓ Connected & Authorized
+                <span className="rounded-full bg-status-agreeing/10 px-3 py-1 text-xs font-bold text-status-agreeing">
+                  <span aria-hidden="true">✓</span> Connected & Authorized
                 </span>
               </div>
 
-              <div className="mt-6 space-y-4 rounded-xl bg-cream p-4 text-sm text-navy">
+              <div className="mt-6 space-y-4 rounded-[var(--radius-s)] bg-cream p-4 text-sm text-navy">
                 <div className="flex items-center justify-between border-b border-sand/60 pb-3">
                   <span className="text-navy/60">Connected Email Address:</span>
                   <span className="font-mono font-semibold text-navy">pm@masar-construction.sa</span>
@@ -360,72 +436,86 @@ export function EmailIntegrationsPage({ project }: Props) {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-navy/60">Last Background Sync:</span>
-                  <span className="font-semibold text-emerald-700">4 minutes ago</span>
+                  <span className="font-semibold text-status-agreeing">4 minutes ago</span>
                 </div>
               </div>
 
               <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-sand pt-4">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-semibold text-navy">Auto Sync Email:</label>
+                  <span id="auto-sync-label" className="text-sm font-semibold text-navy">
+                    Auto Sync Email:
+                  </span>
                   <button
+                    type="button"
+                    role="switch"
+                    aria-checked={autoSyncEnabled}
+                    aria-labelledby="auto-sync-label"
                     onClick={() => setAutoSyncEnabled(!autoSyncEnabled)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
                       autoSyncEnabled ? 'bg-gold' : 'bg-sand'
                     }`}
                   >
                     <span
                       className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        autoSyncEnabled ? 'translate-x-5' : 'translate-x-0'
+                        autoSyncEnabled ? 'translate-x-5 rtl:-translate-x-5' : 'translate-x-0'
                       }`}
                     />
                   </button>
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-navy">
-                  <span className="text-navy/60">Interval:</span>
-                  <select
-                    value={syncInterval}
-                    onChange={(e) => setSyncInterval(e.target.value)}
-                    className="rounded-[var(--radius-s)] border border-sand bg-white px-2.5 py-1 text-sm font-semibold"
-                  >
-                    <option value="1m">Every 1 minute (Instant)</option>
-                    <option value="5m">Every 5 minutes (Recommended)</option>
-                    <option value="15m">Every 15 minutes</option>
-                  </select>
+                  <span className="text-navy/60" aria-hidden="true">
+                    Interval:
+                  </span>
+                  <div className="w-60">
+                    <SelectField
+                      label="Sync interval"
+                      hideLabel
+                      value={syncInterval}
+                      onChange={(e) => setSyncInterval(e.target.value)}
+                      className="py-1 font-semibold"
+                    >
+                      <option value="1m">Every 1 minute (Instant)</option>
+                      <option value="5m">Every 5 minutes (Recommended)</option>
+                      <option value="15m">Every 15 minutes</option>
+                    </SelectField>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[var(--radius-m)] border border-sand bg-white p-6 shadow-sm">
-              <h3 className="font-[var(--font-display)] text-base font-bold text-navy">
+            <div className="rounded-[var(--radius-m)] border border-sand bg-white p-5 shadow-sm transition hover:shadow-md">
+              <h2 className="font-[var(--font-display)] text-base font-bold text-navy">
                 Gmail Webhook & Pub/Sub Configuration
-              </h3>
+              </h2>
               <p className="mt-1 text-xs text-navy/60">
                 Google Cloud Pub/Sub pushes incoming project emails instantly without waiting for polling intervals.
               </p>
 
               <div className="mt-4 space-y-3">
-                <div className="rounded-lg border border-sand/80 bg-cream/50 p-3">
-                  <div className="text-xs font-semibold text-navy/50 uppercase tracking-wider">
-                    Webhook Endpoint URL
+                <div className="rounded-[var(--radius-s)] border border-sand/80 bg-cream/50 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-navy/50">
+                    Webhook Endpoint URL (sample)
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-2 font-mono text-xs text-navy">
-                    <span className="truncate">https://api.masar-construction.sa/v1/webhooks/gmail/pubsub</span>
+                    <span ref={webhookUrlRef} className="truncate">
+                      {WEBHOOK_URL}
+                    </span>
                     <button
-                      onClick={() => alert('Webhook URL copied to clipboard')}
-                      className="text-xs text-gold-ink hover:underline"
+                      onClick={handleCopyWebhookUrl}
+                      className="text-xs font-semibold text-gold-ink transition hover:underline"
                     >
                       Copy
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="rounded-lg border border-sand/80 p-3">
+                <div className="grid gap-3 text-xs sm:grid-cols-2">
+                  <div className="rounded-[var(--radius-s)] border border-sand/80 p-3">
                     <span className="text-navy/60">Pub/Sub Topic ID:</span>
                     <div className="mt-0.5 font-mono font-semibold text-navy">projects/masar-prod/topics/gmail-events</div>
                   </div>
-                  <div className="rounded-lg border border-sand/80 p-3">
+                  <div className="rounded-[var(--radius-s)] border border-sand/80 p-3">
                     <span className="text-navy/60">Push Subscription:</span>
                     <div className="mt-0.5 font-mono font-semibold text-navy">sub-gmail-masar-rt</div>
                   </div>
@@ -435,13 +525,13 @@ export function EmailIntegrationsPage({ project }: Props) {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-[var(--radius-m)] border border-sand bg-white p-6 shadow-sm">
-              <h3 className="font-[var(--font-display)] text-base font-bold text-navy">Supported Email Signals</h3>
+            <div className="rounded-[var(--radius-m)] border border-sand bg-white p-5 shadow-sm transition hover:shadow-md">
+              <h2 className="font-[var(--font-display)] text-base font-bold text-navy">Supported Email Signals</h2>
               <p className="mt-1 text-xs text-navy/60">AI automatically detects and categorizes these items:</p>
 
               <div className="mt-4 space-y-3 text-xs">
-                <div className="flex items-center gap-3 rounded-lg border border-sand/60 p-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-700 font-bold">
+                <div className="flex items-center gap-3 rounded-[var(--radius-s)] border border-sand/60 p-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-s)] bg-status-understanding/10 font-bold text-status-understanding">
                     RFI
                   </div>
                   <div>
@@ -450,8 +540,8 @@ export function EmailIntegrationsPage({ project }: Props) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-lg border border-sand/60 p-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-purple-700 font-bold">
+                <div className="flex items-center gap-3 rounded-[var(--radius-s)] border border-sand/60 p-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-s)] bg-gold/15 font-bold text-gold-ink">
                     SUB
                   </div>
                   <div>
@@ -460,8 +550,8 @@ export function EmailIntegrationsPage({ project }: Props) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-lg border border-sand/60 p-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 text-red-700 font-bold">
+                <div className="flex items-center gap-3 rounded-[var(--radius-s)] border border-sand/60 p-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-s)] bg-status-escalated/10 font-bold text-status-escalated">
                     SAF
                   </div>
                   <div>
@@ -470,8 +560,8 @@ export function EmailIntegrationsPage({ project }: Props) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-lg border border-sand/60 p-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 font-bold">
+                <div className="flex items-center gap-3 rounded-[var(--radius-s)] border border-sand/60 p-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-s)] bg-status-agreeing/10 font-bold text-status-agreeing">
                     PAY
                   </div>
                   <div>
@@ -487,34 +577,44 @@ export function EmailIntegrationsPage({ project }: Props) {
 
       {/* TAB 2: LIVE EXTRACTION PIPELINE & REVIEW QUEUE */}
       {activeTab === 'extraction' && (
-        <div className="space-y-6">
-          <div className="flex flex-col justify-between gap-4 rounded-[var(--radius-m)] border border-sand bg-white p-4 sm:flex-row sm:items-center">
+        <div role="tabpanel" id="panel-extraction" aria-labelledby="tab-extraction" className="space-y-6">
+          <div className="flex flex-col justify-between gap-4 rounded-[var(--radius-m)] border border-sand bg-white p-5 sm:flex-row sm:items-center">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-navy/40" />
-                <input
-                  type="text"
+              <div className="relative w-full sm:w-64">
+                <Search
+                  size={16}
+                  className="pointer-events-none absolute start-3 top-1/2 z-10 -translate-y-1/2 text-navy/40"
+                  aria-hidden="true"
+                />
+                <TextField
+                  label="Search extracted emails"
+                  hideLabel
+                  type="search"
                   placeholder="Search extracted emails..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-[var(--radius-s)] border border-sand bg-cream/30 pl-9 pr-3 py-1.5 text-sm text-navy placeholder:text-navy/40 focus:bg-white focus:outline-none"
+                  className="bg-cream/30 ps-9 focus:bg-white"
                 />
               </div>
 
               <div className="flex items-center gap-2 text-sm text-navy">
-                <Filter size={15} className="text-navy/50" />
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="rounded-[var(--radius-s)] border border-sand bg-white px-2.5 py-1.5 text-sm font-semibold"
-                >
-                  <option value="all">All Categories</option>
-                  <option value="RFI">RFIs Only</option>
-                  <option value="Permit">Building Permits</option>
-                  <option value="Submittal">Submittals</option>
-                  <option value="Safety">Safety Alerts</option>
-                  <option value="Payment">Payment Claims</option>
-                </select>
+                <Filter size={15} className="text-navy/50" aria-hidden="true" />
+                <div className="w-44">
+                  <SelectField
+                    label="Filter by category"
+                    hideLabel
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="font-semibold"
+                  >
+                    <option value="all">All Categories</option>
+                    <option value="RFI">RFIs Only</option>
+                    <option value="Permit">Building Permits</option>
+                    <option value="Submittal">Submittals</option>
+                    <option value="Safety">Safety Alerts</option>
+                    <option value="Payment">Payment Claims</option>
+                  </SelectField>
+                </div>
               </div>
             </div>
 
@@ -529,49 +629,37 @@ export function EmailIntegrationsPage({ project }: Props) {
                 key={item.id}
                 className={`group rounded-[var(--radius-m)] border transition ${
                   item.status === 'pending'
-                    ? 'border-amber-400/80 bg-gradient-to-r from-amber-50/40 via-white to-white shadow-sm'
+                    ? 'border-status-hearing/50 bg-gradient-to-r from-status-hearing/5 via-white to-white shadow-sm'
                     : 'border-sand bg-white hover:border-sand/90'
                 }`}
               >
                 <div className="p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                          item.category === 'RFI'
-                            ? 'bg-blue-100 text-blue-800'
-                            : item.category === 'Permit'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : item.category === 'Safety'
-                            ? 'bg-red-100 text-red-800'
-                            : item.category === 'Payment'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-purple-100 text-purple-800'
-                        }`}
-                      >
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${CATEGORY_BADGE[item.category]}`}>
                         {item.category}
                       </span>
 
                       <span className="flex items-center gap-1 text-xs font-semibold text-navy/60">
-                        <Sparkles size={12} className="text-gold" /> {item.confidence}% AI Confidence
+                        <Sparkles size={12} className="text-gold" aria-hidden="true" /> {item.confidence}% AI Confidence
                       </span>
 
                       {item.priority === 'high' && (
-                        <span className="flex items-center gap-1 text-xs font-bold text-red-600">
-                          <AlertTriangle size={12} /> High Priority
+                        <span className="flex items-center gap-1 text-xs font-bold text-status-escalated">
+                          <AlertTriangle size={12} aria-hidden="true" /> High Priority
                         </span>
                       )}
                     </div>
 
                     <div className="flex items-center gap-2 text-xs text-navy/50">
                       <span>{item.time}</span>
-                      <span>·</span>
+                      <span aria-hidden="true">·</span>
                       <span
                         className={`font-semibold uppercase tracking-wider ${
                           item.status === 'pending'
-                            ? 'text-amber-600'
+                            ? 'text-status-hearing'
                             : item.status === 'approved'
-                            ? 'text-emerald-600'
+                            ? 'text-status-agreeing'
                             : 'text-navy/40'
                         }`}
                       >
@@ -580,29 +668,33 @@ export function EmailIntegrationsPage({ project }: Props) {
                     </div>
                   </div>
 
-                  <h4 className="mt-3 font-[var(--font-display)] text-base font-bold text-navy">{item.subject}</h4>
-                  <p className="text-xs font-semibold text-gold-ink">{item.subjectAr}</p>
+                  <h3 className="mt-3 font-[var(--font-display)] text-base font-bold text-navy">{item.subject}</h3>
+                  <p dir="rtl" lang="ar" className="text-xs font-semibold text-gold-ink">
+                    {item.subjectAr}
+                  </p>
 
                   <div className="mt-2 text-xs text-navy/60">From: {item.sender}</div>
 
                   {/* AI Extracted Summary box */}
-                  <div className="mt-3 rounded-xl border border-sand/80 bg-cream/60 p-3.5">
+                  <div className="mt-3 rounded-[var(--radius-s)] border border-sand/80 bg-cream/60 p-3.5">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-navy">
-                      <Sparkles size={14} className="text-gold" /> Extracted Construction Summary:
+                      <Sparkles size={14} className="text-gold" aria-hidden="true" /> Extracted Construction Summary:
                     </div>
                     <p className="mt-1 text-sm text-navy">{item.summary}</p>
-                    <p className="mt-1 text-xs text-navy/70 dir-rtl">{item.summaryAr}</p>
+                    <p dir="rtl" lang="ar" className="mt-1 text-xs text-navy/70">
+                      {item.summaryAr}
+                    </p>
                   </div>
 
                   {item.attachments.length > 0 && (
                     <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-navy/70">
                       <span className="font-semibold text-navy/50">Attachments:</span>
-                      {item.attachments.map((att, idx) => (
+                      {item.attachments.map((att) => (
                         <span
-                          key={idx}
-                          className="flex items-center gap-1 rounded-md border border-sand bg-white px-2 py-1 font-mono text-[11px]"
+                          key={att}
+                          className="flex items-center gap-1 rounded-[var(--radius-s)] border border-sand bg-white px-2 py-1 font-mono text-xs"
                         >
-                          <FileText size={12} className="text-navy/40" /> {att}
+                          <FileText size={12} className="text-navy/40" aria-hidden="true" /> {att}
                         </span>
                       ))}
                     </div>
@@ -612,29 +704,29 @@ export function EmailIntegrationsPage({ project }: Props) {
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-sand/60 pt-3">
                     <button
                       onClick={() => setSelectedEmail(item)}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-navy hover:text-gold-ink"
+                      className="flex items-center gap-1.5 text-xs font-semibold text-navy transition hover:text-gold-ink"
                     >
-                      <Eye size={14} /> Preview Email & AI JSON Payload
+                      <Eye size={14} aria-hidden="true" /> Preview Email & AI JSON Payload
                     </button>
 
                     {item.status === 'pending' ? (
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleAction(item.id, 'dismiss')}
-                          className="flex items-center gap-1.5 rounded-[var(--radius-s)] border border-sand px-3 py-1.5 text-xs font-semibold text-navy/70 hover:bg-cream"
+                          className="flex items-center gap-1.5 rounded-[var(--radius-s)] border border-sand px-3 py-1.5 text-xs font-semibold text-navy/70 transition hover:bg-cream"
                         >
-                          <X size={14} /> Dismiss
+                          <X size={14} aria-hidden="true" /> Dismiss
                         </button>
                         <button
                           onClick={() => handleAction(item.id, 'approve')}
-                          className="flex items-center gap-1.5 rounded-[var(--radius-s)] bg-navy px-3.5 py-1.5 text-xs font-semibold text-cream shadow-sm hover:bg-navy-deep"
+                          className="flex items-center gap-1.5 rounded-[var(--radius-s)] bg-navy px-3.5 py-1.5 text-xs font-semibold text-cream shadow-sm transition hover:bg-navy-deep"
                         >
-                          <Check size={14} /> Approve & Link to Project Record
+                          <Check size={14} aria-hidden="true" /> Approve & Link to Project Record
                         </button>
                       </div>
                     ) : (
-                      <span className="flex items-center gap-1 text-xs font-semibold text-emerald-700">
-                        <CheckCircle2 size={14} /> Linked to Project Record
+                      <span className="flex items-center gap-1 text-xs font-semibold text-status-agreeing">
+                        <CheckCircle2 size={14} aria-hidden="true" /> Linked to Project Record
                       </span>
                     )}
                   </div>
@@ -647,85 +739,91 @@ export function EmailIntegrationsPage({ project }: Props) {
 
       {/* TAB 3: AI INTELLIGENCE & RULES */}
       {activeTab === 'intelligence' && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-[var(--radius-m)] border border-sand bg-white p-6 shadow-sm">
-            <h3 className="font-[var(--font-display)] text-lg font-bold text-navy flex items-center gap-2">
-              <Sparkles size={20} className="text-gold" /> Extraction Pipeline Architecture
-            </h3>
+        <div role="tabpanel" id="panel-intelligence" aria-labelledby="tab-intelligence" className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-[var(--radius-m)] border border-sand bg-white p-5 shadow-sm transition hover:shadow-md">
+            <h2 className="flex items-center gap-2 font-[var(--font-display)] text-lg font-bold text-navy">
+              <Sparkles size={20} className="text-gold" aria-hidden="true" /> Extraction Pipeline Architecture
+            </h2>
             <p className="mt-1 text-xs text-navy/60">
               How Gmail messages are transformed into structured Saudi/GCC construction data.
             </p>
 
             <div className="mt-6 space-y-4">
-              <div className="relative pl-6 border-l-2 border-gold/40 space-y-4">
+              <div className="relative space-y-4 border-s-2 border-gold/40 ps-6">
                 <div className="relative">
-                  <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-navy">
+                  <span className="absolute -start-[33px] top-0 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-xs font-bold text-navy">
                     1
                   </span>
-                  <div className="font-bold text-sm text-navy">Gmail Webhook / OAuth Ingestion</div>
+                  <div className="text-sm font-bold text-navy">Gmail Webhook / OAuth Ingestion</div>
                   <div className="text-xs text-navy/60">Pulls MIME body, headers, and attachments securely via OAuth tokens.</div>
                 </div>
 
                 <div className="relative">
-                  <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-navy">
+                  <span className="absolute -start-[33px] top-0 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-xs font-bold text-navy">
                     2
                   </span>
-                  <div className="font-bold text-sm text-navy">Heuristic Regex & Keyword Parser</div>
+                  <div className="text-sm font-bold text-navy">Heuristic Regex & Keyword Parser</div>
                   <div className="text-xs text-navy/60">Detects project IDs, RFI numbers, ZATCA e-invoices, and Saudi Balady permit IDs.</div>
                 </div>
 
                 <div className="relative">
-                  <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-navy">
+                  <span className="absolute -start-[33px] top-0 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-xs font-bold text-navy">
                     3
                   </span>
-                  <div className="font-bold text-sm text-navy">Bilingual LLM Structural Extraction</div>
+                  <div className="text-sm font-bold text-navy">Bilingual LLM Structural Extraction</div>
                   <div className="text-xs text-navy/60">Extracts concise English & Arabic summaries, urgency ratings, and required next steps.</div>
                 </div>
 
                 <div className="relative">
-                  <span className="absolute -left-[31px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white">
+                  <span className="absolute -start-[33px] top-0 flex h-5 w-5 items-center justify-center rounded-full bg-status-agreeing text-xs font-bold text-cream">
                     4
                   </span>
-                  <div className="font-bold text-sm text-navy">Truepoint Audit Log Verification</div>
+                  <div className="text-sm font-bold text-navy">Truepoint Audit Log Verification</div>
                   <div className="text-xs text-navy/60">Generates cryptographic hash for immutable compliance tracking across stakeholders.</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[var(--radius-m)] border border-sand bg-white p-6 shadow-sm">
-            <h3 className="font-[var(--font-display)] text-lg font-bold text-navy flex items-center gap-2">
-              <Sliders size={20} className="text-navy/70" /> Extraction Confidence Thresholds
-            </h3>
-            <p className="mt-1 text-xs text-navy/60">Configure automatic approval rules for incoming email items.</p>
+          <div className="rounded-[var(--radius-m)] border border-sand bg-white p-5 shadow-sm transition hover:shadow-md">
+            <h2 className="flex items-center gap-2 font-[var(--font-display)] text-lg font-bold text-navy">
+              <Sliders size={20} className="text-navy/70" aria-hidden="true" /> Extraction Confidence Thresholds
+            </h2>
+            <p className="mt-1 text-xs text-navy/60">
+              Preset approval rules for incoming email items (fixed in this demo preview).
+            </p>
 
             <div className="mt-6 space-y-5">
               <div>
                 <div className="flex justify-between text-xs font-semibold text-navy">
                   <span>Auto-Approve High Confidence RFIs</span>
-                  <span className="text-gold-ink font-bold">85% Confidence</span>
+                  <span className="font-bold text-gold-ink">85% Confidence</span>
                 </div>
-                <input type="range" min="70" max="98" defaultValue="85" className="mt-2 w-full accent-gold" />
+                <div aria-hidden="true" className="mt-2 h-1.5 w-full rounded-full bg-sand/60">
+                  <div className="h-1.5 rounded-full bg-gold" style={{ width: '54%' }} />
+                </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-semibold text-navy">
                   <span>Safety Alert Escalation Sensitivity</span>
-                  <span className="text-red-600 font-bold">Immediate Flag</span>
+                  <span className="font-bold text-status-escalated">Immediate Flag</span>
                 </div>
-                <input type="range" min="50" max="95" defaultValue="80" className="mt-2 w-full accent-red-600" />
+                <div aria-hidden="true" className="mt-2 h-1.5 w-full rounded-full bg-sand/60">
+                  <div className="h-1.5 rounded-full bg-status-escalated" style={{ width: '67%' }} />
+                </div>
               </div>
 
-              <div className="rounded-xl bg-cream p-4 text-xs text-navy space-y-2">
+              <div className="space-y-2 rounded-[var(--radius-s)] bg-cream p-4 text-xs text-navy">
                 <div className="font-bold text-navy">Current Active Rules:</div>
-                <div className="flex items-center gap-2 text-emerald-800">
-                  <Check size={14} /> Auto-link emails matching subject "RFI #[0-9]+" to RFI module.
+                <div className="flex items-center gap-2 text-status-agreeing">
+                  <Check size={14} aria-hidden="true" /> Auto-link emails matching subject "RFI #[0-9]+" to RFI module.
                 </div>
-                <div className="flex items-center gap-2 text-emerald-800">
-                  <Check size={14} /> Auto-extract ZATCA e-invoices directly into Contract & Payments.
+                <div className="flex items-center gap-2 text-status-agreeing">
+                  <Check size={14} aria-hidden="true" /> Auto-extract ZATCA e-invoices directly into Contract & Payments.
                 </div>
-                <div className="flex items-center gap-2 text-emerald-800">
-                  <Check size={14} /> Translate English summaries into Saudi Arabic (IBM Plex Sans Arabic).
+                <div className="flex items-center gap-2 text-status-agreeing">
+                  <Check size={14} aria-hidden="true" /> Translate English summaries into Saudi Arabic (IBM Plex Sans Arabic).
                 </div>
               </div>
             </div>
@@ -735,19 +833,24 @@ export function EmailIntegrationsPage({ project }: Props) {
 
       {/* TAB 4: MULTI-CHANNEL FEEDS */}
       {activeTab === 'channels' && (
-        <div className="rounded-[var(--radius-m)] border border-sand bg-white p-6 shadow-sm space-y-4">
+        <div
+          role="tabpanel"
+          id="panel-channels"
+          aria-labelledby="tab-channels"
+          className="space-y-4 rounded-[var(--radius-m)] border border-sand bg-white p-5 shadow-sm"
+        >
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-[var(--font-display)] text-lg font-bold text-navy">Unified Communication Stream</h3>
+              <h2 className="font-[var(--font-display)] text-lg font-bold text-navy">Unified Communication Stream</h2>
               <p className="text-xs text-navy/60">Gmail, WhatsApp Site Groups, and Field Logs in one timeline.</p>
             </div>
             <span className="rounded-full bg-navy/10 px-3 py-1 text-xs font-bold text-navy">3 Active Channels</span>
           </div>
 
           <div className="divide-y divide-sand/60">
-            <div className="py-3 flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-700">
-                <Mail size={16} />
+            <div className="flex items-start gap-3 py-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-s)] bg-status-escalated/10 text-status-escalated">
+                <Mail size={16} aria-hidden="true" />
               </div>
               <div className="flex-1">
                 <div className="flex justify-between text-xs">
@@ -759,9 +862,9 @@ export function EmailIntegrationsPage({ project }: Props) {
               </div>
             </div>
 
-            <div className="py-3 flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
-                <Radio size={16} />
+            <div className="flex items-start gap-3 py-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-s)] bg-status-agreeing/10 text-status-agreeing">
+                <Radio size={16} aria-hidden="true" />
               </div>
               <div className="flex-1">
                 <div className="flex justify-between text-xs">
@@ -773,9 +876,9 @@ export function EmailIntegrationsPage({ project }: Props) {
               </div>
             </div>
 
-            <div className="py-3 flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
-                <Building size={16} />
+            <div className="flex items-start gap-3 py-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-s)] bg-status-understanding/10 text-status-understanding">
+                <Building size={16} aria-hidden="true" />
               </div>
               <div className="flex-1">
                 <div className="flex justify-between text-xs">
@@ -792,52 +895,52 @@ export function EmailIntegrationsPage({ project }: Props) {
 
       {/* TAB 5: HEALTH & WEBHOOKS */}
       {activeTab === 'health' && (
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-[var(--radius-m)] border border-sand bg-white p-6 shadow-sm space-y-4">
-            <h3 className="font-[var(--font-display)] text-base font-bold text-navy">Connector Uptime & Status</h3>
+        <div role="tabpanel" id="panel-health" aria-labelledby="tab-health" className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-4 rounded-[var(--radius-m)] border border-sand bg-white p-5 shadow-sm transition hover:shadow-md">
+            <h2 className="font-[var(--font-display)] text-base font-bold text-navy">Connector Uptime & Status</h2>
             <div className="space-y-3 text-xs">
-              <div className="flex items-center justify-between rounded-lg border border-sand p-3">
+              <div className="flex items-center justify-between rounded-[var(--radius-s)] border border-sand p-3">
                 <div className="flex items-center gap-2">
-                  <Mail size={16} className="text-red-500" />
+                  <Mail size={16} className="text-status-escalated" aria-hidden="true" />
                   <span className="font-bold text-navy">Gmail OAuth 2.0 API</span>
                 </div>
-                <span className="text-emerald-700 font-bold">100% Operational (18ms)</span>
+                <span className="font-bold text-status-agreeing">100% Operational (18ms)</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-sand p-3">
+              <div className="flex items-center justify-between rounded-[var(--radius-s)] border border-sand p-3">
                 <div className="flex items-center gap-2">
-                  <Radio size={16} className="text-emerald-500" />
+                  <Radio size={16} className="text-status-agreeing" aria-hidden="true" />
                   <span className="font-bold text-navy">WhatsApp Business API</span>
                 </div>
-                <span className="text-amber-700 font-bold">Beta / Connected</span>
+                <span className="font-bold text-status-hearing">Beta / Connected</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-sand p-3">
+              <div className="flex items-center justify-between rounded-[var(--radius-s)] border border-sand p-3">
                 <div className="flex items-center gap-2">
-                  <Building size={16} className="text-blue-500" />
+                  <Building size={16} className="text-status-understanding" aria-hidden="true" />
                   <span className="font-bold text-navy">Saudi Balady Portal API</span>
                 </div>
-                <span className="text-emerald-700 font-bold">Connected (Weekly Sync)</span>
+                <span className="font-bold text-status-agreeing">Connected (Weekly Sync)</span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[var(--radius-m)] border border-sand bg-white p-6 shadow-sm space-y-4">
-            <h3 className="font-[var(--font-display)] text-base font-bold text-navy">API Quotas & Usage</h3>
+          <div className="space-y-4 rounded-[var(--radius-m)] border border-sand bg-white p-5 shadow-sm transition hover:shadow-md">
+            <h2 className="font-[var(--font-display)] text-base font-bold text-navy">API Quotas & Usage</h2>
             <div className="space-y-3 text-xs">
               <div>
-                <div className="flex justify-between text-navy font-semibold">
+                <div className="flex justify-between font-semibold text-navy">
                   <span>Gmail Daily Request Limit</span>
                   <span>1,240 / 50,000 requests</span>
                 </div>
-                <div className="mt-1 h-2 rounded-full bg-sand">
-                  <div className="h-2 rounded-full bg-emerald-500" style={{ width: '2.5%' }} />
+                <div aria-hidden="true" className="mt-1 h-2 rounded-full bg-sand">
+                  <div className="h-2 rounded-full bg-status-agreeing" style={{ width: '2.5%' }} />
                 </div>
               </div>
               <div>
-                <div className="flex justify-between text-navy font-semibold">
+                <div className="flex justify-between font-semibold text-navy">
                   <span>LLM Structural Extraction Tokens</span>
                   <span>145,200 / 1,000,000 tokens</span>
                 </div>
-                <div className="mt-1 h-2 rounded-full bg-sand">
+                <div aria-hidden="true" className="mt-1 h-2 rounded-full bg-sand">
                   <div className="h-2 rounded-full bg-gold" style={{ width: '14.5%' }} />
                 </div>
               </div>
@@ -846,25 +949,21 @@ export function EmailIntegrationsPage({ project }: Props) {
         </div>
       )}
 
-      {/* Slide-over Email Preview Modal */}
-      {selectedEmail && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-navy-deep/50 backdrop-blur-sm">
-          <div className="w-full max-w-2xl bg-white p-6 shadow-2xl overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-sand pb-4">
-              <div>
-                <span className="text-xs font-bold text-gold-ink uppercase">Raw Email & Extraction Inspection</span>
-                <h3 className="font-[var(--font-display)] text-lg font-bold text-navy">{selectedEmail.subject}</h3>
-              </div>
-              <button
-                onClick={() => setSelectedEmail(null)}
-                className="rounded-full p-2 text-navy/60 hover:bg-cream"
-              >
-                <X size={20} />
-              </button>
-            </div>
+      {/* Slide-over Email Preview (shared Modal: dialog semantics, focus trap,
+          Escape + backdrop close, scroll lock, focus restore). */}
+      <Modal
+        open={selectedEmail !== null}
+        onClose={() => setSelectedEmail(null)}
+        title="Raw Email & Extraction Inspection"
+        variant="slideover"
+        wide
+      >
+        {selectedEmail && (
+          <div>
+            <h3 className="font-[var(--font-display)] text-lg font-bold text-navy">{selectedEmail.subject}</h3>
 
             <div className="mt-4 space-y-4 text-xs">
-              <div className="rounded-lg bg-cream p-3 text-navy space-y-1">
+              <div className="space-y-1 rounded-[var(--radius-s)] bg-cream p-3 text-navy">
                 <div>
                   <strong className="text-navy/60">From:</strong> {selectedEmail.sender} &lt;
                   {selectedEmail.senderEmail}&gt;
@@ -878,15 +977,15 @@ export function EmailIntegrationsPage({ project }: Props) {
               </div>
 
               <div>
-                <h4 className="font-bold text-navy mb-1">Email Body Text</h4>
-                <div className="rounded-lg border border-sand bg-white p-3 font-mono text-xs whitespace-pre-wrap text-navy/80">
+                <h4 className="mb-1 font-bold text-navy">Email Body Text</h4>
+                <div className="whitespace-pre-wrap rounded-[var(--radius-s)] border border-sand bg-white p-3 font-mono text-xs text-navy/80">
                   {selectedEmail.rawBody}
                 </div>
               </div>
 
               <div>
-                <h4 className="font-bold text-navy mb-1">AI Extracted JSON Schema</h4>
-                <pre className="rounded-lg bg-navy p-3 font-mono text-[11px] text-amber-300 overflow-x-auto">
+                <h4 className="mb-1 font-bold text-navy">AI Extracted JSON Schema</h4>
+                <pre className="overflow-x-auto rounded-[var(--radius-s)] bg-navy p-3 font-mono text-xs text-gold-soft">
                   {JSON.stringify(
                     {
                       email_id: selectedEmail.id,
@@ -912,14 +1011,14 @@ export function EmailIntegrationsPage({ project }: Props) {
             <div className="mt-6 flex justify-end gap-2 border-t border-sand pt-4">
               <button
                 onClick={() => setSelectedEmail(null)}
-                className="rounded-[var(--radius-s)] border border-sand px-4 py-2 text-xs font-semibold text-navy"
+                className="rounded-[var(--radius-s)] border border-sand px-4 py-2 text-xs font-semibold text-navy transition hover:bg-cream"
               >
                 Close Preview
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   )
 }

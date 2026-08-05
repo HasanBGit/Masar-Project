@@ -21,7 +21,7 @@ function Module({ id, name, prefix, children }: { id: string; name: string; pref
         </h3>
         <code className="font-[var(--font-mono)] text-xs text-cream/40">{prefix}</code>
       </div>
-      <div className="text-[14px] leading-relaxed text-text-navy-muted">{children}</div>
+      <div className="text-sm leading-relaxed text-text-navy-muted">{children}</div>
     </div>
   )
 }

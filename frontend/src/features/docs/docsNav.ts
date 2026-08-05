@@ -30,10 +30,6 @@ export const DOCS_NAV: DocsNavGroup[] = [
   },
 ]
 
-export function flatDocsNav(): DocsNavItem[] {
-  return DOCS_NAV.flatMap((g) => g.items)
-}
-
 /** Returns the group + item matching the current /docs path, for breadcrumbs. */
 export function findDocsLocation(slug: string): { group: DocsNavGroup; item: DocsNavItem } | null {
   for (const group of DOCS_NAV) {
