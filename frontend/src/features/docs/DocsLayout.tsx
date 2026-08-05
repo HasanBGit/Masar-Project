@@ -96,7 +96,10 @@ function DocsSearch() {
         />
       </div>
       {trimmed && (
-        <ul className="absolute end-0 top-full z-30 mt-2 max-h-80 w-72 overflow-y-auto rounded-[var(--radius-m)] border border-cream/15 bg-navy-deep p-1.5 shadow-2xl">
+        <ul
+          aria-label="Search results"
+          className="absolute end-0 top-full z-30 mt-2 max-h-80 w-72 overflow-y-auto rounded-[var(--radius-m)] border border-cream/15 bg-navy-deep p-1.5 shadow-2xl"
+        >
           {results.length === 0 && <li className="px-2.5 py-2 text-sm text-cream/50">No matching pages</li>}
           {results.map(({ group, item }) => (
             <li key={item.slug || 'index'}>

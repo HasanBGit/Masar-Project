@@ -3,7 +3,7 @@
 import pytest
 from rest_framework.test import APIClient
 
-from handover.models import OMChecklistItem, PostHandoverStatus
+from handover.models import PostHandoverStatus
 from handover.services import create_om_item, report_defect
 
 BASE = "/api/v1/handover"

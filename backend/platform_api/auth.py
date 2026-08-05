@@ -33,6 +33,10 @@ class ApiKeyAuthentication(BaseAuthentication):
             raise AuthenticationFailed("Invalid or revoked API key.")
         return (APIKeyPrincipal(api_key), api_key)
 
+    def authenticate_header(self, request):
+        # Makes DRF return a proper 401 (not 403) for an invalid/revoked key.
+        return self.keyword
+
 
 class ApiKeyAuthenticationScheme(OpenApiAuthenticationExtension):
     """Documents the `Authorization: ApiKey <key>` scheme in the OpenAPI spec / Swagger UI's "Authorize" dialog."""

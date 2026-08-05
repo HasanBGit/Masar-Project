@@ -43,7 +43,7 @@ class APIKeyViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gen
         # shouldn't even enumerate the project's keys.
         if not has_permission(self.request.user, project, "manage_roster"):
             raise PermissionDenied("Only project owners/admins can view API keys.")
-        return APIKey.objects.filter(project=project)
+        return APIKey.objects.filter(project=project).order_by("-created_at")
 
     def create(self, request, *args, **kwargs):
         project = self._project()
@@ -84,7 +84,7 @@ class WebhookSubscriptionViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
         return project
 
     def get_queryset(self):
-        return WebhookSubscription.objects.filter(project=self._project())
+        return WebhookSubscription.objects.filter(project=self._project()).order_by("-created_at")
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
