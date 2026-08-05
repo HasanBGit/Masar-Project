@@ -4,11 +4,12 @@
   "private": true,
   "description": "Masar / San3 - Construction & Infrastructure Management Platform Monorepo",
   "scripts": {
+    "postinstall": "npm --prefix frontend install --include=dev && npm --prefix site install --include=dev",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:site": "npm --prefix site run dev",
     "dev:backend": "backend/venv/bin/python backend/manage.py runserver",
-    "build:frontend": "npm --prefix frontend run build",
-    "build:site": "npm --prefix site run build",
+    "build:frontend": "cd frontend && npm install --include=dev && npm run build",
+    "build:site": "cd site && npm install --include=dev && npm run build",
     "build": "npm run build:frontend && npm run build:site",
     "test:frontend": "npm --prefix frontend run test",
     "test:site": "npm --prefix site run test",
@@ -18,6 +19,7 @@
     "lint:site": "npm --prefix site run lint",
     "lint": "npm run lint:frontend && npm run lint:site"
   },
+
   "keywords": [
     "masar",
     "san3",

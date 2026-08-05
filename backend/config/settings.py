@@ -201,8 +201,13 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # so Django needs to trust X-Forwarded-Proto to know a request was actually
 # HTTPS (otherwise SECURE_SSL_REDIRECT loops and request.is_secure() is wrong).
 if not DEBUG:
+    # Railway / Render / Fly all terminate TLS at the edge and forward plain
+    # HTTP internally on the container port (8080). Setting SECURE_SSL_REDIRECT
+    # would cause an infinite redirect loop because the internal request is
+    # always plain HTTP. The proxy header below is enough to make
+    # request.is_secure() return True and let cookies work correctly.
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+    SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000)  # 1 year

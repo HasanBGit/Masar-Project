@@ -1,0 +1,21 @@
+# Nixpacks build configuration for Railway / Nixpacks deployments
+
+[providers]
+providers = ["node"]
+
+[variables]
+NODE_ENV = "development"
+NPM_CONFIG_PRODUCTION = "false"
+
+[phases.setup]
+nixPkgs = ["nodejs_18", "npm-9_x"]
+
+[phases.install]
+cmds = [
+  "npm install --include=dev",
+  "cd frontend && npm install --include=dev",
+  "cd site && npm install --include=dev"
+]
+
+[phases.build]
+cmds = ["npm run build"]
