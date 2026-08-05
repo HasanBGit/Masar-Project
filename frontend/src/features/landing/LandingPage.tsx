@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { useLang, type Lang } from '../../lib/i18n'
 import { LANDING_MARKUP } from './landingMarkup'
 import './landing.css'
 
@@ -23,16 +24,13 @@ const NAV_INFO: Record<string, { en: string; ar: string }> = {
   },
 }
 
-const GOOGLE_FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;700&display=swap'
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-function injectFontLinks(): () => void {
-  const links = [
-    Object.assign(document.createElement('link'), { rel: 'preconnect', href: 'https://fonts.googleapis.com' }),
-    Object.assign(document.createElement('link'), { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' }),
-    Object.assign(document.createElement('link'), { rel: 'stylesheet', href: GOOGLE_FONTS_HREF }),
-  ]
-  links.forEach((link) => document.head.appendChild(link))
-  return () => links.forEach((link) => link.remove())
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function prefersReducedMotionQuery(): MediaQueryList | null {
+  return typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null
 }
 
 // Ported from riyadh-city/script.js: the cinematic scroll story (parallax
@@ -40,7 +38,7 @@ function injectFontLinks(): () => void {
 function setupCinemaScroll(container: HTMLElement): () => void {
   const section = container.querySelector<HTMLElement>('.cinema-scroll')
   const root = document.documentElement
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const reduceMotion = prefersReducedMotionQuery()
   const track = container.querySelector<HTMLElement>('.sights-track')
   const sightsControls = container.querySelector<HTMLElement>('.sights-controls')
   const prevBtn = container.querySelector<HTMLElement>('.sight-prev')
@@ -48,6 +46,35 @@ function setupCinemaScroll(container: HTMLElement): () => void {
   const originalSightCards = Array.from(container.querySelectorAll<HTMLElement>('.sight-card'))
 
   if (!section || !track) return () => {}
+
+  const cardCleanups: Array<() => void> = []
+
+  // Reduced motion: no rAF loop, no parallax, no slider cloning. The cards are
+  // re-parented out of the hero backdrop so the reduced-motion CSS block can
+  // lay every scene out statically, readable without scroll progress.
+  if (reduceMotion?.matches) {
+    const stage = container.querySelector<HTMLElement>('.stage')
+    const slider = container.querySelector<HTMLElement>('.sights-slider')
+    if (stage && slider) stage.appendChild(slider)
+
+    originalSightCards.forEach((card) => {
+      const onClick = () => window.__openCardModal?.(card)
+      const onKeydown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          window.__openCardModal?.(card)
+        }
+      }
+      card.addEventListener('click', onClick)
+      card.addEventListener('keydown', onKeydown)
+      cardCleanups.push(() => {
+        card.removeEventListener('click', onClick)
+        card.removeEventListener('keydown', onKeydown)
+      })
+    })
+
+    return () => cardCleanups.forEach((fn) => fn())
+  }
 
   let targetMouseX = 0
   let targetMouseY = 0
@@ -63,6 +90,10 @@ function setupCinemaScroll(container: HTMLElement): () => void {
   let sightCards: HTMLElement[] = []
   const originalSightCount = originalSightCards.length
   let activeSight = originalSightCount
+
+  // Every custom property written on <html> is tracked so unmount can remove
+  // them instead of leaking ~40 vars onto the document root.
+  const writtenVars = new Set<string>()
 
   function clamp(v: number, min = 0, max = 1) {
     return Math.min(max, Math.max(min, v))
@@ -84,6 +115,7 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     return clamp(-rect.top, 0, section!.offsetHeight - window.innerHeight)
   }
   function setVar(name: string, value: string | number) {
+    writtenVars.add(name)
     root.style.setProperty(name, String(value))
   }
 
@@ -92,7 +124,7 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     if (disposed) return
 
     targetScroll = getScrollDistance()
-    if (!initialized || reduceMotion.matches) {
+    if (!initialized) {
       smoothScroll = targetScroll
       initialized = true
     } else {
@@ -121,10 +153,8 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     const sightsScreenTop = Math.min(220, Math.max(112, window.innerHeight * 0.19)) - 50
     const sightsParentTop = window.innerHeight - (window.innerHeight - sightsScreenTop) / backScale
 
-    const mxVal = reduceMotion.matches ? 0 : mouseX
-    const myVal = reduceMotion.matches ? 0 : mouseY
-    setVar('--mx', mxVal.toFixed(4))
-    setVar('--my', myVal.toFixed(4))
+    setVar('--mx', mouseX.toFixed(4))
+    setVar('--my', mouseY.toFixed(4))
 
     setVar('--back-opacity', 1 - frame2.active * 0.06)
     setVar('--back-x', `${mouseX * -12}px`)
@@ -241,8 +271,6 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     }
   }
 
-  const cardCleanups: Array<() => void> = []
-
   function setupSightSlider() {
     if (!track) return
     track.replaceChildren()
@@ -324,33 +352,46 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('load', runInitialSetup)
     cardCleanups.forEach((fn) => fn())
+    writtenVars.forEach((name) => root.style.removeProperty(name))
+    writtenVars.clear()
   }
 }
 
-// Ported from riyadh-city/script.js: nav info modal, early-access modal,
-// per-card modal, and the EN/AR language switcher (with RTL flip).
-function setupModalsAndLanguage(container: HTMLElement): () => void {
+// Ported from riyadh-city/script.js: nav info modal, early-access modal, and
+// the per-card modal. The modal is a real dialog: focus moves into it on open,
+// Tab is trapped inside the panel, Escape closes, and focus is restored to the
+// element that opened it.
+function setupModals(container: HTMLElement, getLang: () => Lang): () => void {
   const modalOverlay = container.querySelector<HTMLElement>('#modal-overlay')
   const modalBackdrop = container.querySelector<HTMLElement>('#modal-backdrop')
   const modalClose = container.querySelector<HTMLElement>('#modal-close')
+  const modalPanel = container.querySelector<HTMLElement>('.modal-panel')
   const modalTitle = container.querySelector<HTMLElement>('#modal-title')
   const modalBody = container.querySelector<HTMLElement>('#modal-body')
-  const langSwitchers = Array.from(container.querySelectorAll<HTMLElement>('.language-switcher'))
   const requestAccessBtns = Array.from(container.querySelectorAll<HTMLElement>('.request-access-btn'))
   const navButtons = Array.from(container.querySelectorAll<HTMLElement>('[data-nav]'))
 
-  let currentLang: 'en' | 'ar' = 'en'
   const cleanups: Array<() => void> = []
+  let lastFocused: HTMLElement | null = null
+  let pendingTimer: number | null = null
 
   function openModal(title: string, bodyHtml: string) {
     if (!modalOverlay || !modalTitle || !modalBody) return
+    lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
     modalTitle.textContent = title
     modalBody.innerHTML = bodyHtml
     modalOverlay.hidden = false
+    modalClose?.focus()
   }
   function closeModal() {
-    if (!modalOverlay) return
+    if (!modalOverlay || modalOverlay.hidden) return
     modalOverlay.hidden = true
+    if (pendingTimer !== null) {
+      window.clearTimeout(pendingTimer)
+      pendingTimer = null
+    }
+    lastFocused?.focus()
+    lastFocused = null
   }
 
   if (modalBackdrop) {
@@ -362,39 +403,110 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
     cleanups.push(() => modalClose.removeEventListener('click', closeModal))
   }
   const onKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') closeModal()
+    if (!modalOverlay || modalOverlay.hidden) return
+    if (e.key === 'Escape') {
+      closeModal()
+      return
+    }
+    if (e.key === 'Tab' && modalPanel) {
+      const focusables = Array.from(modalPanel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+        (el) => !el.hidden,
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
   }
   window.addEventListener('keydown', onKeydown)
   cleanups.push(() => window.removeEventListener('keydown', onKeydown))
 
   function showEarlyAccessModal() {
-    const isAr = currentLang === 'ar'
+    const isAr = getLang() === 'ar'
     const title = isAr ? 'اطلب الوصول المبكر' : 'Request Early Access'
     openModal(
       title,
-      `<form class="modal-form" id="early-access-form">
+      `<form class="modal-form" id="early-access-form" novalidate>
         <label for="ea-name">${isAr ? 'الاسم الكامل' : 'Full name'}</label>
-        <input id="ea-name" type="text" required />
+        <input id="ea-name" name="name" type="text" autocomplete="name" required />
+        <p class="modal-error" id="ea-name-error" role="alert" hidden></p>
         <label for="ea-email">${isAr ? 'البريد الإلكتروني' : 'Email'}</label>
-        <input id="ea-email" type="email" required />
+        <input id="ea-email" name="email" type="email" autocomplete="email" required />
+        <p class="modal-error" id="ea-email-error" role="alert" hidden></p>
         <button type="submit">${isAr ? 'اطلب الوصول المبكر' : 'Request early access'}</button>
+        <p class="modal-status" id="ea-status" role="status" aria-live="polite"></p>
       </form>`,
     )
     const form = container.querySelector<HTMLFormElement>('#early-access-form')
     if (!form) return
+
+    const nameInput = form.querySelector<HTMLInputElement>('#ea-name')
+    const emailInput = form.querySelector<HTMLInputElement>('#ea-email')
+    const nameError = form.querySelector<HTMLElement>('#ea-name-error')
+    const emailError = form.querySelector<HTMLElement>('#ea-email-error')
+    const statusEl = form.querySelector<HTMLElement>('#ea-status')
+    const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+
+    function markInvalid(input: HTMLInputElement, errorEl: HTMLElement, message: string) {
+      errorEl.textContent = message
+      errorEl.hidden = false
+      input.setAttribute('aria-invalid', 'true')
+      input.setAttribute('aria-describedby', errorEl.id)
+    }
+    function clearInvalid(input: HTMLInputElement, errorEl: HTMLElement) {
+      errorEl.hidden = true
+      errorEl.textContent = ''
+      input.removeAttribute('aria-invalid')
+      input.removeAttribute('aria-describedby')
+    }
+
     form.addEventListener('submit', (e) => {
       e.preventDefault()
-      const nameInput = container.querySelector<HTMLInputElement>('#ea-name')
-      const name = nameInput ? nameInput.value : ''
-      const namePart = name ? (isAr ? `، ${name}` : `, ${name}`) : ''
-      if (modalBody) {
-        const p = document.createElement('p')
-        p.className = 'modal-success'
-        p.textContent = `${isAr ? `تم الاستلام${namePart}.` : `Got it${namePart}.`} ${
+      if (!nameInput || !emailInput || !nameError || !emailError || !statusEl || !submitBtn) return
+
+      const name = nameInput.value.trim()
+      const email = emailInput.value.trim()
+      let firstInvalid: HTMLInputElement | null = null
+
+      if (!name) {
+        markInvalid(nameInput, nameError, isAr ? 'يرجى إدخال الاسم الكامل.' : 'Please enter your full name.')
+        firstInvalid = nameInput
+      } else {
+        clearInvalid(nameInput, nameError)
+      }
+      if (!EMAIL_RE.test(email)) {
+        markInvalid(emailInput, emailError, isAr ? 'يرجى إدخال بريد إلكتروني صحيح.' : 'Please enter a valid email address.')
+        firstInvalid = firstInvalid ?? emailInput
+      } else {
+        clearInvalid(emailInput, emailError)
+      }
+      if (firstInvalid) {
+        firstInvalid.focus()
+        return
+      }
+
+      // "In flight": lock the form, then land the confirmation in the
+      // aria-live status region so screen readers announce it.
+      submitBtn.disabled = true
+      nameInput.disabled = true
+      emailInput.disabled = true
+      pendingTimer = window.setTimeout(() => {
+        pendingTimer = null
+        const namePart = name ? (isAr ? `، ${name}` : `, ${name}`) : ''
+        statusEl.textContent = `${isAr ? `تم الاستلام${namePart}.` : `Got it${namePart}.`} ${
           isAr ? 'سنتواصل معك عبر البريد الإلكتروني قريباً.' : "We'll follow up by email shortly."
         }`
-        modalBody.replaceChildren(p)
-      }
+        form.querySelectorAll<HTMLElement>('label, input, button').forEach((el) => {
+          el.hidden = true
+        })
+        modalClose?.focus()
+      }, 350)
     })
   }
 
@@ -402,7 +514,7 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
     const onClick = () => {
       const info = NAV_INFO[btn.dataset.nav ?? '']
       if (!info) return
-      openModal(btn.textContent ?? '', `<p>${currentLang === 'ar' ? info.ar : info.en}</p>`)
+      openModal(btn.textContent ?? '', `<p>${getLang() === 'ar' ? info.ar : info.en}</p>`)
     }
     btn.addEventListener('click', onClick)
     cleanups.push(() => btn.removeEventListener('click', onClick))
@@ -426,70 +538,89 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
     )
   }
 
-  function applyLanguage(lang: 'en' | 'ar') {
-    currentLang = lang
-    document.documentElement.lang = lang
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
-
-    container.querySelectorAll<HTMLElement>('[data-ar]').forEach((el) => {
-      if (!el.dataset.en) el.dataset.en = el.textContent || ''
-      el.textContent = lang === 'ar' ? (el.dataset.ar ?? '') : (el.dataset.en ?? '')
-    })
-
-    container.querySelectorAll<HTMLElement>('.sight-card').forEach((card) => {
-      const kicker = card.querySelector<HTMLElement>('.sight-kicker')
-      const h3 = card.querySelector<HTMLElement>('h3')
-      const p = card.querySelector<HTMLElement>('p')
-      if (kicker && card.dataset.kickerAr) {
-        if (!card.dataset.kickerEn) card.dataset.kickerEn = kicker.textContent || ''
-        kicker.textContent = lang === 'ar' ? (card.dataset.kickerAr ?? '') : (card.dataset.kickerEn ?? '')
-      }
-      if (h3 && card.dataset.titleAr) {
-        if (!card.dataset.titleEn) card.dataset.titleEn = h3.textContent || ''
-        h3.textContent = lang === 'ar' ? (card.dataset.titleAr ?? '') : (card.dataset.titleEn ?? '')
-      }
-      if (p && card.dataset.bodyAr) {
-        if (!card.dataset.bodyEn) card.dataset.bodyEn = p.textContent || ''
-        p.textContent = lang === 'ar' ? (card.dataset.bodyAr ?? '') : (card.dataset.bodyEn ?? '')
-      }
-    })
-
-    container.querySelectorAll<HTMLElement>('.language-switcher-label').forEach((label) => {
-      label.textContent = lang.toUpperCase()
-    })
-  }
-
-  langSwitchers.forEach((btn) => {
-    const onClick = () => applyLanguage(currentLang === 'en' ? 'ar' : 'en')
-    btn.addEventListener('click', onClick)
-    cleanups.push(() => btn.removeEventListener('click', onClick))
-  })
-
   return () => {
     cleanups.forEach((fn) => fn())
+    if (pendingTimer !== null) window.clearTimeout(pendingTimer)
     delete window.__openCardModal
-    document.documentElement.lang = 'en'
-    document.documentElement.removeAttribute('dir')
   }
+}
+
+/**
+ * Applies the current language to the static markup by walking the
+ * data-en/data-ar attributes. The document's lang/dir attributes are owned by
+ * LanguageProvider, never touched here.
+ */
+function applyLanguageToMarkup(container: HTMLElement, lang: Lang) {
+  container.querySelectorAll<HTMLElement>('[data-ar]').forEach((el) => {
+    if (!el.dataset.en) el.dataset.en = el.textContent || ''
+    el.textContent = lang === 'ar' ? (el.dataset.ar ?? '') : (el.dataset.en ?? '')
+  })
+
+  container.querySelectorAll<HTMLElement>('.sight-card').forEach((card) => {
+    const kicker = card.querySelector<HTMLElement>('.sight-kicker')
+    const h3 = card.querySelector<HTMLElement>('h3')
+    const p = card.querySelector<HTMLElement>('p')
+    if (kicker && card.dataset.kickerAr) {
+      if (!card.dataset.kickerEn) card.dataset.kickerEn = kicker.textContent || ''
+      kicker.textContent = lang === 'ar' ? (card.dataset.kickerAr ?? '') : (card.dataset.kickerEn ?? '')
+    }
+    if (h3 && card.dataset.titleAr) {
+      if (!card.dataset.titleEn) card.dataset.titleEn = h3.textContent || ''
+      h3.textContent = lang === 'ar' ? (card.dataset.titleAr ?? '') : (card.dataset.titleEn ?? '')
+    }
+    if (p && card.dataset.bodyAr) {
+      if (!card.dataset.bodyEn) card.dataset.bodyEn = p.textContent || ''
+      p.textContent = lang === 'ar' ? (card.dataset.bodyAr ?? '') : (card.dataset.bodyEn ?? '')
+    }
+  })
+
+  container.querySelectorAll<HTMLElement>('.language-switcher-label').forEach((label) => {
+    label.textContent = lang.toUpperCase()
+  })
 }
 
 function LandingPageContent() {
   const containerRef = useRef<HTMLDivElement>(null)
+  // The landing page shares the app-wide language store: it initialises from
+  // it and its EN/AR switchers write back through setLang, so the choice
+  // persists across the whole app (and LanguageProvider keeps document
+  // lang/dir in sync — no destructive reset on unmount).
+  const { lang, setLang } = useLang()
+  const langRef = useRef(lang)
 
   useEffect(() => {
-    const removeFonts = injectFontLinks()
+    langRef.current = lang
+  }, [lang])
+
+  useEffect(() => {
     const container = containerRef.current
-    if (!container) return removeFonts
+    if (!container) return
 
     const cleanupCinema = setupCinemaScroll(container)
-    const cleanupModals = setupModalsAndLanguage(container)
+    const cleanupModals = setupModals(container, () => langRef.current)
 
     return () => {
       cleanupCinema()
       cleanupModals()
-      removeFonts()
     }
   }, [])
+
+  // The page's own EN/AR switcher buttons toggle the shared store.
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const switchers = Array.from(container.querySelectorAll<HTMLElement>('.language-switcher'))
+    const onClick = () => setLang(langRef.current === 'ar' ? 'en' : 'ar')
+    switchers.forEach((btn) => btn.addEventListener('click', onClick))
+    return () => switchers.forEach((btn) => btn.removeEventListener('click', onClick))
+  }, [setLang])
+
+  // Re-apply the data-en/data-ar walk whenever the shared language changes.
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    applyLanguageToMarkup(container, lang)
+  }, [lang])
 
   return <div className="landing-page" ref={containerRef} dangerouslySetInnerHTML={{ __html: LANDING_MARKUP }} />
 }

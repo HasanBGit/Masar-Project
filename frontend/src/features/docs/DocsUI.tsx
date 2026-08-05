@@ -11,7 +11,7 @@ export function DocsLead({ children }: { children: ReactNode }) {
 
 export function DocsH2({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <h2 id={id} className="mt-10 scroll-mt-32 font-[var(--font-display)] text-xl font-bold text-cream first:mt-0">
+    <h2 id={id} className="mt-10 scroll-mt-32 font-[var(--font-display)] text-2xl font-bold text-cream first:mt-0">
       {children}
     </h2>
   )
@@ -19,28 +19,31 @@ export function DocsH2({ id, children }: { id: string; children: ReactNode }) {
 
 export function DocsH3({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <h3 id={id} className="mt-6 scroll-mt-32 text-base font-bold text-cream">
+    <h3 id={id} className="mt-6 scroll-mt-32 text-lg font-bold text-cream">
       {children}
     </h3>
   )
 }
 
 export function DocsP({ children }: { children: ReactNode }) {
-  return <p className="mt-3 text-[15px] leading-relaxed text-text-navy-muted">{children}</p>
+  return <p className="mt-3 text-sm leading-relaxed text-text-navy-muted">{children}</p>
 }
 
 export function DocsUl({ children }: { children: ReactNode }) {
-  return <ul className="mt-3 flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-relaxed text-text-navy-muted">{children}</ul>
+  return <ul className="mt-3 flex list-disc flex-col gap-1.5 ps-5 text-sm leading-relaxed text-text-navy-muted">{children}</ul>
 }
 
 export function InlineCode({ children }: { children: ReactNode }) {
-  return <code className="rounded bg-cream/10 px-1.5 py-0.5 font-[var(--font-mono)] text-[13px] text-cream">{children}</code>
+  return <code className="rounded bg-cream/10 px-1.5 py-0.5 font-[var(--font-mono)] text-xs text-cream">{children}</code>
 }
 
 /** Internal doc-to-doc link. */
 export function DocsLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <Link to={to} className="text-gold-soft underline decoration-gold-soft/40 underline-offset-2 hover:text-gold-soft/80">
+    <Link
+      to={to}
+      className="text-gold-soft underline decoration-gold-soft/40 underline-offset-2 transition hover:text-gold-soft/80"
+    >
       {children}
     </Link>
   )
@@ -53,7 +56,7 @@ export function DocsExternalLink({ href, children }: { href: string; children: R
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="text-gold-soft underline decoration-gold-soft/40 underline-offset-2 hover:text-gold-soft/80"
+      className="text-gold-soft underline decoration-gold-soft/40 underline-offset-2 transition hover:text-gold-soft/80"
     >
       {children}
     </a>
@@ -80,7 +83,7 @@ export function Callout({
   return (
     <div className={`mt-4 rounded-[var(--radius-m)] border ${style.border} ${style.bg} px-4 py-3`}>
       <p className={`mb-1 text-xs font-bold uppercase tracking-wide ${style.labelColor}`}>{label ?? style.label}</p>
-      <div className="text-[14px] leading-relaxed text-cream/80">{children}</div>
+      <div className="text-sm leading-relaxed text-cream/80">{children}</div>
     </div>
   )
 }
@@ -88,22 +91,28 @@ export function Callout({
 export function CodeBlock({ children, label }: { children: string; label?: string }) {
   return (
     <div className="mt-4 overflow-hidden rounded-[var(--radius-m)] border border-cream/10 bg-black/30">
-      {label && <div className="border-b border-cream/10 px-4 py-1.5 font-[var(--font-mono)] text-[11px] text-cream/50">{label}</div>}
-      <pre className="overflow-x-auto p-4 text-[13px] leading-relaxed">
+      {label && <div className="border-b border-cream/10 px-4 py-1.5 font-[var(--font-mono)] text-xs text-cream/50">{label}</div>}
+      <pre className="overflow-x-auto p-4 text-xs leading-relaxed">
         <code className="font-[var(--font-mono)] text-cream/90">{children}</code>
       </pre>
     </div>
   )
 }
 
+/** Stable row key: the first string cell (column values are unique in docs tables), index as last resort. */
+function rowKey(row: (string | ReactNode)[], index: number): string {
+  const firstString = row.find((cell): cell is string => typeof cell === 'string' && cell.length > 0)
+  return firstString ?? `row-${index}`
+}
+
 export function DocsTable({ head, rows }: { head: string[]; rows: (string | ReactNode)[][] }) {
   return (
     <div className="mt-4 overflow-x-auto rounded-[var(--radius-m)] border border-cream/10">
-      <table className="w-full text-left text-[13.5px]">
+      <table className="w-full text-start text-sm">
         <thead className="bg-cream/5 text-xs uppercase tracking-wide text-cream/45">
           <tr>
             {head.map((h) => (
-              <th key={h} scope="col" className="border-b border-cream/10 px-4 py-2.5 font-semibold">
+              <th key={h} scope="col" className="border-b border-cream/10 px-4 py-2.5 text-start font-semibold">
                 {h}
               </th>
             ))}
@@ -111,9 +120,9 @@ export function DocsTable({ head, rows }: { head: string[]; rows: (string | Reac
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-b border-cream/10 last:border-0">
+            <tr key={rowKey(row, i)} className="border-b border-cream/10 last:border-0">
               {row.map((cell, j) => (
-                <td key={j} className="px-4 py-2.5 align-top text-text-navy-muted">
+                <td key={head[j] ?? j} className="px-4 py-2.5 text-start align-top text-text-navy-muted">
                   {cell}
                 </td>
               ))}
@@ -132,7 +141,7 @@ export function MethodBadge({ method }: { method: 'GET' | 'POST' | 'PATCH' | 'DE
     PATCH: 'bg-status-hearing/20 text-amber-300',
     DELETE: 'bg-status-escalated/20 text-rose-300',
   }
-  return <span className={`rounded px-1.5 py-0.5 font-[var(--font-mono)] text-[11px] font-bold ${colors[method]}`}>{method}</span>
+  return <span className={`rounded px-1.5 py-0.5 font-[var(--font-mono)] text-xs font-bold ${colors[method]}`}>{method}</span>
 }
 
 export function Endpoint({ method, path, children }: { method: 'GET' | 'POST' | 'PATCH' | 'DELETE'; path: string; children: ReactNode }) {
@@ -140,9 +149,9 @@ export function Endpoint({ method, path, children }: { method: 'GET' | 'POST' | 
     <div className="mt-4 rounded-[var(--radius-m)] border border-cream/10 bg-cream/5 p-4">
       <div className="flex items-center gap-2.5">
         <MethodBadge method={method} />
-        <code className="font-[var(--font-mono)] text-[13px] text-cream">{path}</code>
+        <code className="font-[var(--font-mono)] text-xs text-cream">{path}</code>
       </div>
-      <div className="mt-2 text-[14px] leading-relaxed text-text-navy-muted">{children}</div>
+      <div className="mt-2 text-sm leading-relaxed text-text-navy-muted">{children}</div>
     </div>
   )
 }
