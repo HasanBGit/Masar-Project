@@ -2,19 +2,8 @@ import { api } from '../../lib/api'
 import { unwrapList, type Paginated } from '../../lib/pagination'
 import type { HandoverRecord, OMChecklistItem, PostHandoverDefect, PunchListItem } from '../../lib/types'
 
-export interface RosterEntry {
-  id: number
-  user: number
-  user_name: string
-  user_email: string
-  project: number
-  role: string
-}
-
-export async function listRoster(project: number): Promise<RosterEntry[]> {
-  const res = await api.get<Paginated<RosterEntry>>('/accounts/roster/', { params: { project } })
-  return unwrapList(res.data)
-}
+export { listRoster } from '../access-control-admin/api'
+export type { RosterEntry } from '../../lib/types'
 
 export async function getHandoverRecord(project: number): Promise<HandoverRecord | null> {
   const res = await api.get<HandoverRecord | null>('/handover/record/', { params: { project } })

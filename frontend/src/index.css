@@ -31,6 +31,26 @@ html {
   scroll-behavior: smooth;
 }
 
+/* One consistent, visible keyboard-focus treatment everywhere. Gold reads
+   clearly on both the cream surfaces and the navy accents. */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 html[dir="rtl"] {
   --font-display: var(--font-arabic);
   --font-body: var(--font-arabic);

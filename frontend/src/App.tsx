@@ -1,6 +1,8 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './features/auth/AuthContext'
+import { LanguageProvider } from './lib/i18n'
+import { ToastProvider } from './components/ui/Toast'
 import { LoginPage } from './features/auth/LoginPage'
 import { LandingPage } from './features/landing/LandingPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -34,7 +36,13 @@ function Workspace() {
   const { projects, me } = useAuth()
   const [activeProject, setActiveProject] = useState<Project | null>(null)
 
+  // Auto-select the first project, and re-validate the selection whenever the
+  // membership list changes so a removed project doesn't stay active.
   useEffect(() => {
+    if (activeProject && !projects.some((p) => p.id === activeProject.id)) {
+      setActiveProject(projects[0] ?? null)
+      return
+    }
     if (!activeProject && projects.length > 0) {
       setActiveProject(projects[0])
     }
@@ -84,7 +92,8 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <AppProviders>
+          <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           {/* Documentation is public - no login required, matching how real
@@ -95,17 +104,28 @@ function App() {
           <Route path="/docs/modules" element={<ModulesPage />} />
           <Route path="/docs/api" element={<ApiReferencePage />} />
           <Route path="/docs/webhooks" element={<WebhooksPage />} />
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute>
-                <Workspace />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <Workspace />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AppProviders>
       </AuthProvider>
     </BrowserRouter>
+  )
+}
+
+// Language needs the profile (preferred_language) so it sits inside AuthProvider.
+function AppProviders({ children }: { children: ReactNode }) {
+  const { me } = useAuth()
+  return (
+    <LanguageProvider initialLang={me?.preferred_language ?? null}>
+      <ToastProvider>{children}</ToastProvider>
+    </LanguageProvider>
   )
 }
 
