@@ -12,9 +12,10 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
+import type { MessageKey } from '../lib/i18n'
 
 export interface NavItem {
-  label: string
+  labelKey: MessageKey
   to: string
   icon: LucideIcon
   staffOnly?: boolean
@@ -22,59 +23,59 @@ export interface NavItem {
 
 export interface NavGroup {
   id: string
-  label: string
+  labelKey: MessageKey
   items: NavItem[]
 }
 
 export const NAV_GROUPS: NavGroup[] = [
   {
     id: 'overview',
-    label: 'Overview',
-    items: [{ label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard }],
+    labelKey: 'nav.overview',
+    items: [{ labelKey: 'nav.dashboard', to: '/dashboard', icon: LayoutDashboard }],
   },
   {
     id: 'integrations',
-    label: 'Integrations & Signals',
-    items: [{ label: 'Gmail & Email Integrations', to: '/email-integrations', icon: Mail }],
+    labelKey: 'nav.integrations',
+    items: [{ labelKey: 'nav.email', to: '/email-integrations', icon: Mail }],
   },
   {
     id: 'trust',
-    label: 'Trust & Approvals',
-    items: [{ label: 'Trust & Evidence', to: '/trust-evidence', icon: ShieldCheck }],
+    labelKey: 'nav.trustGroup',
+    items: [{ labelKey: 'nav.trustEvidence', to: '/trust-evidence', icon: ShieldCheck }],
   },
   {
     id: 'documents',
-    label: 'Documents & Schedule',
-    items: [{ label: 'RFIs & Change Orders', to: '/rfi-change-control', icon: FileStack }],
+    labelKey: 'nav.documents',
+    items: [{ labelKey: 'nav.rfis', to: '/rfi-change-control', icon: FileStack }],
   },
   {
     id: 'contracts',
-    label: 'Contracts & Payments',
-    items: [{ label: 'Contract & Payments', to: '/contract-payments', icon: Receipt }],
+    labelKey: 'nav.contracts',
+    items: [{ labelKey: 'nav.contractPayments', to: '/contract-payments', icon: Receipt }],
   },
   {
     id: 'handover',
-    label: 'Handover',
-    items: [{ label: 'Punch List & Defects', to: '/handover', icon: PackageCheck }],
+    labelKey: 'nav.handover',
+    items: [{ labelKey: 'nav.punchList', to: '/handover', icon: PackageCheck }],
   },
   {
     id: 'design',
-    label: 'Design & Drawings',
-    items: [{ label: 'Drawings Studio', to: '/drawings-studio', icon: Box }],
+    labelKey: 'nav.design',
+    items: [{ labelKey: 'nav.drawingsStudio', to: '/drawings-studio', icon: Box }],
   },
   {
     id: 'admin',
-    label: 'Administration',
+    labelKey: 'nav.admin',
     items: [
-      { label: 'Access Control', to: '/access-control', icon: Users },
-      { label: 'Platform API', to: '/platform-api', icon: KeySquare },
+      { labelKey: 'nav.accessControl', to: '/access-control', icon: Users },
+      { labelKey: 'nav.platformApi', to: '/platform-api', icon: KeySquare },
     ],
   },
   {
     id: 'internal',
-    label: 'San3 Internal',
-    items: [{ label: 'Observability', to: '/observability', icon: Radar, staffOnly: true }],
+    labelKey: 'nav.internal',
+    items: [{ labelKey: 'nav.observability', to: '/observability', icon: Radar, staffOnly: true }],
   },
 ]
 
-export const DOCS_LINK: NavItem = { label: 'Documentation', to: '/docs', icon: BookOpen }
+export const DOCS_LINK: NavItem = { labelKey: 'nav.docs', to: '/docs', icon: BookOpen }

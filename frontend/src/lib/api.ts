@@ -1,7 +1,10 @@
-import axios from 'axios'
+import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
 const ACCESS_KEY = 'truepoint_access'
 const REFRESH_KEY = 'truepoint_refresh'
+
+/** Fired on window when the session can no longer be recovered (refresh failed). */
+export const AUTH_EXPIRED_EVENT = 'truepoint:auth-expired'
 
 export const tokenStore = {
   getAccess: () => localStorage.getItem(ACCESS_KEY),
@@ -34,6 +37,10 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+interface RetriableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean
+}
+
 let refreshPromise: Promise<string | null> | null = null
 
 async function refreshAccessToken(): Promise<string | null> {
@@ -46,6 +53,9 @@ async function refreshAccessToken(): Promise<string | null> {
     return access
   } catch {
     tokenStore.clear()
+    // The session is unrecoverable; let AuthContext log the user out instead
+    // of leaving a zombie UI where every request 401s.
+    window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
     return null
   }
 }
@@ -53,7 +63,7 @@ async function refreshAccessToken(): Promise<string | null> {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const original = error.config
+    const original = error.config as RetriableRequestConfig
     if (error.response?.status === 401 && !original._retry && tokenStore.getRefresh()) {
       original._retry = true
       if (!refreshPromise) {
@@ -70,3 +80,25 @@ api.interceptors.response.use(
     return Promise.reject(error)
   },
 )
+
+/**
+ * Extract a human-readable message from any thrown value, understanding DRF
+ * error bodies ({detail}, {field: [msgs]}, [msgs]). Replaces ad-hoc
+ * `catch (e: any) { e.response.data... }` blocks.
+ */
+export function getApiError(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
+  if (error instanceof AxiosError) {
+    const data = error.response?.data
+    if (typeof data === 'string' && data) return data
+    if (data && typeof data === 'object') {
+      if (typeof data.detail === 'string') return data.detail
+      const first = Array.isArray(data) ? data[0] : Object.values(data)[0]
+      if (typeof first === 'string') return first
+      if (Array.isArray(first) && typeof first[0] === 'string') return first[0]
+    }
+    if (!error.response) return 'Cannot reach the server. Check your connection and try again.'
+    return fallback
+  }
+  if (error instanceof Error && error.message) return error.message
+  return fallback
+}

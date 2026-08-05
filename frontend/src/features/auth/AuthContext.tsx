@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { api, tokenStore } from '../../lib/api'
+import { api, tokenStore, AUTH_EXPIRED_EVENT } from '../../lib/api'
+import { unwrapList, type Paginated } from '../../lib/pagination'
 import type { Me, Project } from '../../lib/types'
 
 interface AuthState {
@@ -22,10 +23,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const [meRes, projectsRes] = await Promise.all([
         api.get<Me>('/accounts/me/'),
-        api.get<Project[]>('/accounts/projects/'),
+        api.get<Project[] | Paginated<Project>>('/accounts/projects/'),
       ])
       setMe(meRes.data)
-      setProjects(projectsRes.data)
+      setProjects(unwrapList(projectsRes.data))
     } catch {
       setMe(null)
       setProjects([])
@@ -40,6 +41,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setLoading(false)
     }
+  }, [])
+
+  // When the token refresh fails the API layer clears storage; drop the
+  // in-memory session too so ProtectedRoute redirects instead of leaving a
+  // zombie UI where every request 401s.
+  useEffect(() => {
+    function onAuthExpired() {
+      setMe(null)
+      setProjects([])
+    }
+    window.addEventListener(AUTH_EXPIRED_EVENT, onAuthExpired)
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onAuthExpired)
   }, [])
 
   async function login(email: string, password: string) {

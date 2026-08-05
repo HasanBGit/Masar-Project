@@ -1,4 +1,4 @@
-# Deployment: Vercel + Supabase
+# Deployment: Vercel + Railway/Render + Supabase
 
 This repo has three deployables:
 
@@ -46,12 +46,31 @@ not a workaround.
 
 ## 2. Backend (Render/Railway/Fly)
 
-Uses `backend/Procfile`, already wired for this:
+There is exactly **one** deploy config for the backend, and it lives inside
+`backend/`:
 
-```
-release: python manage.py migrate --noinput
-web: gunicorn config.wsgi --log-file -
-```
+- `backend/Procfile` (used by Render/Fly and any Procfile-aware host):
+
+  ```
+  release: python manage.py migrate --noinput && python manage.py collectstatic --noinput
+  web: gunicorn config.wsgi --log-file -
+  ```
+
+- `backend/railway.json` (used by Railway) — defines the same release/start
+  commands.
+
+### Railway specifics
+
+1. Create a Railway service from this repo and set the service's
+   **Root Directory to `backend/`** — that is what makes
+   `backend/railway.json` (and relative `manage.py` paths) apply. Do not add
+   a second railway.json at the repo root; two configs whose applicability
+   depends on the root-directory setting is a silent misconfiguration trap.
+2. `railway.json` runs `migrate` + `collectstatic` on every deploy as the
+   release command. Note: migrations marked destructive (see
+   `contract_payments/migrations/0002`) run unattended here — review new
+   migrations before deploying.
+3. Add a Railway Cron schedule for the SLA sweep (see below).
 
 Set these environment variables on the host (see `backend/.env.example` for
 the full annotated list):
@@ -82,8 +101,15 @@ monorepo and each Vite app needs its own project:
   `frontend/vercel.json` handles the SPA rewrite `react-router-dom`'s
   `BrowserRouter` needs.
 - Project 2: Root Directory = `site`. Framework preset: Vite
-  (auto-detected). No env vars or extra config needed - it's a single
-  static page with no client-side routing.
+  (auto-detected). The build emits two entry points: `index.html` (the
+  marketing landing) and `app.html` (the San3 workspace demo). Optional env
+  vars (see `site/.env.example`): `VITE_APP_URL` (where the landing's Login
+  link points), `VITE_EARLY_ACCESS_ENDPOINT` (where the early-access form
+  POSTs), and — only if you expose the workspace demo —
+  `VITE_GOOGLE_CLIENT_ID` / `VITE_GEMINI_API_KEY`. **Warning:** any
+  `VITE_*` key is bundled into client JS and visible to every visitor; the
+  Gemini key must sit behind a server-side proxy before any real production
+  exposure (`site/src/app/config.ts` documents this).
 
 **Important:** if `VITE_API_URL` is left unset on the `frontend` Vercel
 project, the app falls back to a relative `/api/v1` base URL (the same one
@@ -98,3 +124,16 @@ instead of JSON. Always set `VITE_API_URL` for the deployed frontend.
 3. Deploy `site/` on Vercel (independent of the other two).
 4. Once the frontend's real Vercel URL is known, add it to the backend's
    `CORS_ALLOWED_ORIGINS` / `CSRF_TRUSTED_ORIGINS` and redeploy the backend.
+
+## 5. Security note: rotate credentials leaked in git history
+
+Commit `37b2671` added `.env.dev` files containing a real
+`DJANGO_SECRET_KEY` and a Supabase `DATABASE_URL` (with password). A later
+commit removed the files from tracking, but **the values remain recoverable
+from git history** and must be treated as compromised:
+
+1. Rotate the Django `SECRET_KEY` on every deployed environment.
+2. Reset the Supabase database password (Supabase dashboard → Settings →
+   Database) and update `DATABASE_URL` everywhere it is set.
+3. If those `.env.dev` files ever contained other keys (LLM providers,
+   storage), rotate those too.

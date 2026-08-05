@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, Mail, ChevronDown, Sparkles, Zap, Radio, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../features/auth/AuthContext'
+import { useLang, type MessageKey } from '../lib/i18n'
 import { Sidebar } from './Sidebar'
 import { NewProjectForm } from './NewProjectForm'
 import type { Project } from '../lib/types'
@@ -14,25 +15,26 @@ const ROLE_LABEL: Record<string, string> = {
   admin: 'Admin',
 }
 
-const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/email-integrations': 'Gmail & Email Integrations',
-  '/trust-evidence': 'Trust & Evidence',
-  '/contract-payments': 'Contract & Payment Verification',
-  '/rfi-change-control': 'RFIs & Change Orders',
-  '/handover': 'Handover & Post-Handover',
-  '/drawings-studio': 'Drawings Studio',
-  '/access-control': 'Security & Access Control',
-  '/platform-api': 'Platform API',
-  '/observability': 'Monitoring & Observability',
-  '/docs': 'Documentation',
+const PAGE_TITLE_KEYS: Record<string, MessageKey> = {
+  '/dashboard': 'title.dashboard',
+  '/email-integrations': 'title.email',
+  '/trust-evidence': 'title.trustEvidence',
+  '/contract-payments': 'title.contractPayments',
+  '/rfi-change-control': 'title.rfis',
+  '/handover': 'title.handover',
+  '/drawings-studio': 'title.drawingsStudio',
+  '/access-control': 'title.accessControl',
+  '/platform-api': 'title.platformApi',
+  '/observability': 'title.observability',
 }
 
-function pageTitle(pathname: string): string {
-  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
-  if (pathname.startsWith('/decisions/')) return 'Decision'
-  return 'Truepoint'
-}
+const INTEGRATION_MENU_ITEMS = [
+  { icon: Mail, iconClass: 'text-status-escalated', title: 'OAuth Connection Status', hint: 'Manage accounts & background sync' },
+  { icon: Zap, iconClass: 'text-status-hearing', title: 'Live Extraction Queue', hint: 'Review extracted approvals & RFIs' },
+  { icon: Sparkles, iconClass: 'text-gold', title: 'AI Intelligence & Rules', hint: 'Bilingual LLM extraction schema' },
+  { icon: Radio, iconClass: 'text-status-agreeing', title: 'Multi-Channel Stream', hint: 'Gmail, WhatsApp & Site Logs' },
+  { icon: ShieldCheck, iconClass: 'text-status-understanding', title: 'Sync Health & Webhooks', hint: 'Pub/Sub push metrics & latency' },
+]
 
 export function AppLayout({
   children,
@@ -46,6 +48,7 @@ export function AppLayout({
   showObservability?: boolean
 }) {
   const { me, projects, logout } = useAuth()
+  const { t, lang, toggle } = useLang()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -56,6 +59,9 @@ export function AppLayout({
   const userMenuButtonRef = useRef<HTMLButtonElement>(null)
   const navToggleButtonRef = useRef<HTMLButtonElement>(null)
   const mobileDrawerRef = useRef<HTMLDivElement>(null)
+
+  const titleKey = PAGE_TITLE_KEYS[location.pathname]
+  const pageTitle = titleKey ? t(titleKey) : location.pathname.startsWith('/decisions/') ? t('title.decision') : 'Truepoint'
 
   function handleLogout() {
     logout()
@@ -121,9 +127,16 @@ export function AppLayout({
 
   return (
     <div className="flex min-h-svh bg-cream">
+      <a
+        href="#main-content"
+        className="sr-only z-50 rounded-[var(--radius-s)] bg-navy px-4 py-2 text-sm font-semibold text-cream focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
+      >
+        {t('chrome.skipToContent')}
+      </a>
+
       {/* Desktop sidebar */}
       <aside className="hidden lg:block">
-        <div className="fixed inset-y-0 left-0">
+        <div className="fixed inset-y-0 start-0">
           <Sidebar isStaff={showObservability} />
         </div>
       </aside>
@@ -132,49 +145,56 @@ export function AppLayout({
       {mobileNavOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-navy-deep/40 backdrop-blur-sm" onClick={() => setMobileNavOpen(false)} />
-          <div ref={mobileDrawerRef} role="dialog" aria-modal="true" aria-label="Navigation" className="absolute inset-y-0 left-0">
+          <div
+            ref={mobileDrawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('chrome.openNav')}
+            className="absolute inset-y-0 start-0"
+          >
             <Sidebar isStaff={showObservability} onNavigate={() => setMobileNavOpen(false)} />
             <button
               onClick={() => setMobileNavOpen(false)}
-              aria-label="Close navigation"
-              className="absolute right-[-44px] top-4 rounded-full bg-paper p-2 text-navy shadow-md"
+              aria-label={t('chrome.closeNav')}
+              className="absolute end-2 top-3.5 rounded-full bg-paper p-2 text-navy shadow-md"
             >
-              <X size={18} />
+              <X size={18} aria-hidden="true" />
             </button>
           </div>
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-sand/70 bg-paper/95 px-4 backdrop-blur sm:px-6">
-          <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 flex-col lg:ps-64">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-2 border-b border-sand/70 bg-paper/95 px-4 backdrop-blur sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               ref={navToggleButtonRef}
               onClick={() => setMobileNavOpen(true)}
-              className="rounded-[var(--radius-s)] p-1.5 text-navy hover:bg-navy/5 lg:hidden"
-              aria-label="Open navigation"
+              className="rounded-[var(--radius-s)] p-1.5 text-navy transition hover:bg-navy/5 lg:hidden"
+              aria-label={t('chrome.openNav')}
               aria-haspopup="dialog"
               aria-expanded={mobileNavOpen}
             >
-              <Menu size={20} />
+              <Menu size={20} aria-hidden="true" />
             </button>
-            <div>
-              {activeProject && <p className="text-xs font-semibold text-gold-ink">{activeProject.name}</p>}
-              <h1 className="font-[var(--font-display)] text-base font-bold text-navy">{pageTitle(location.pathname)}</h1>
+            <div className="min-w-0">
+              {activeProject && <p className="truncate text-xs font-semibold text-gold-ink">{activeProject.name}</p>}
+              {/* Pages own the single <h1>; this is chrome. */}
+              <p className="truncate font-[var(--font-display)] text-base font-bold text-navy">{pageTitle}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {projects.length > 1 && activeProject && (
-              <label className="hidden sm:block">
-                <span className="sr-only">Switch project</span>
+              <label>
+                <span className="sr-only">{t('chrome.switchProject')}</span>
                 <select
                   value={activeProject.id}
                   onChange={(e) => {
                     const p = projects.find((pr) => pr.id === Number(e.target.value))
                     if (p) onProjectChange(p)
                   }}
-                  className="rounded-[var(--radius-s)] border border-sand bg-white px-2.5 py-1.5 text-sm text-navy"
+                  className="max-w-28 rounded-[var(--radius-s)] border border-sand bg-white px-2.5 py-1.5 text-sm text-navy sm:max-w-48"
                 >
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -185,114 +205,69 @@ export function AppLayout({
               </label>
             )}
 
-            {/* Main Feature Navbar Button: Email Integrations */}
-            <div className="relative" ref={integrationsMenuRef}>
+            {/* Email Integrations quick menu (feature preview) */}
+            <div className="relative hidden md:block" ref={integrationsMenuRef}>
               <button
                 onClick={() => setIntegrationsMenuOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-[var(--radius-s)] border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs font-bold text-navy hover:bg-gold/20 transition"
+                aria-haspopup="menu"
+                aria-expanded={integrationsMenuOpen}
+                className="flex items-center gap-1.5 rounded-[var(--radius-s)] border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs font-bold text-navy transition hover:bg-gold/20"
               >
-                <Mail size={15} className="text-gold-ink" />
-                <span className="hidden md:inline">Gmail Integration</span>
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-extrabold text-navy">
-                  3
-                </span>
-                <ChevronDown size={14} className="text-navy/60" />
+                <Mail size={15} className="text-gold-ink" aria-hidden="true" />
+                <span>Gmail Integration</span>
+                <ChevronDown size={14} className="text-navy/60" aria-hidden="true" />
               </button>
 
               {integrationsMenuOpen && (
-                <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-[var(--radius-m)] border border-sand bg-white p-2 shadow-2xl">
+                <div
+                  role="menu"
+                  aria-label="Email integrations"
+                  className="absolute end-0 top-full z-50 mt-2 w-72 rounded-[var(--radius-m)] border border-sand bg-white p-2 shadow-2xl"
+                >
                   <div className="border-b border-sand/60 px-3 py-2">
                     <p className="text-xs font-bold text-navy">Gmail & Email Integrations</p>
-                    <p className="text-[11px] text-navy/60">Connected: pm@masar-construction.sa</p>
+                    <p className="text-[11px] text-navy/60">Feature preview — explore the integration workspace</p>
                   </div>
                   <div className="py-1">
-                    <button
-                      onClick={() => {
-                        setIntegrationsMenuOpen(false)
-                        navigate('/email-integrations')
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
-                    >
-                      <Mail size={15} className="text-red-500" />
-                      <div>
-                        <div className="font-semibold">1. OAuth Connection Status</div>
-                        <div className="text-[10px] text-navy/50">Manage accounts & background sync</div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIntegrationsMenuOpen(false)
-                        navigate('/email-integrations')
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
-                    >
-                      <Zap size={15} className="text-amber-500" />
-                      <div>
-                        <div className="font-semibold">2. Live Extraction Queue</div>
-                        <div className="text-[10px] text-amber-600 font-bold">3 items pending review</div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIntegrationsMenuOpen(false)
-                        navigate('/email-integrations')
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
-                    >
-                      <Sparkles size={15} className="text-gold" />
-                      <div>
-                        <div className="font-semibold">3. AI Intelligence & Rules</div>
-                        <div className="text-[10px] text-navy/50">Bilingual LLM extraction schema</div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIntegrationsMenuOpen(false)
-                        navigate('/email-integrations')
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
-                    >
-                      <Radio size={15} className="text-emerald-600" />
-                      <div>
-                        <div className="font-semibold">4. Multi-Channel Stream</div>
-                        <div className="text-[10px] text-navy/50">Gmail, WhatsApp & Site Logs</div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIntegrationsMenuOpen(false)
-                        navigate('/email-integrations')
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-navy hover:bg-cream"
-                    >
-                      <ShieldCheck size={15} className="text-blue-600" />
-                      <div>
-                        <div className="font-semibold">5. Sync Health & Webhooks</div>
-                        <div className="text-[10px] text-navy/50">Pub/Sub push metrics & latency</div>
-                      </div>
-                    </button>
+                    {INTEGRATION_MENU_ITEMS.map((item) => {
+                      const Icon = item.icon
+                      return (
+                        <button
+                          key={item.title}
+                          role="menuitem"
+                          onClick={() => {
+                            setIntegrationsMenuOpen(false)
+                            navigate('/email-integrations')
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-start text-xs font-medium text-navy transition hover:bg-cream"
+                        >
+                          <Icon size={15} className={item.iconClass} aria-hidden="true" />
+                          <div>
+                            <div className="font-semibold">{item.title}</div>
+                            <div className="text-[10px] text-navy/50">{item.hint}</div>
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
             </div>
 
             <button
-              onClick={() => {
-                const current = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'
-                document.documentElement.dir = current
-                document.documentElement.lang = current === 'rtl' ? 'ar' : 'en'
-              }}
-              title="Toggle Language / Direction"
-              className="rounded-[var(--radius-s)] border border-sand bg-white px-2.5 py-1.5 text-xs font-semibold text-navy hover:bg-cream"
+              onClick={toggle}
+              aria-label={t('chrome.languageLabel')}
+              className="rounded-[var(--radius-s)] border border-sand bg-white px-2.5 py-1.5 text-xs font-semibold text-navy transition hover:bg-cream"
             >
-              🌐 {document.documentElement.dir === 'rtl' ? 'EN' : 'العربية'}
+              <span aria-hidden="true">🌐 </span>
+              {lang === 'ar' ? 'English' : 'العربية'}
             </button>
 
-            <div className="relative hidden sm:block">
+            <div className="relative">
               <NewProjectForm
                 compact
                 onCreated={onProjectChange}
-                panelClassName="absolute right-0 top-full z-10 mt-2 w-72 shadow-lg"
+                panelClassName="absolute end-0 top-full z-10 mt-2 w-72 shadow-lg"
               />
             </div>
 
@@ -302,9 +277,10 @@ export function AppLayout({
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
+                aria-label={t('chrome.userMenu')}
                 className="flex items-center gap-2 rounded-full border border-sand bg-white px-3 py-1.5 text-sm text-navy"
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-navy text-xs font-semibold text-cream">
+                <span aria-hidden="true" className="flex h-6 w-6 items-center justify-center rounded-full bg-navy text-xs font-semibold text-cream">
                   {me?.full_name?.[0]?.toUpperCase() ?? '?'}
                 </span>
                 <span className="hidden sm:inline">{me?.full_name}</span>
@@ -315,13 +291,17 @@ export function AppLayout({
                 )}
               </button>
               {menuOpen && (
-                <div role="menu" aria-label="User menu" className="absolute right-0 top-full mt-2 w-40 rounded-[var(--radius-s)] border border-sand bg-white py-1 shadow-lg">
+                <div
+                  role="menu"
+                  aria-label={t('chrome.userMenu')}
+                  className="absolute end-0 top-full mt-2 w-40 rounded-[var(--radius-s)] border border-sand bg-white py-1 shadow-lg"
+                >
                   <button
                     role="menuitem"
                     onClick={handleLogout}
-                    className="block w-full px-4 py-2 text-left text-sm text-navy hover:bg-cream"
+                    className="block w-full px-4 py-2 text-start text-sm text-navy transition hover:bg-cream"
                   >
-                    Sign out
+                    {t('chrome.signOut')}
                   </button>
                 </div>
               )}
@@ -329,7 +309,9 @@ export function AppLayout({
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">{children}</main>
+        <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
+          {children}
+        </main>
       </div>
     </div>
   )
