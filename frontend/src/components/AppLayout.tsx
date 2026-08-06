@@ -1,8 +1,8 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { useAuth } from '../features/auth/AuthContext'
-import { useLang, type MessageKey } from '../lib/i18n'
+import { useLang } from '../lib/i18n'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { Sidebar } from './Sidebar'
 import { NewProjectForm } from './NewProjectForm'
@@ -14,19 +14,6 @@ const ROLE_LABEL: Record<string, string> = {
   project_manager: 'Project Manager',
   designer: 'Designer',
   admin: 'Admin',
-}
-
-const PAGE_TITLE_KEYS: Record<string, MessageKey> = {
-  '/dashboard': 'title.dashboard',
-  '/email-integrations': 'title.email',
-  '/trust-evidence': 'title.trustEvidence',
-  '/contract-payments': 'title.contractPayments',
-  '/rfi-change-control': 'title.rfis',
-  '/handover': 'title.handover',
-  '/drawings-studio': 'title.drawingsStudio',
-  '/access-control': 'title.accessControl',
-  '/platform-api': 'title.platformApi',
-  '/observability': 'title.observability',
 }
 
 export function AppLayout({
@@ -43,16 +30,12 @@ export function AppLayout({
   const { me, projects, logout } = useAuth()
   const { t } = useLang()
   const navigate = useNavigate()
-  const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const userMenuButtonRef = useRef<HTMLButtonElement>(null)
   const navToggleButtonRef = useRef<HTMLButtonElement>(null)
   const mobileDrawerRef = useRef<HTMLDivElement>(null)
-
-  const titleKey = PAGE_TITLE_KEYS[location.pathname]
-  const pageTitle = titleKey ? t(titleKey) : location.pathname.startsWith('/decisions/') ? t('title.decision') : 'Truepoint'
 
   function handleLogout() {
     logout()
