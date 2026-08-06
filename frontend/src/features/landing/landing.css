@@ -1209,6 +1209,17 @@ html[dir="rtl"] .footer-top h2 { font-family: "Noto Kufi Arabic", Georgia, serif
   color: rgba(253, 241, 225, 0.45);
   font-size: 0.75rem;
 }
+.photo-note {
+  margin: 0;
+  padding: 0 24px 20px;
+  color: rgba(253, 241, 225, 0.32);
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: center;
+}
+.photo-note a {
+  color: rgba(253, 241, 225, 0.5);
+}
 @media (max-width: 900px) {
   .feature-grid,
   .steps-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

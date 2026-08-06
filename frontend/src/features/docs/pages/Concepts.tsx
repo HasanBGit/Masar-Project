@@ -1,5 +1,6 @@
 import { DocsLayout } from '../DocsLayout'
 import { Callout, DocsH1, DocsH2, DocsLead, DocsP, DocsTable, DocsUl, InlineCode } from '../DocsUI'
+import { usePageMeta } from '../../../lib/pageMeta'
 
 const TOC = [
   { id: 'three-edges', label: 'The 3 Edges' },
@@ -9,7 +10,22 @@ const TOC = [
   { id: 'residency', label: 'Data residency & retention' },
 ]
 
+const DESCRIPTION =
+  'The 3 Edges decision model (Hearing, Understanding, Agreeing), RACI roles, the shared document lifecycle, the audit log, and data residency in Truepoint.'
+
 export function ConceptsPage() {
+  usePageMeta({
+    title: 'Core concepts',
+    description: DESCRIPTION,
+    path: '/docs/concepts',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: 'Core concepts',
+      description: DESCRIPTION,
+      url: 'https://truepoint.sa/docs/concepts',
+    },
+  })
   return (
     <DocsLayout toc={TOC}>
       <DocsH1>Core concepts</DocsH1>

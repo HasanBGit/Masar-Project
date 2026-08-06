@@ -1,5 +1,6 @@
 import { DocsLayout } from '../DocsLayout'
 import { Callout, CodeBlock, DocsH1, DocsH2, DocsLead, DocsLink, DocsP, DocsTable, DocsUl, InlineCode } from '../DocsUI'
+import { usePageMeta } from '../../../lib/pageMeta'
 
 const TOC = [
   { id: 'what-is-truepoint', label: 'What is Truepoint' },
@@ -9,7 +10,22 @@ const TOC = [
   { id: 'next-steps', label: 'Next steps' },
 ]
 
+const DESCRIPTION =
+  'How to use Truepoint: demo accounts, authenticating against the versioned REST API, and the role model every module enforces.'
+
 export function GettingStartedPage() {
+  usePageMeta({
+    title: 'Introduction',
+    description: DESCRIPTION,
+    path: '/docs',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: 'Introduction to Truepoint',
+      description: DESCRIPTION,
+      url: 'https://truepoint.sa/docs',
+    },
+  })
   return (
     <DocsLayout toc={TOC}>
       <DocsH1>Introduction</DocsH1>
@@ -21,8 +37,8 @@ export function GettingStartedPage() {
       <DocsH2 id="what-is-truepoint">What is Truepoint</DocsH2>
       <DocsP>
         Every project decision goes through a structured 3-step approval flow (Hearing → Understanding → Agreeing),
-        every claim of "done" is backed by verified, timestamped evidence, and every role - Owner, Investor,
-        Consultant, Contractor - sees a view of the project shaped for what they actually need to act on.
+        every claim of "done" is backed by verified, timestamped evidence, and every role - Owner, Consultant,
+        Project Manager, Designer - sees a view of the project shaped for what they actually need to act on.
       </DocsP>
       <DocsP>
         The backend is a Django + DRF modular monolith on PostgreSQL; the app you're using now is a React/TypeScript
@@ -37,9 +53,9 @@ export function GettingStartedPage() {
         head={['Email', 'Role', 'What they see']}
         rows={[
           ['owner@truepoint.sa', 'Owner', 'Full project visibility - every decision, every module.'],
-          ['investor@truepoint.sa', 'Investor', 'Aggregate signal only - high-stakes decisions, no operational detail.'],
-          ['consultant@truepoint.sa', 'Consultant', 'Decisions where they hold a RACI role; can verify evidence.'],
-          ['contractor@truepoint.sa', 'Contractor', "Their own action queue - what's assigned to them."],
+          ['consultant@truepoint.sa', 'Consultant', 'Reviews and approves PM/Designer work; can verify evidence.'],
+          ['pm@truepoint.sa', 'Project Manager', "Their own action queue - site reports, payment tasks, RFIs."],
+          ['designer@truepoint.sa', 'Designer', "Their own action queue - drawings and design-review decisions."],
           ['ops@truepoint.sa', 'Truepoint internal (staff)', 'The Observability dashboard - nobody else can see this.'],
         ]}
       />
@@ -86,13 +102,16 @@ GET /api/v1/dashboard/summary/?project=1  # role-shaped dashboard`}</CodeBlock>
           completion.
         </li>
         <li>
-          <strong>Investor</strong> - read-only, redacted to aggregate/high-stakes signal.
+          <strong>Consultant</strong> - reviews and approves Project Manager/Designer work; typically the
+          independent verifier (PMC role) on evidence.
         </li>
         <li>
-          <strong>Consultant</strong> - typically the independent verifier (PMC role) on evidence.
+          <strong>Project Manager</strong> - the party usually Responsible on site-report/payment decisions and
+          raising RFIs/evidence.
         </li>
         <li>
-          <strong>Contractor</strong> - the party usually Responsible on decisions and raising RFIs/evidence.
+          <strong>Designer</strong> - the party usually Responsible on design-review decisions and drawing
+          submittals.
         </li>
         <li>
           <strong>Admin</strong> - Truepoint-internal, same elevated rights as Owner plus the Observability dashboard

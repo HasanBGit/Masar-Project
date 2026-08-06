@@ -31,7 +31,7 @@ export const LANDING_MARKUP = `
         </header>
 
         <div class="back-stack">
-          <img class="scene-img back-img back-four" alt="" loading="lazy" width="1600" height="1067" src="/landing/skyline-far.svg" />
+          <img class="scene-img back-img back-four" alt="" loading="lazy" width="1600" height="1067" src="/landing/kingdom-tower.webp" />
 
           <section class="sights-slider" aria-label="Truepoint modules slider">
             <div class="sights-track">
@@ -50,11 +50,11 @@ export const LANDING_MARKUP = `
                 <p>Verified milestones and a dispute-ready audit trail.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Owner Dashboard card"
-                data-kicker-ar="واجهات الأدوار" data-title-ar="لوحة تحكم المالك" data-body-ar="واجهات مخصصة للمالك والمستثمر والاستشاري والمقاول.">
+                data-kicker-ar="واجهات الأدوار" data-title-ar="لوحة تحكم المالك" data-body-ar="واجهات مخصصة للمالك والاستشاري ومدير المشروع والمصمم.">
                 <span class="sight-kicker">Role Views</span>
                 <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/dashboard.svg" />
                 <h3>Owner Dashboard</h3>
-                <p>Role-specific views for Owner, Investor, Consultant, Contractor.</p>
+                <p>Role-specific views for Owner, Consultant, Project Manager, Designer.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Gmail and Email Integration card"
                 data-kicker-ar="ميزة رئيسية" data-title-ar="تكامل البريد و Gmail" data-body-ar="استخراج تلقائي لطلبات المعلومات والتصاريح والدفعات مباشرة من البريد الإلكتروني.">
@@ -80,7 +80,7 @@ export const LANDING_MARKUP = `
             </div>
           </section>
 
-          <img class="scene-img back-img back-bazaar" alt="" loading="lazy" width="1600" height="1067" src="/landing/skyline-near.svg" />
+          <img class="scene-img back-img back-bazaar" alt="" loading="lazy" width="1600" height="1200" src="/landing/at-turaif.webp" />
         </div>
 
         <div class="sights-controls" aria-label="Slider controls">
@@ -90,11 +90,11 @@ export const LANDING_MARKUP = `
 
         <h1 class="hero-title">TRUEPOINT</h1>
 
-        <img class="scene-img splitframe-img splitframe-left" alt="" loading="lazy" width="1600" height="1067" src="/landing/split-skyline.svg" />
-        <img class="scene-img splitframe-img splitframe-right" alt="" loading="lazy" width="1600" height="1067" src="/landing/split-skyline.svg" />
+        <img class="scene-img splitframe-img splitframe-left" alt="" loading="lazy" width="1600" height="1066" src="/landing/riyadh-skyline.webp" />
+        <img class="scene-img splitframe-img splitframe-right" alt="" loading="lazy" width="1600" height="1066" src="/landing/riyadh-skyline.webp" />
 
-        <img class="scene-img bridge-img" alt="" loading="lazy" width="1600" height="700" src="/landing/bridge.svg" />
-        <img class="scene-img frame-two-img" alt="" loading="lazy" width="1600" height="1067" src="/landing/horizon-glow.svg" />
+        <img class="scene-img bridge-img" alt="" loading="lazy" width="1600" height="1200" src="/landing/masmak-castle.webp" />
+        <img class="scene-img frame-two-img" alt="" loading="lazy" width="1600" height="1200" src="/landing/wadi-hanifah.webp" />
 
         <div class="shade"></div>
       </div>
@@ -157,7 +157,7 @@ export const LANDING_MARKUP = `
         <article class="feature-card">
           <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/dashboard.svg" />
           <h3 data-ar="لوحات تحكم مخصصة حسب الدور">Role-specific dashboards</h3>
-          <p data-ar="يرى المالك والمستثمر والاستشاري والمقاول الواجهة المصمَّمة لقراراتهم، من نموذج بيانات واحد.">Owner, Investor, Consultant, and Contractor each see the view built for their decisions, all from one data model.</p>
+          <p data-ar="يرى المالك والاستشاري ومدير المشروع والمصمم الواجهة المصمَّمة لقراراتهم، من نموذج بيانات واحد.">Owner, Consultant, Project Manager, and Designer each see the view built for their decisions, all from one data model.</p>
         </article>
         <article class="feature-card">
           <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/mail.svg" />
@@ -391,6 +391,13 @@ export const LANDING_MARKUP = `
     <p class="pdpl-badge" data-ar="إقامة بيانات متوافقة مع نظام حماية البيانات السعودي (PDPL)">Saudi PDPL-aligned data residency</p>
     <p class="footer-copy" data-ar="© 2026 Truepoint">© 2026 Truepoint</p>
   </div>
+  <p class="photo-note">
+    Hero photography via Wikimedia Commons, CC BY-SA:
+    <a href="https://commons.wikimedia.org/wiki/File:Kingdom_Tower_at_night.JPG" target="_blank" rel="noopener">BroadArrow</a>,
+    <a href="https://commons.wikimedia.org/wiki/File:At-Turaif_District_in_ad-Dir%27iyah_(8).jpg" target="_blank" rel="noopener">Radosław Botev/Fundacja Nomos</a>,
+    <a href="https://commons.wikimedia.org/wiki/File:Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_(KAFD)_and_the_famous_Kingdom_Tower_.jpg" target="_blank" rel="noopener">B.alotaby</a>,
+    <a href="https://commons.wikimedia.org/wiki/File:Lake_at_Wadi_Hanifah_(5218227168).jpg" target="_blank" rel="noopener">Peter Dowley</a>.
+  </p>
 </footer>
 
 <div class="modal-overlay" id="modal-overlay" hidden>

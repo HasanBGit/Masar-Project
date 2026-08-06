@@ -1,5 +1,6 @@
 import { DocsLayout } from '../DocsLayout'
 import { Callout, CodeBlock, DocsExternalLink, DocsH1, DocsH2, DocsLead, DocsLink, DocsP, Endpoint, InlineCode } from '../DocsUI'
+import { usePageMeta } from '../../../lib/pageMeta'
 
 const TOC = [
   { id: 'auth', label: 'Authentication' },
@@ -9,7 +10,22 @@ const TOC = [
   { id: 'interactive', label: 'Interactive reference' },
 ]
 
+const DESCRIPTION =
+  'Authenticate with an API key and pull project data (approvals, evidence, activity) into your own BI or ERP tooling via the versioned public API.'
+
 export function ApiReferencePage() {
+  usePageMeta({
+    title: 'Public API',
+    description: DESCRIPTION,
+    path: '/docs/api',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: 'Public API',
+      description: DESCRIPTION,
+      url: 'https://truepoint.sa/docs/api',
+    },
+  })
   return (
     <DocsLayout toc={TOC}>
       <DocsH1>Public API</DocsH1>
@@ -40,8 +56,7 @@ Authorization: ApiKey tpk_9vCeZVjWg2MqDGMkmBkidQwDH83RWpE7dfwq84leJds`}</CodeBlo
       <DocsH2 id="endpoints">Endpoints</DocsH2>
 
       <Endpoint method="GET" path="/api/public/v1/projects/{'{'}project_id{'}'}/approvals/">
-        Every decision on the project. An <InlineCode>investor</InlineCode>-scoped key only receives high-stakes
-        decisions - same redaction the Investor role sees in-app.
+        Every decision on the project, for any key scoped to that project.
       </Endpoint>
 
       <Endpoint method="GET" path="/api/public/v1/projects/{'{'}project_id{'}'}/evidence/">
@@ -60,8 +75,8 @@ Authorization: ApiKey tpk_9vCeZVjWg2MqDGMkmBkidQwDH83RWpE7dfwq84leJds`}</CodeBlo
 }`}</CodeBlock>
       <DocsP>
         <strong>Project</strong> - a key issued for project 1 gets a 403 on any other project's data.{' '}
-        <strong>Role scope</strong> (owner / investor / consultant / contractor) - mirrors the same role-based
-        redaction the in-app dashboard applies.
+        <strong>Role scope</strong> (owner / consultant / project_manager / designer) - labels which project role
+        the key represents, for the caller's own bookkeeping.
       </DocsP>
       <DocsP>
         Rate limits are enforced per key, keyed off the key itself (not IP), at{' '}

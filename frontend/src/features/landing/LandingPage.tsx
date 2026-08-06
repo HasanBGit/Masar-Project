@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useLang, type Lang } from '../../lib/i18n'
+import { usePageMeta } from '../../lib/pageMeta'
 import { LANDING_MARKUP } from './landingMarkup'
 import './landing.css'
 
@@ -579,7 +580,96 @@ function applyLanguageToMarkup(container: HTMLElement, lang: Lang) {
   })
 }
 
+const LANDING_DESCRIPTION =
+  'Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record for Saudi and GCC construction. Owner-first, evidence-backed, dispute-ready.'
+
+const FAQ_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Does my site team need to learn a new app?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "No. Field capture rides on the WhatsApp groups your trades already use. Truepoint reads from channels your team hasn't changed, rather than asking them to adopt a new one.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Where is our project data stored?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Data residency and access follow Saudi PDPL requirements. This is an architecture decision, not a policy footnote bolted on later.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "What does 'approval' actually change day to day?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Every sign-off passes through the 3 Edges (Hearing, Understanding, Agreeing) with a teach-back comprehension check and a single named, accountable approver.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is Truepoint only available in Arabic?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "It's bilingual and Arabic-first. Flip the language switcher in the top nav to see the whole product in English or Arabic, right-to-left included.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How long does onboarding take?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "We're onboarding a small number of owners and developers directly ahead of general availability, so timelines are set with your team rather than a fixed rollout date.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What does it cost?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Pricing is scoped per project during early access. Request access and we'll follow up with a plan for your portfolio.",
+      },
+    },
+  ],
+}
+
+const LANDING_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      name: 'Truepoint',
+      url: 'https://truepoint.sa',
+      logo: 'https://truepoint.sa/favicon.svg',
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: 'Truepoint',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      description: LANDING_DESCRIPTION,
+      offers: {
+        '@type': 'Offer',
+        availability: 'https://schema.org/LimitedAvailability',
+        description: 'Priced per project during early access.',
+      },
+    },
+    FAQ_JSON_LD,
+  ],
+}
+
 function LandingPageContent() {
+  usePageMeta({
+    title: 'Truepoint - Owner-first infrastructure for Saudi construction',
+    description: LANDING_DESCRIPTION,
+    path: '/',
+    jsonLd: LANDING_JSON_LD,
+  })
   const containerRef = useRef<HTMLDivElement>(null)
   // The landing page shares the app-wide language store: it initialises from
   // it and its EN/AR switchers write back through setLang, so the choice

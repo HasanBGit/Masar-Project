@@ -1,5 +1,9 @@
 import { DocsLayout } from '../DocsLayout'
 import { Callout, DocsH1, DocsH2, DocsLead, DocsLink, DocsP, InlineCode } from '../DocsUI'
+import { usePageMeta } from '../../../lib/pageMeta'
+
+const DESCRIPTION =
+  'Reference for every Truepoint module: Owner Dashboard, Approvals, Trust & Evidence, RFI & Change Control, Contract & Payments, Drawings Studio, Handover, Access Control, Observability, and the Platform API.'
 
 const TOC = [
   { id: 'dashboard', label: 'Owner Dashboard' },
@@ -29,6 +33,18 @@ function Module({ id, name, prefix, children }: { id: string; name: string; pref
 }
 
 export function ModulesPage() {
+  usePageMeta({
+    title: 'Module reference',
+    description: DESCRIPTION,
+    path: '/docs/modules',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: 'Module reference',
+      description: DESCRIPTION,
+      url: 'https://truepoint.sa/docs/modules',
+    },
+  })
   return (
     <DocsLayout toc={TOC}>
       <DocsH1>Module reference</DocsH1>

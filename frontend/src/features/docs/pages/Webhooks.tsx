@@ -1,5 +1,6 @@
 import { DocsLayout } from '../DocsLayout'
 import { Callout, CodeBlock, DocsH1, DocsH2, DocsLead, DocsLink, DocsP, DocsTable, InlineCode } from '../DocsUI'
+import { usePageMeta } from '../../../lib/pageMeta'
 
 const TOC = [
   { id: 'events', label: 'Event types' },
@@ -9,7 +10,22 @@ const TOC = [
   { id: 'security', label: 'Security' },
 ]
 
+const DESCRIPTION =
+  'Subscribe to Truepoint state-change events (approvals, verified evidence, overdue items, released payments) instead of polling. Payload signing and delivery retries explained.'
+
 export function WebhooksPage() {
+  usePageMeta({
+    title: 'Webhooks & rate limits',
+    description: DESCRIPTION,
+    path: '/docs/webhooks',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: 'Webhooks & rate limits',
+      description: DESCRIPTION,
+      url: 'https://truepoint.sa/docs/webhooks',
+    },
+  })
   return (
     <DocsLayout toc={TOC}>
       <DocsH1>Webhooks &amp; rate limits</DocsH1>
@@ -21,7 +37,7 @@ export function WebhooksPage() {
         rows={[
           ['approval.requested', 'A new decision enters the Hearing edge (Approvals).'],
           ['evidence.verified', 'An owner/consultant verifies a submitted evidence record (Trust & Evidence).'],
-          ['contractor.overdue', 'An RFI (or other tracked item) breaches its expected-response deadline and gets silence-flagged.'],
+          ['project_manager.overdue', 'An RFI (or other tracked item) breaches its expected-response deadline and gets silence-flagged.'],
           ['payment.released', 'A payment milestone is released after its evidence gate passes (Contract & Payments).'],
         ]}
       />
