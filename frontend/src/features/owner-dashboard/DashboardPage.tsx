@@ -71,14 +71,19 @@ export function DashboardPage({ project }: { project: Project }) {
     return <ErrorState message={error ?? 'Could not load the dashboard.'} onRetry={reload} />
   }
 
-  const copy = ROLE_COPY[summary.role]
+  const copy = ROLE_COPY[summary.role] ?? {
+    greeting: 'Welcome to your workspace.',
+    hint: 'Decisions needing your input or review will appear below.',
+  }
+
+  const firstName = me?.full_name?.split(' ')[0]
 
   return (
     <div className="flex flex-col gap-8">
       <div>
         <p className="text-sm font-semibold text-gold-ink">{project.name}</p>
         <h1 className="font-[var(--font-display)] text-3xl font-bold text-navy">
-          {me?.full_name?.split(' ')[0]}, {copy.greeting}
+          {firstName ? `${firstName}, ` : ''}{copy.greeting}
         </h1>
         <p className="mt-1 text-sm text-navy/60">{copy.hint}</p>
       </div>
