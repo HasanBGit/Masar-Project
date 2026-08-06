@@ -18,6 +18,10 @@ vi.mock('./api', () => ({
   deleteDrawingModel: deleteDrawingModelMock,
 }))
 
+vi.mock('../auth/AuthContext', () => ({
+  useAuth: () => ({ me: { id: 1, full_name: 'Mohammed Al-Rashid', email: 'owner@example.com', preferred_language: 'en', is_staff: false } }),
+}))
+
 // Three.js needs a real WebGL context; in jsdom the viewers are stubbed out
 // entirely and the page is tested around them.
 vi.mock('./viewer/ModelViewer', () => ({

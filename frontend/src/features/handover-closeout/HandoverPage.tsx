@@ -242,12 +242,20 @@ function OMChecklist({ items, canVerify, onChanged }: { items: OMChecklistItem[]
   )
 }
 
+// Mirrors the backend's exact role gates (handover/views.py): acknowledge
+// is project_manager/owner/admin, resolve reuses the verify_evidence bar
+// (owner/admin/consultant) - the two sets deliberately don't match.
+const ACKNOWLEDGE_ROLES = new Set(['project_manager', 'owner', 'admin'])
+const RESOLVE_ROLES = new Set(['owner', 'admin', 'consultant'])
+
 function DefectsList({ project, defects, onChanged }: { project: Project; defects: PostHandoverDefect[]; onChanged: () => void }) {
   const toast = useToast()
   const [zone, setZone] = useState('')
   const [title, setTitle] = useState('')
   const [busy, setBusy] = useState(false)
   const [actionBusyId, setActionBusyId] = useState<number | null>(null)
+  const canAcknowledge = ACKNOWLEDGE_ROLES.has(project.role)
+  const canResolve = RESOLVE_ROLES.has(project.role)
 
   async function handleReport(e: FormEvent) {
     e.preventDefault()
@@ -333,7 +341,7 @@ function DefectsList({ project, defects, onChanged }: { project: Project; defect
           </div>
           <div className="flex items-center gap-2">
             <DefectStatusBadge status={d.status} />
-            {d.status === 'reported' && (
+            {d.status === 'reported' && canAcknowledge && (
               <button
                 disabled={actionBusyId === d.id}
                 onClick={() => handleAction(d.id, acknowledgeDefect, 'Defect acknowledged.', 'Could not acknowledge the defect.')}
@@ -342,7 +350,7 @@ function DefectsList({ project, defects, onChanged }: { project: Project; defect
                 Acknowledge
               </button>
             )}
-            {d.status === 'acknowledged' && (
+            {d.status === 'acknowledged' && canResolve && (
               <button
                 disabled={actionBusyId === d.id}
                 onClick={() => handleAction(d.id, resolveDefect, 'Defect resolved.', 'Could not resolve the defect.')}

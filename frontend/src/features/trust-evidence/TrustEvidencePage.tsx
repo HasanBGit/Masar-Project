@@ -14,6 +14,9 @@ import { getChangeOrderRollup, getDisputeExport, listEvidence, listSilenceFlags,
 import type { DisputeExportEvent, EvidenceRecord, Project } from '../../lib/types'
 
 const VERIFIER_ROLES = new Set(['owner', 'admin', 'consultant'])
+// Matches the backend's `view_audit_log` gate on DisputeExportView - the
+// dispute bundle IS the full audit log, so it carries the same elevated bar.
+const DISPUTE_EXPORT_ROLES = new Set(['owner', 'admin'])
 
 function NewEvidenceForm({
   project,
@@ -128,6 +131,7 @@ export function TrustEvidencePage({ project }: { project: Project }) {
   const [exporting, setExporting] = useState(false)
   const [busyId, setBusyId] = useState<number | null>(null)
   const canVerify = VERIFIER_ROLES.has(project.role)
+  const canExportDispute = DISPUTE_EXPORT_ROLES.has(project.role)
 
   const { data, loading, error, reload } = useProjectData(project.id, async (id) => {
     const [evidence, flags, rollup] = await Promise.all([
@@ -286,13 +290,15 @@ export function TrustEvidencePage({ project }: { project: Project }) {
                 + Submit evidence
               </button>
             )}
-            <button
-              onClick={handleExport}
-              disabled={exporting}
-              className="rounded-[var(--radius-s)] border border-navy/20 px-3 py-1.5 text-xs font-semibold text-navy transition hover:bg-navy/5 disabled:opacity-60"
-            >
-              {exporting ? 'Preparing…' : 'Export dispute bundle'}
-            </button>
+            {canExportDispute && (
+              <button
+                onClick={handleExport}
+                disabled={exporting}
+                className="rounded-[var(--radius-s)] border border-navy/20 px-3 py-1.5 text-xs font-semibold text-navy transition hover:bg-navy/5 disabled:opacity-60"
+              >
+                {exporting ? 'Preparing…' : 'Export dispute bundle'}
+              </button>
+            )}
           </div>
         </div>
         {formOpen && (

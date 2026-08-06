@@ -13,7 +13,12 @@ import { useProjectData } from '../../lib/useProjectData'
 import type { APIKey, ApiKeyScope, ApiKeyTier, Project, WebhookDelivery } from '../../lib/types'
 import { createApiKey, createWebhookSubscription, listApiKeys, listWebhookDeliveries, listWebhookSubscriptions, revokeApiKey } from './api'
 
-const EVENT_TYPES = ['approval.requested', 'evidence.verified', 'contractor.overdue']
+const EVENT_TYPES = ['approval.requested', 'evidence.verified', 'project_manager.overdue', 'payment.released']
+// Matches the backend's `manage_roster` gate: API-key listing/issuance/revoke
+// and webhook-delivery listing are all owner/admin-only server-side (same
+// bar as roster management). Subscription listing itself is open to every
+// project member - only creating one is gated the same way.
+const ELEVATED_ROLES = new Set(['owner', 'admin'])
 
 function DeliveryStatusBadge({ status }: { status: WebhookDelivery['status'] }) {
   if (status === 'success') return <Badge label="Success" tone="good" />
@@ -85,7 +90,7 @@ function NewApiKeyForm({ project, onCreated }: { project: Project; onCreated: (k
         </div>
         <div className="w-40">
           <SelectField label="Scope" value={scope} onChange={(e) => setScope(e.target.value as ApiKeyScope)}>
-            {(['owner', 'investor', 'consultant', 'contractor'] as ApiKeyScope[]).map((s) => (
+            {(['owner', 'consultant', 'project_manager', 'designer'] as ApiKeyScope[]).map((s) => (
               <option key={s} value={s}>
                 {s} scope
               </option>
@@ -204,12 +209,15 @@ export function PlatformApiPage({ project }: { project: Project }) {
   const toast = useToast()
   const [newRawKey, setNewRawKey] = useState<string | null>(null)
   const [keyToRevoke, setKeyToRevoke] = useState<APIKey | null>(null)
+  const canManage = ELEVATED_ROLES.has(project.role)
 
   const { data, loading, error, reload } = useProjectData(project.id, async (id) => {
+    // listApiKeys and listWebhookDeliveries 403 for non-owner/admin roles -
+    // fetching them unconditionally would fail the whole page via Promise.all.
     const [keys, subscriptions, deliveries] = await Promise.all([
-      listApiKeys(Number(id)),
+      canManage ? listApiKeys(Number(id)) : Promise.resolve([]),
       listWebhookSubscriptions(Number(id)),
-      listWebhookDeliveries(Number(id)),
+      canManage ? listWebhookDeliveries(Number(id)) : Promise.resolve([]),
     ])
     return { keys, subscriptions, deliveries }
   })
@@ -286,31 +294,33 @@ export function PlatformApiPage({ project }: { project: Project }) {
         </div>
       )}
 
-      <section>
-        <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">API keys</h2>
-        <div className="flex flex-col gap-3">
-          <NewApiKeyForm
-            project={project}
-            onCreated={(key) => {
-              setNewRawKey(key.raw_key ?? null)
-              reload()
-            }}
-          />
-          <DataTable
-            columns={keyColumns}
-            rows={keys}
-            rowKey={(k) => k.id}
-            minWidth={640}
-            emptyTitle="No API keys yet"
-            emptyHint="Issue a key with the form above to let a partner system call the platform API on this project."
-          />
-        </div>
-      </section>
+      {canManage && (
+        <section>
+          <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">API keys</h2>
+          <div className="flex flex-col gap-3">
+            <NewApiKeyForm
+              project={project}
+              onCreated={(key) => {
+                setNewRawKey(key.raw_key ?? null)
+                reload()
+              }}
+            />
+            <DataTable
+              columns={keyColumns}
+              rows={keys}
+              rowKey={(k) => k.id}
+              minWidth={640}
+              emptyTitle="No API keys yet"
+              emptyHint="Issue a key with the form above to let a partner system call the platform API on this project."
+            />
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">Webhook subscriptions</h2>
         <div className="flex flex-col gap-3">
-          <NewWebhookForm project={project} onCreated={reload} />
+          {canManage && <NewWebhookForm project={project} onCreated={reload} />}
           {subscriptions.length === 0 ? (
             <EmptyState
               compact
@@ -328,17 +338,19 @@ export function PlatformApiPage({ project }: { project: Project }) {
         </div>
       </section>
 
-      <section>
-        <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">Recent webhook deliveries</h2>
-        <DataTable
-          columns={DELIVERY_COLUMNS}
-          rows={deliveries}
-          rowKey={(d) => d.id}
-          minWidth={480}
-          emptyTitle="No deliveries yet"
-          emptyHint="Once a subscribed event fires, each delivery attempt and its retry status will be listed here."
-        />
-      </section>
+      {canManage && (
+        <section>
+          <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">Recent webhook deliveries</h2>
+          <DataTable
+            columns={DELIVERY_COLUMNS}
+            rows={deliveries}
+            rowKey={(d) => d.id}
+            minWidth={480}
+            emptyTitle="No deliveries yet"
+            emptyHint="Once a subscribed event fires, each delivery attempt and its retry status will be listed here."
+          />
+        </section>
+      )}
 
       <ConfirmDialog
         open={keyToRevoke !== null}

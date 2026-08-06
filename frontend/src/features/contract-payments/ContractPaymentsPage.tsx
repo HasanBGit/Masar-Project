@@ -580,15 +580,20 @@ interface ContractPageData {
   amendments: ContractAmendment[]
 }
 
-async function loadContractPage(projectId: number): Promise<ContractPageData> {
+async function loadContractPage(projectId: number, role: string): Promise<ContractPageData> {
   const contracts = await listContracts(projectId)
   const contract = contracts[0] ?? null
   if (!contract) {
     return { contract: null, milestones: [], vsActual: null, amendments: [] }
   }
+  // contract_vs_actual is forbidden server-side for project_manager/designer
+  // ("Project Managers and Designers cannot access contract financial data")
+  // - fetching it unconditionally would 403 and fail the whole page load for
+  // those two roles via Promise.all.
+  const canViewFinancials = role !== 'project_manager' && role !== 'designer'
   const [milestones, vsActual, amendments] = await Promise.all([
     listPaymentMilestones(projectId),
-    getContractVsActual(contract.id),
+    canViewFinancials ? getContractVsActual(contract.id) : Promise.resolve(null),
     listAmendments(projectId),
   ])
   return { contract, milestones, vsActual, amendments }
@@ -596,9 +601,12 @@ async function loadContractPage(projectId: number): Promise<ContractPageData> {
 
 export function ContractPaymentsPage({ project }: { project: Project }) {
   const toast = useToast()
-  const { data, loading, error, reload } = useProjectData(project.id, (pid) => loadContractPage(Number(pid)))
+  const { data, loading, error, reload } = useProjectData(project.id, (pid) => loadContractPage(Number(pid), project.role))
   const [busyMilestoneId, setBusyMilestoneId] = useState<number | null>(null)
   const canManage = FINANCIAL_ROLES.has(project.role)
+  // contract_vs_actual, ceiling_check, and legal-agent/ask are all forbidden
+  // server-side for these two roles (see loadContractPage).
+  const canViewFinancials = project.role !== 'project_manager' && project.role !== 'designer'
 
   async function handleRelease(id: number) {
     setBusyMilestoneId(id)
@@ -703,7 +711,14 @@ export function ContractPaymentsPage({ project }: { project: Project }) {
       </div>
 
       {!contract ? (
-        <NewContractForm project={project} onCreated={reload} />
+        canManage ? (
+          <NewContractForm project={project} onCreated={reload} />
+        ) : (
+          <p className="rounded-[var(--radius-m)] border border-dashed border-sand bg-paper/60 p-5 text-sm text-navy/60">
+            No contract on this project yet. An owner or admin needs to create the contract record before payment
+            milestones can be tracked here.
+          </p>
+        )
       ) : (
         <>
           <section>
@@ -769,10 +784,12 @@ export function ContractPaymentsPage({ project }: { project: Project }) {
             />
           </section>
 
-          <section>
-            <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">Ask the legal agent</h2>
-            <LegalAgentChat contract={contract} canReindex={canManage} />
-          </section>
+          {canViewFinancials && (
+            <section>
+              <h2 className="mb-3 font-[var(--font-display)] text-lg font-bold text-navy">Ask the legal agent</h2>
+              <LegalAgentChat contract={contract} canReindex={canManage} />
+            </section>
+          )}
         </>
       )}
     </div>

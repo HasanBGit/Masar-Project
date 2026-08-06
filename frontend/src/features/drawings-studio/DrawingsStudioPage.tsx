@@ -10,6 +10,7 @@ import {
   UploadCloud,
 } from 'lucide-react'
 import type { DrawingModel, Project } from '../../lib/types'
+import { useAuth } from '../auth/AuthContext'
 import { getApiError } from '../../lib/api'
 import { useProjectData } from '../../lib/useProjectData'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
@@ -270,6 +271,10 @@ const TABS = [
 
 export function DrawingsStudioPage({ project }: { project: Project }) {
   const toast = useToast()
+  const { me } = useAuth()
+  // Matches the backend's destroy() gate: uploader or project owner/admin.
+  const canDeleteModel = (m: DrawingModel) =>
+    m.uploaded_by === me?.id || project.role === 'owner' || project.role === 'admin'
   const [activeTab, setActiveTab] = useState<'studio' | 'saved'>('studio')
   const [selectedModel, setSelectedModel] = useState<DrawingModel | null>(null)
   const [modelToDelete, setModelToDelete] = useState<DrawingModel | null>(null)
@@ -278,7 +283,7 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
   const [shape, setShape] = useState<PrimitiveShape>('saudi_tower')
   const [dims, setDims] = useState<PrimitiveDimensions>(DEFAULT_DIMENSIONS)
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>('saudi_tower')
-  const [shapeName, setShapeName] = useState('Riyadh Landmark Tower — Phase 1')
+  const [shapeName, setShapeName] = useState('Riyadh Landmark Tower - Phase 1')
   const [savingShape, setSavingShape] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -295,8 +300,8 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
       autoSeededRef.current = true
       try {
         const meshGroup = buildSaudiArchitectureMesh(DEFAULT_DIMENSIONS)
-        const file = await exportMeshToGlb(meshGroup, 'Riyadh Landmark Tower — Phase 1.glb')
-        await uploadDrawingModel(pid, file, 'Riyadh Landmark Tower — Phase 1')
+        const file = await exportMeshToGlb(meshGroup, 'Riyadh Landmark Tower - Phase 1.glb')
+        await uploadDrawingModel(pid, file, 'Riyadh Landmark Tower - Phase 1')
         return await listDrawingModels(pid)
       } catch {
         // ignore auto-seed failures
@@ -380,7 +385,7 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
           <p className="text-xs font-bold uppercase tracking-wider text-gold-ink">{project.name}</p>
           <h1 className="font-[var(--font-display)] text-3xl font-bold text-navy">Drawings Studio</h1>
           <p className="mt-1 text-sm text-navy/60">
-            View, orbit, section and measure 3D models — build 3D blocks live or upload CAD/BIM mesh exports.
+            View, orbit, section and measure 3D models. Build 3D blocks live or upload CAD/BIM mesh exports.
           </p>
         </div>
         <UploadForm project={project} onUploaded={reload} />
@@ -432,7 +437,7 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-navy">
               <Box size={14} className="text-gold-ink" aria-hidden="true" />
-              {selectedModel ? selectedModel.name : `Live 3D Viewport — ${SHAPE_LABELS[shape]}`}
+              {selectedModel ? selectedModel.name : `Live 3D Viewport: ${SHAPE_LABELS[shape]}`}
             </span>
             {selectedModel && (
               <button
@@ -697,14 +702,16 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
                     <span className="block text-xs uppercase text-navy/40">{m.format}</span>
                   </span>
                 </button>
-                <button
-                  onClick={() => setModelToDelete(m)}
-                  aria-label={`Delete ${m.name}`}
-                  title="Delete model"
-                  className="shrink-0 rounded p-1 text-navy/40 transition hover:bg-status-escalated/10 hover:text-status-escalated"
-                >
-                  <Trash2 size={14} aria-hidden="true" />
-                </button>
+                {canDeleteModel(m) && (
+                  <button
+                    onClick={() => setModelToDelete(m)}
+                    aria-label={`Delete ${m.name}`}
+                    title="Delete model"
+                    className="shrink-0 rounded p-1 text-navy/40 transition hover:bg-status-escalated/10 hover:text-status-escalated"
+                  >
+                    <Trash2 size={14} aria-hidden="true" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
