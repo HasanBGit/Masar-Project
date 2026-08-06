@@ -59,7 +59,7 @@ Truepoint (Saudi/GCC Construction Platform)
 ### 1️⃣ Overview & Command Center (0:00 – 0:50)
 
 > **Presenter Quote:**  
-> *"Fragmented communication—across WhatsApp groups, unorganized email threads, and delayed PDF reports—is the biggest risk in GCC mega-projects. Truepoint unifies all stakeholders into a single, tamper-proof system of record."*
+> *"Fragmented communication—across unorganized email threads, delayed RFIs, and PMC PDF reports—is the biggest risk in GCC mega-projects. Truepoint unifies all stakeholders into a single, tamper-proof system of record."*
 
 * **Action:** Select **Riyadh Tower - Phase 1** from the header project dropdown.
 * **Feature Highlights:**

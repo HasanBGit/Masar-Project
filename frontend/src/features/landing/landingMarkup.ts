@@ -64,11 +64,11 @@ export const LANDING_MARKUP = `
                 <p>Auto-extract RFIs, submittals, and ZATCA pay claims directly from your project Gmail.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Unified Timeline card"
-                data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحَّد" data-body-ar="واتسابك، بريدك، وتصاريحك  -  كلها في سجلٍّ واحد.">
+                data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحَّد" data-body-ar="بريدك، تصاريحك، ووثائقك  -  كلها في سجلٍّ واحد.">
                 <span class="sight-kicker">Core Module</span>
                 <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/timeline.svg" />
                 <h3>Unified Timeline</h3>
-                <p>WhatsApp, email, and permit threads merged into one record.</p>
+                <p>Email, RFIs, and permit threads merged into one record.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Contract and Payments card"
                 data-kicker-ar="متوافق مع زاتكا" data-title-ar="العقود والمدفوعات" data-body-ar="دفعاتك مشروطة بأدلة مُعتمدة، لا بادعاءٍ من المقاول.">
@@ -100,7 +100,7 @@ export const LANDING_MARKUP = `
       </div>
 
       <section class="intro-copy" aria-label="Truepoint overview">
-        <p data-ar="تحوّل Truepoint مجموعات واتسابك ورسائلك الإلكترونية وتقارير استشاريك إلى سجل مشروعك الموحَّد  -  بالعربية أولاً  -  دون أن تطلب من فريقك تغيير أسلوب عمله.">Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record, without asking your site team to change how they work.</p>
+        <p data-ar="تحوّل Truepoint رسائلك الإلكترونية وطلبات المعلومات وتقارير استشاريك إلى سجل مشروعك الموحَّد  -  بالعربية أولاً  -  دون أن تطلب من فريقك تغيير أسلوب عمله.">Truepoint turns your email threads, RFIs, and PMC reports into one verified, Arabic-first project record, without asking your site team to change how they work.</p>
         <div class="hero-tags" aria-label="Truepoint highlights">
           <span data-ar="المالك أولاً">Owner-first</span>
           <span data-ar="العربية أولاً">Arabic-first</span>
@@ -125,7 +125,7 @@ export const LANDING_MARKUP = `
 
       <section class="story-panel story-panel-bazaar" aria-label="Arabic-first details">
         <h2 data-ar="العربية أولاً، ليست إضافة لاحقة.">Arabic-first, not bolted on.</h2>
-        <p data-ar="ملاحظات صوتية والتقاط عبر واتساب ومعالجة لغوية تراعي اللهجة الخليجية  -  مبنيٌّ للعربية منذ اليوم الأول، لا مسار إنجليزي أُضيفت إليه ترجمة لاحقًا.">Voice notes, WhatsApp capture, and a Gulf-dialect-aware NLP pipeline: built for Arabic first, not translated later.</p>
+        <p data-ar="ملاحظات صوتية ومعالجة لغوية تراعي اللهجة الخليجية  -  مبنيٌّ للعربية منذ اليوم الأول، لا مسار إنجليزي أُضيفت إليه ترجمة لاحقًا.">Voice notes, document capture, and a Gulf-dialect-aware NLP pipeline: built for Arabic first, not translated later.</p>
         <button class="note-button request-access-btn" type="button">
           <span aria-hidden="true">↗</span>
           <span data-ar="ابدأ مجانًا">Request Early Access</span>
@@ -142,7 +142,7 @@ export const LANDING_MARKUP = `
         <article class="feature-card">
           <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/timeline.svg" />
           <h3 data-ar="خط زمني موحّد للمشروع">Unified project timeline</h3>
-          <p data-ar="تحديثات واتساب، والبريد الإلكتروني، وطلبات المعلومات، ومراسلات التصاريح، مدمجة في سجل واحد مرتبط بالمشروع.">WhatsApp updates, email threads, RFIs, and permit correspondence, merged into one project-anchored record.</p>
+          <p data-ar="البريد الإلكتروني، وطلبات المعلومات، ومراسلات التصاريح، مدمجة في سجل واحد مرتبط بالمشروع.">Email threads, RFIs, and permit correspondence, merged into one project-anchored record.</p>
         </article>
         <article class="feature-card">
           <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/trust.svg" />
@@ -176,7 +176,7 @@ export const LANDING_MARKUP = `
         <div class="step">
           <span class="step-num">1</span>
           <h3 data-ar="اربط قنواتك">Connect your channels</h3>
-          <p data-ar="أضف Truepoint إلى مجموعات واتساب وصناديق البريد التي يستخدمها فريقك بالفعل. دون تطبيق جديد على فريق الموقع تبنّيه.">Add Truepoint to the WhatsApp groups and inboxes your team already uses. No new app for the site team to adopt.</p>
+          <p data-ar="أضف Truepoint إلى صناديق البريد والقنوات التي يستخدمها فريقك بالفعل. دون تطبيق جديد على فريق الموقع تبنّيه.">Add Truepoint to the inboxes and channels your team already uses. No new app for the site team to adopt.</p>
         </div>
         <div class="step">
           <span class="step-num">2</span>
@@ -216,7 +216,7 @@ export const LANDING_MARKUP = `
           <h3 data-ar="مشروع واحد">Single Project</h3>
           <p class="price-tagline" data-ar="موقع نشط واحد، مغطّى بالكامل.">One active site, fully covered.</p>
           <ul>
-            <li data-ar="التقاط ميداني من مجموعات واتساب الحالية">Field capture from existing WhatsApp groups</li>
+            <li data-ar="التقاط ميداني من البريد والمستندات">Field capture from email &amp; documents</li>
             <li data-ar="خط زمني موحّد للمشروع">Unified project timeline</li>
             <li data-ar="لوحة تحكم المالك والواجهات حسب الدور">Owner dashboard &amp; role views</li>
             <li data-ar="سير عمل اعتماد الحواف الثلاث">3 Edges approval workflow</li>
@@ -299,7 +299,7 @@ export const LANDING_MARKUP = `
       <div class="faq-list">
         <details class="faq-item" open>
           <summary data-ar="هل يحتاج فريق الموقع لتعلّم تطبيق جديد؟">Does my site team need to learn a new app?</summary>
-          <p data-ar="لا. الالتقاط الميداني يعتمد على مجموعات واتساب التي يستخدمها فريقك بالفعل. يقرأ Truepoint من قنوات لم يغيّرها فريقك، بدلاً من مطالبته بتبنّي قناة جديدة.">No. Field capture rides on the WhatsApp groups your trades already use. Truepoint reads from channels your team hasn't changed, rather than asking them to adopt a new one.</p>
+          <p data-ar="لا. يتكامل Truepoint مباشرة مع صناديق البريد والوثائق التي يستخدمها فريقك بالفعل بدلاً من مطالبته بتبنّي أدوات معقدة جديدة.">No. Truepoint integrates directly with your email inboxes and project documents. Truepoint reads from existing channels your team already uses, rather than asking them to adopt complex new tools.</p>
         </details>
         <details class="faq-item">
           <summary data-ar="أين يتم تخزين بيانات مشروعنا؟">Where is our project data stored?</summary>
@@ -332,7 +332,7 @@ export const LANDING_MARKUP = `
       <div class="legal-grid">
         <div class="legal-block" id="privacy">
           <h3 data-ar="سياسة الخصوصية">Privacy policy</h3>
-          <p data-ar="نجمع فقط بيانات التواصل الخاصة بالمشروع التي تربطها بنفسك (رسائل واتساب والبريد الإلكتروني والأدلة المرفوعة) ونستخدمها حصراً لبناء سجل مشروعك. تُخزَّن البيانات داخل السعودية وفق نظام حماية البيانات الشخصية (PDPL)، ولا تُباع أبداً، ويمكن تصديرها أو حذفها عند الطلب. هذا ملخص، تُشارك السياسة الكاملة أثناء التأهيل.">We only collect the project communication you connect yourself (WhatsApp messages, email threads, and uploaded evidence) and use it solely to build your project record. Data is stored in Saudi Arabia in line with PDPL, is never sold, and can be exported or deleted on request. This is a summary; the full policy is shared during onboarding.</p>
+          <p data-ar="نجمع فقط بيانات التواصل الخاصة بالمشروع التي تربطها بنفسك (رسائل البريد الإلكتروني والأدلة المرفوعة) ونستخدمها حصراً لبناء سجل مشروعك. تُخزَّن البيانات داخل السعودية وفق نظام حماية البيانات الشخصية (PDPL)، ولا تُباع أبداً، ويمكن تصديرها أو حذفها عند الطلب. هذا ملخص، تُشارك السياسة الكاملة أثناء التأهيل.">We only collect the project communication you connect yourself (email threads and uploaded evidence) and use it solely to build your project record. Data is stored in Saudi Arabia in line with PDPL, is never sold, and can be exported or deleted on request. This is a summary; the full policy is shared during onboarding.</p>
         </div>
         <div class="legal-block" id="terms">
           <h3 data-ar="شروط الخدمة">Terms of service</h3>

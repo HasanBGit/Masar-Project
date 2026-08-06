@@ -75,7 +75,7 @@ export const LANDING_MARKUP = `
                 <span class="sight-kicker">Core Module</span>
                 <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Unified Timeline</h3>
-                <p>WhatsApp, email, and permit threads merged into one record.</p>
+                <p>Email, RFIs, and permit threads merged into one record.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Contract and Payments card"
                 data-kicker-ar="متوافق مع زاتكا" data-title-ar="العقود والمدفوعات" data-body-ar="دفعات مشروطة بأدلة مُعتمدة وموثَّقة، لا بادعاء ذاتي من المقاول."
@@ -109,7 +109,7 @@ export const LANDING_MARKUP = `
       </div>
 
       <section class="intro-copy" aria-label="Truepoint overview">
-        <p data-ar="تحوّل Truepoint مجموعات الواتساب والمراسلات الإلكترونية وتقارير استشاري إدارة المشاريع إلى سجل مشروع موحَّد وموثَّق باللغة العربية أولاً  -  دون أن يُكلَّف فريق الموقع بتغيير أسلوب عمله.">Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record  -  without asking your site team to change how they work.</p>
+        <p data-ar="تحوّل Truepoint المراسلات الإلكترونية وطلبات المعلومات وتقارير استشاري إدارة المشاريع إلى سجل مشروع موحَّد وموثَّق باللغة العربية أولاً  -  دون أن يُكلَّف فريق الموقع بتغيير أسلوب عمله.">Truepoint turns your email threads, RFIs, and PMC reports into one verified, Arabic-first project record  -  without asking your site team to change how they work.</p>
         <div class="hero-tags" aria-label="Truepoint highlights">
           <span data-ar="الأولوية للمالك">Owner-first</span>
           <span data-ar="الأولوية للعربية">Arabic-first</span>
@@ -134,7 +134,7 @@ export const LANDING_MARKUP = `
 
       <section class="story-panel story-panel-bazaar" aria-label="Arabic-first details">
         <h2 data-ar="الأولوية للعربية، لا ترجمة أُضيفت لاحقاً.">Arabic-first, not bolted on.</h2>
-        <p data-ar="ملاحظات صوتية والتقاط عبر واتساب ومعالجة لغوية تراعي اللهجة الخليجية  -  لا مسار إنجليزي أُضيفت إليه ترجمة في مرحلة لاحقة.">Voice notes, WhatsApp capture, and a Gulf-dialect-aware NLP pipeline  -  not an English pipeline with translation added later.</p>
+        <p data-ar="ملاحظات صوتية ومعالجة لغوية تراعي اللهجة الخليجية  -  لا مسار إنجليزي أُضيفت إليه ترجمة في مرحلة لاحقة.">Voice notes, document capture, and a Gulf-dialect-aware NLP pipeline  -  not an English pipeline with translation added later.</p>
         <button class="note-button request-access-btn" type="button">
           <span aria-hidden="true">↗</span>
           <span data-ar="طلب الوصول المبكر">Request Early Access</span>
@@ -150,7 +150,7 @@ export const LANDING_MARKUP = `
       <div class="feature-grid">
         <article class="feature-card">
           <h3 data-ar="الخط الزمني الموحَّد للمشروع">Unified project timeline</h3>
-          <p data-ar="تحديثات واتساب والمراسلات الإلكترونية وطلبات المعلومات ومراسلات التصاريح  -  مدمجة في سجل واحد مرتبط بالمشروع.">WhatsApp updates, email threads, RFIs, and permit correspondence  -  merged into one project-anchored record.</p>
+          <p data-ar="المراسلات الإلكترونية وطلبات المعلومات ومراسلات التصاريح  -  مدمجة في سجل واحد مرتبط بالمشروع.">Email threads, RFIs, and permit correspondence  -  merged into one project-anchored record.</p>
         </article>
         <article class="feature-card">
           <h3 data-ar="موثَّق، لا مُصرَّح به ذاتياً">Verified, not self-reported</h3>
@@ -180,7 +180,7 @@ export const LANDING_MARKUP = `
         <div class="step">
           <span class="step-num">1</span>
           <h3 data-ar="ربط قنوات التواصل">Connect your channels</h3>
-          <p data-ar="أضف Truepoint إلى مجموعات واتساب وصناديق البريد التي يستخدمها فريقك بالفعل  -  دون أن تُكلِّف فريق الموقع بتبنّي تطبيق جديد.">Add Truepoint to the WhatsApp groups and inboxes your team already uses. No new app for the site team to adopt.</p>
+          <p data-ar="أضف Truepoint إلى صناديق البريد والقنوات التي يستخدمها فريقك بالفعل  -  دون أن تُكلِّف فريق الموقع بتبنّي تطبيق جديد.">Add Truepoint to the inboxes and channels your team already uses. No new app for the site team to adopt.</p>
         </div>
         <div class="step">
           <span class="step-num">2</span>
@@ -220,7 +220,7 @@ export const LANDING_MARKUP = `
           <h3 data-ar="مشروع واحد">Single Project</h3>
           <p class="price-tagline" data-ar="موقع نشط واحد، مشمول بالكامل.">One active site, fully covered.</p>
           <ul>
-            <li data-ar="التقاط ميداني من مجموعات واتساب الحالية">Field capture from existing WhatsApp groups</li>
+            <li data-ar="التقاط ميداني من البريد والمستندات">Field capture from email &amp; documents</li>
             <li data-ar="الخط الزمني الموحَّد للمشروع">Unified project timeline</li>
             <li data-ar="لوحة تحكم المالك والواجهات المخصصة حسب الدور">Owner dashboard &amp; role views</li>
             <li data-ar="سير عمل اعتماد الحواف الثلاث">3 Edges approval workflow</li>
@@ -303,7 +303,7 @@ export const LANDING_MARKUP = `
       <div class="faq-list">
         <details class="faq-item" open>
           <summary data-ar="هل يحتاج فريق الموقع إلى تعلّم تطبيق جديد؟">Does my site team need to learn a new app?</summary>
-          <p data-ar="لا. يعتمد الالتقاط الميداني على مجموعات واتساب التي يستخدمها فريقك بالفعل  -  تقرأ Truepoint من قنوات لم يُغيِّرها فريقك، عوضاً عن مطالبته بتبنّي قناة جديدة.">No. Field capture rides on the WhatsApp groups your trades already use  -  Truepoint reads from channels your team hasn't changed, rather than asking them to adopt a new one.</p>
+          <p data-ar="لا. يتكامل Truepoint مباشرة مع صناديق البريد والوثائق التي يستخدمها فريقك بالفعل بدلاً من مطالبته بتبنّي أدوات معقدة جديدة.">No. Truepoint integrates directly with your email inboxes and project documents. Truepoint reads from existing channels your team already uses, rather than asking them to adopt complex new tools.</p>
         </details>
         <details class="faq-item">
           <summary data-ar="أين تُخزَّن بيانات مشروعنا؟">Where is our project data stored?</summary>

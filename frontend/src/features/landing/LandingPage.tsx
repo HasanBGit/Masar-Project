@@ -8,8 +8,8 @@ import './landing.css'
 
 const NAV_INFO: Record<string, { en: string; ar: string }> = {
   Product: {
-    en: 'Truepoint unifies fragmented construction-project communication (WhatsApp groups, email/RFI threads, PMC PDF reports) into a single, owner-facing, trust-verified project record.',
-    ar: 'يوحّد Truepoint التواصل المتناثر في مشاريع البناء (مجموعات واتساب، مراسلات البريد وطلبات المعلومات، تقارير استشاري الإدارة) في سجل مشروع واحد موثّق يخدم المالك.',
+    en: 'Truepoint unifies fragmented construction-project communication (email/RFI threads, PMC PDF reports) into a single, owner-facing, trust-verified project record.',
+    ar: 'يوحّد Truepoint التواصل المتناثر في مشاريع البناء (مراسلات البريد وطلبات المعلومات، تقارير استشاري الإدارة) في سجل مشروع واحد موثّق يخدم المالك.',
   },
   'Trust & Evidence': {
     en: "The verified milestone ledger and audit log every other trust claim depends on. A photo upload alone is not evidence. It's a pending claim until a verifier acknowledges it.",
@@ -585,7 +585,7 @@ function applyLanguageToMarkup(container: HTMLElement, lang: Lang) {
 }
 
 const LANDING_DESCRIPTION =
-  'Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record for Saudi and GCC construction. Owner-first, evidence-backed, dispute-ready.'
+  'Truepoint turns your email threads, RFIs, and PMC reports into one verified, Arabic-first project record for Saudi and GCC construction. Owner-first, evidence-backed, dispute-ready.'
 
 const FAQ_JSON_LD = {
   '@context': 'https://schema.org',
@@ -596,7 +596,7 @@ const FAQ_JSON_LD = {
       name: 'Does my site team need to learn a new app?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "No. Field capture rides on the WhatsApp groups your trades already use. Truepoint reads from channels your team hasn't changed, rather than asking them to adopt a new one.",
+        text: "No. Truepoint integrates directly with your email inboxes and project documents. Truepoint reads from existing channels your team already uses, rather than asking them to adopt complex new tools.",
       },
     },
     {
