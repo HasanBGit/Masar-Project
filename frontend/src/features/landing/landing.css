@@ -1,10 +1,6 @@
-@font-face {
-  font-family: "Ogg Medium";
-  src: url("https://dcym8fthxf5uu.cloudfront.net/fonts/247a073c-29f5-4a89-aa3a-741020f346fc/OggText-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
+/* Display headings fall back to the system serif stack (Georgia) already
+   named alongside every "Ogg Medium" reference below: no remote font
+   fetch blocking first paint. */
 
 :root {
   --mx: 0; --my: 0;
@@ -201,6 +197,9 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
 }
 .site-logo {
   justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-family: "Ogg Medium", Georgia, serif;
   font-size: 24px;
   line-height: 1;
@@ -209,6 +208,7 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   text-decoration: none;
   white-space: nowrap;
 }
+.site-logo-icon { flex: none; }
 .site-nav {
   display: flex;
   justify-content: center;
@@ -699,20 +699,6 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   color: var(--paper);
 }
 
-.photo-credits {
-  position: relative;
-  z-index: 1;
-  padding: 10px 16px;
-  background: #0b1110;
-  color: rgba(253, 241, 225, 0.45);
-  font-size: 11px;
-  line-height: 1.5;
-  text-align: center;
-}
-.photo-credits a {
-  color: rgba(253, 241, 225, 0.65);
-}
-
 /* Media queries */
 @media (max-width: 1500px) {
   .hero-title { font-size: 11rem; }
@@ -814,6 +800,17 @@ html[dir="rtl"] .section-heading { font-family: "Noto Kufi Arabic", Georgia, ser
   border: 1px solid rgba(253, 241, 225, 0.14);
   border-radius: 20px;
   background: rgba(253, 241, 225, 0.04);
+  transition: transform 220ms ease, border-color 220ms ease;
+}
+.feature-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(201, 162, 39, 0.4);
+}
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  margin-bottom: 18px;
 }
 .feature-card h3 {
   margin: 0;
@@ -1212,8 +1209,6 @@ html[dir="rtl"] .footer-top h2 { font-family: "Noto Kufi Arabic", Georgia, serif
   color: rgba(253, 241, 225, 0.45);
   font-size: 0.75rem;
 }
-.site-footer .photo-credits { padding: 14px 0 24px; }
-
 @media (max-width: 900px) {
   .feature-grid,
   .steps-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

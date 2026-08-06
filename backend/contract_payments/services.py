@@ -363,8 +363,8 @@ def ask_legal_agent(*, project, question: str, asked_by=None, language: str = "a
         headers = {
             "Authorization": f"Bearer {openrouter_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://masar.sa",
-            "X-Title": "Masar Construction Governance",
+            "HTTP-Referer": "https://truepoint.sa",
+            "X-Title": "Truepoint Construction Governance",
         }
         payload = {
             "model": model_name,

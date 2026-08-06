@@ -7,12 +7,12 @@ import './landing.css'
 
 const NAV_INFO: Record<string, { en: string; ar: string }> = {
   Product: {
-    en: 'Truepoint unifies fragmented construction-project communication — WhatsApp groups, email/RFI threads, PMC PDF reports — into a single, owner-facing, trust-verified project record.',
-    ar: 'يوحّد Truepoint التواصل المتناثر في مشاريع البناء — مجموعات واتساب، مراسلات البريد وطلبات المعلومات، تقارير استشاري الإدارة — في سجل مشروع واحد موثّق يخدم المالك.',
+    en: 'Truepoint unifies fragmented construction-project communication (WhatsApp groups, email/RFI threads, PMC PDF reports) into a single, owner-facing, trust-verified project record.',
+    ar: 'يوحّد Truepoint التواصل المتناثر في مشاريع البناء (مجموعات واتساب، مراسلات البريد وطلبات المعلومات، تقارير استشاري الإدارة) في سجل مشروع واحد موثّق يخدم المالك.',
   },
   'Trust & Evidence': {
-    en: "The verified milestone ledger and audit log every other trust claim depends on. A photo upload alone is not evidence — it's a pending claim until a verifier acknowledges it.",
-    ar: 'سجل المعالم المُعتمدة وسجل التدقيق اللذان تعتمد عليهما كل مطالبة ثقة أخرى. رفع صورة وحده ليس دليلاً — بل مطالبة معلّقة حتى يُقرّها المدقق.',
+    en: "The verified milestone ledger and audit log every other trust claim depends on. A photo upload alone is not evidence. It's a pending claim until a verifier acknowledges it.",
+    ar: 'سجل المعالم المُعتمدة وسجل التدقيق اللذان تعتمد عليهما كل مطالبة ثقة أخرى. رفع صورة وحده ليس دليلاً، بل مطالبة معلّقة حتى يُقرّها المدقق.',
   },
   Approvals: {
     en: 'The 3 Edges: Hearing, Understanding, Agreeing. A single named, accountable approver signs off.',

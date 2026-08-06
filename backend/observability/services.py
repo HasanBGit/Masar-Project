@@ -102,7 +102,7 @@ def get_quiet_projects(quiet_days: int = QUIET_PROJECT_THRESHOLD_DAYS) -> list[d
     return quiet
 
 
-# --- SLA compliance (cross-project - San3-internal, not per-project owner view) ---
+# --- SLA compliance (cross-project - Truepoint-internal, not per-project owner view) ---
 
 
 def get_sla_compliance_summary() -> dict:

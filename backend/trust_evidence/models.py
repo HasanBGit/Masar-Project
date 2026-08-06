@@ -15,7 +15,7 @@ class ActorRole(models.TextChoices):
     FOREMAN = "foreman", "Foreman"
     LABORER = "laborer", "Laborer"
     PMC = "pmc", "PMC"
-    SAN3_STAFF = "san3_staff", "San3 staff"
+    SAN3_STAFF = "san3_staff", "Truepoint staff"
     SYSTEM = "system", "System"
 
 

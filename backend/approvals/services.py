@@ -231,7 +231,7 @@ def get_all_project_decisions(project) -> QuerySet[Decision]:
 
 def get_all_decisions() -> list[Decision]:
     """
-    Unscoped, cross-project read - for San3-internal aggregation only
+    Unscoped, cross-project read - for Truepoint-internal aggregation only
     (observability's SLA-compliance view), never for a per-project owner
     view. Callers must gate this behind staff-level access, not project
     RBAC - an owner shouldn't see another owner's project data this way.

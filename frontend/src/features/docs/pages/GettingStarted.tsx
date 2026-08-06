@@ -40,7 +40,7 @@ export function GettingStartedPage() {
           ['investor@truepoint.sa', 'Investor', 'Aggregate signal only - high-stakes decisions, no operational detail.'],
           ['consultant@truepoint.sa', 'Consultant', 'Decisions where they hold a RACI role; can verify evidence.'],
           ['contractor@truepoint.sa', 'Contractor', "Their own action queue - what's assigned to them."],
-          ['ops@truepoint.sa', 'San3 internal (staff)', 'The Observability dashboard - nobody else can see this.'],
+          ['ops@truepoint.sa', 'Truepoint internal (staff)', 'The Observability dashboard - nobody else can see this.'],
         ]}
       />
       <CodeBlock label="password">demo1234</CodeBlock>
@@ -95,7 +95,7 @@ GET /api/v1/dashboard/summary/?project=1  # role-shaped dashboard`}</CodeBlock>
           <strong>Contractor</strong> - the party usually Responsible on decisions and raising RFIs/evidence.
         </li>
         <li>
-          <strong>Admin</strong> - San3-internal, same elevated rights as Owner plus the Observability dashboard
+          <strong>Admin</strong> - Truepoint-internal, same elevated rights as Owner plus the Observability dashboard
           (gated on a separate <InlineCode>is_staff</InlineCode> flag, not project role).
         </li>
       </DocsUl>

@@ -38,7 +38,7 @@ class SystemHealthCheckView(APIView):
 
 class StaffOnly(IsAuthenticated):
     """
-    San3-internal-only - every view in this app is the ops team's own
+    Truepoint-internal-only - every view in this app is the ops team's own
     dashboard, distinct from the customer-facing `owner-dashboard` module
     (Module 3). Gated on Django's built-in `is_staff`, not project RBAC:
     an owner shouldn't see this even for their own project.

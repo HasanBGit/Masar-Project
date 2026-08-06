@@ -102,10 +102,10 @@ export function ObservabilityPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <p className="text-sm font-semibold text-gold-ink">San3 internal</p>
+        <p className="text-sm font-semibold text-gold-ink">Truepoint internal</p>
         <h1 className="font-[var(--font-display)] text-3xl font-bold text-navy">Monitoring &amp; Observability</h1>
         <p className="mt-1 text-sm text-navy/60">
-          "We're watching so the owner doesn't have to" - only holds if San3 is watching its own pipes. Internal-only, distinct from the customer-facing dashboard.
+          "We're watching so the owner doesn't have to" - only holds if Truepoint is watching its own pipes. Internal-only, distinct from the customer-facing dashboard.
         </p>
       </div>
 

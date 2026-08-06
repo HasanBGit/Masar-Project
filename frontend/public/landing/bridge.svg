@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" preserveAspectRatio="xMidYMax meet" role="img" aria-hidden="true">
+  <path d="M0 640 C 260 340, 560 220, 800 220 C 1040 220, 1340 340, 1600 640"
+        fill="none" stroke="#e3c878" stroke-width="10" stroke-linecap="round" />
+  <path d="M0 690 C 260 420, 560 310, 800 310 C 1040 310, 1340 420, 1600 690"
+        fill="none" stroke="#c9a227" stroke-width="4" stroke-opacity="0.55" stroke-linecap="round" />
+  <circle cx="800" cy="220" r="9" fill="#f4efe7" />
+</svg>

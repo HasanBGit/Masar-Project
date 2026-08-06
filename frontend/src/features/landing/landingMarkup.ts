@@ -1,19 +1,18 @@
-// Body markup ported from riyadh-city/index.html. Kept as a raw HTML string
-// (rendered via dangerouslySetInnerHTML) rather than transcribed to JSX so it
-// stays byte-identical to the original design; interactivity is reattached in
-// LandingPage.tsx via the ported script.js logic.
+// Body markup for the Truepoint landing page. Kept as a raw HTML string
+// (rendered via dangerouslySetInnerHTML) so the intricate cinema-scroll DOM
+// stays easy to diff against the parallax logic in LandingPage.tsx, which
+// walks these exact class names and data-ar attributes at runtime.
+const LOGO_MARK = `<svg class="site-logo-icon" width="26" height="26" viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="13" r="7" fill="#c9a227"/><path d="M6 30c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#c9a227" stroke-width="4" stroke-linecap="round" fill="none"/></svg>`
+
 export const LANDING_MARKUP = `
 <main class="site-shell">
   <section class="cinema-scroll" id="cinema" aria-label="Truepoint cinematic scroll story">
     <div class="stage">
       <div class="world">
-        <!-- TODO: self-host this image under /public/landing/ before production. The remote
-             host is blocked from this build environment, so the hotlinked URL was kept;
-             width/height are approximate placeholders to reserve layout space. -->
-        <img class="scene-img sky-img" alt="Soft blue sky with drifting clouds over Riyadh" width="1920" height="1080" src="https://d8j0ntlcm91z4.cloudfront.net/user_3GuVL96jjh5izoSrfiVDK7XcMMd/hf_20260805_132834_a787e952-e7bc-4d20-8250-9d91757a603c.png" />
+        <img class="scene-img sky-img" alt="" width="1920" height="1080" src="/landing/hero-sky.svg" />
 
         <header class="site-header" aria-label="Primary navigation">
-          <a class="site-logo" href="#cinema">Truepoint</a>
+          <a class="site-logo" href="#cinema">${LOGO_MARK}<span>Truepoint</span></a>
           <nav class="site-nav" aria-label="Main menu">
             <button type="button" data-nav="Product" data-ar="المنتج">Product</button>
             <button type="button" data-nav="Trust &amp; Evidence" data-ar="الثقة">Trust</button>
@@ -32,64 +31,56 @@ export const LANDING_MARKUP = `
         </header>
 
         <div class="back-stack">
-          <!-- TODO: self-host before production (remote host blocked from this environment). -->
-          <img class="scene-img back-img back-four" alt="Kingdom Centre Tower glowing over the Riyadh skyline at night" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/8/88/Kingdom_Tower_at_night.JPG" />
+          <img class="scene-img back-img back-four" alt="" loading="lazy" width="1600" height="1067" src="/landing/skyline-far.svg" />
 
           <section class="sights-slider" aria-label="Truepoint modules slider">
             <div class="sights-track">
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Approvals Workflow card"
-                data-kicker-ar="وحدة أساسية" data-title-ar="سير عمل الاعتماد" data-body-ar="الحواف الثلاث — الاستماع، الفهم، الموافقة — قبل اعتماد أي توقيع.">
+                data-kicker-ar="وحدة أساسية" data-title-ar="سير عمل الاعتماد" data-body-ar="الحواف الثلاث: الاستماع، الفهم، الموافقة، قبل اعتماد أي توقيع.">
                 <span class="sight-kicker">Core Module</span>
-                <!-- TODO: self-host before production (remote host blocked from this environment). -->
-                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
+                <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/approvals.svg" />
                 <h3>Approvals Workflow</h3>
-                <p>The 3 Edges — Hearing, Understanding, Agreeing — before any sign-off counts.</p>
+                <p>The 3 Edges: Hearing, Understanding, Agreeing, before any sign-off counts.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Trust and Evidence card"
                 data-kicker-ar="النواة الأساسية" data-title-ar="الثقة والأدلة" data-body-ar="معالم مُعتمدة وسجل تدقيق جاهز لتقديمه في أي نزاع.">
                 <span class="sight-kicker">Domain Kernel</span>
-                <!-- TODO: self-host before production (remote host blocked from this environment). -->
-                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
+                <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/trust.svg" />
                 <h3>Trust &amp; Evidence</h3>
                 <p>Verified milestones and a dispute-ready audit trail.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Owner Dashboard card"
                 data-kicker-ar="واجهات الأدوار" data-title-ar="لوحة تحكم المالك" data-body-ar="واجهات مخصصة للمالك والمستثمر والاستشاري والمقاول.">
                 <span class="sight-kicker">Role Views</span>
-                <!-- TODO: self-host before production (remote host blocked from this environment). -->
-                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230448_825949c9-ccdb-4857-b4a6-e349eccc9010.png" />
+                <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/dashboard.svg" />
                 <h3>Owner Dashboard</h3>
                 <p>Role-specific views for Owner, Investor, Consultant, Contractor.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Gmail and Email Integration card"
                 data-kicker-ar="ميزة رئيسية" data-title-ar="تكامل البريد و Gmail" data-body-ar="استخراج تلقائي لطلبات المعلومات والتصاريح والدفعات مباشرة من البريد الإلكتروني.">
                 <span class="sight-kicker">Main Feature</span>
-                <!-- TODO: self-host before production (remote host blocked from this environment). -->
-                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
+                <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/mail.svg" />
                 <h3>Gmail &amp; Email Integration</h3>
                 <p>Auto-extract RFIs, submittals, and ZATCA pay claims directly from your project Gmail.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Unified Timeline card"
                 data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحّد" data-body-ar="دمج واتساب والبريد الإلكتروني والتصاريح في سجل واحد.">
                 <span class="sight-kicker">Core Module</span>
-                <!-- TODO: self-host before production (remote host blocked from this environment). -->
-                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
+                <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/timeline.svg" />
                 <h3>Unified Timeline</h3>
                 <p>WhatsApp, email, and permit threads merged into one record.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Contract and Payments card"
                 data-kicker-ar="متوافق مع زاتكا" data-title-ar="العقود والمدفوعات" data-body-ar="دفعات مرتبطة بأدلة مُعتمدة، لا بتصريح ذاتي.">
                 <span class="sight-kicker">ZATCA Ready</span>
-                <!-- TODO: self-host before production (remote host blocked from this environment). -->
-                <img class="sight-pin" alt="Map-pin badge marking this module" loading="lazy" width="128" height="128" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
+                <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/contract.svg" />
                 <h3>Contract &amp; Payments</h3>
                 <p>Payment milestones gated on verified evidence, not self-assertion.</p>
               </article>
             </div>
           </section>
 
-          <!-- TODO: self-host before production (remote host blocked from this environment). -->
-          <img class="scene-img back-img back-bazaar" alt="Mud-brick towers of the historic At-Turaif district in ad-Dir'iyah" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/6/64/At-Turaif_District_in_ad-Dir%27iyah_%288%29.jpg" />
+          <img class="scene-img back-img back-bazaar" alt="" loading="lazy" width="1600" height="1067" src="/landing/skyline-near.svg" />
         </div>
 
         <div class="sights-controls" aria-label="Slider controls">
@@ -99,18 +90,17 @@ export const LANDING_MARKUP = `
 
         <h1 class="hero-title">TRUEPOINT</h1>
 
-        <!-- TODO: self-host the four images below before production (remote host blocked from this environment). -->
-        <img class="scene-img splitframe-img splitframe-left" alt="Riyadh skyline with the King Abdullah Financial District and Kingdom Centre Tower" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
-        <img class="scene-img splitframe-img splitframe-right" alt="Mirrored view of the Riyadh skyline with the King Abdullah Financial District" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/9/98/Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_%28KAFD%29_and_the_famous_Kingdom_Tower_.jpg" />
+        <img class="scene-img splitframe-img splitframe-left" alt="" loading="lazy" width="1600" height="1067" src="/landing/split-skyline.svg" />
+        <img class="scene-img splitframe-img splitframe-right" alt="" loading="lazy" width="1600" height="1067" src="/landing/split-skyline.svg" />
 
-        <img class="scene-img bridge-img" alt="Masmak fortress, the historic clay citadel in central Riyadh" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Masmak_castle.jpg" />
-        <img class="scene-img frame-two-img" alt="Still lake between palm groves at Wadi Hanifah" loading="lazy" width="1600" height="1067" src="https://upload.wikimedia.org/wikipedia/commons/0/08/Lake_at_Wadi_Hanifah_%285218227168%29.jpg" />
+        <img class="scene-img bridge-img" alt="" loading="lazy" width="1600" height="700" src="/landing/bridge.svg" />
+        <img class="scene-img frame-two-img" alt="" loading="lazy" width="1600" height="1067" src="/landing/horizon-glow.svg" />
 
         <div class="shade"></div>
       </div>
 
       <section class="intro-copy" aria-label="Truepoint overview">
-        <p data-ar="يحوّل Truepoint مجموعات الواتساب والمراسلات البريدية وتقارير استشاري الإدارة إلى سجل مشروع واحد موثّق باللغة العربية أولاً — دون أن يُطلب من فريق الموقع تغيير طريقة عمله.">Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record — without asking your site team to change how they work.</p>
+        <p data-ar="يحوّل Truepoint مجموعات الواتساب والمراسلات البريدية وتقارير استشاري الإدارة إلى سجل مشروع واحد موثّق باللغة العربية أولاً، دون أن يُطلب من فريق الموقع تغيير طريقة عمله.">Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record, without asking your site team to change how they work.</p>
         <div class="hero-tags" aria-label="Truepoint highlights">
           <span data-ar="الأولوية للمالك">Owner-first</span>
           <span data-ar="الأولوية للعربية">Arabic-first</span>
@@ -120,7 +110,7 @@ export const LANDING_MARKUP = `
 
       <section class="story-panel story-panel-bridge" aria-label="Approvals and trust details">
         <h2 data-ar="النواة التي تعتمد عليها كل وحدة.">The kernel every module depends on.</h2>
-        <p data-ar="الاعتمادات والثقة والأدلة هما النواة الأساسية — تُبنى عليها معظم الوحدات الأخرى.">Approvals and Trust &amp; Evidence are the domain kernel — most other modules build on both.</p>
+        <p data-ar="الاعتمادات والثقة والأدلة هما النواة الأساسية التي تُبنى عليها معظم الوحدات الأخرى.">Approvals and Trust &amp; Evidence form the domain kernel that most other modules build on.</p>
         <dl class="facts">
           <div>
             <dt>6%</dt>
@@ -135,7 +125,7 @@ export const LANDING_MARKUP = `
 
       <section class="story-panel story-panel-bazaar" aria-label="Arabic-first details">
         <h2 data-ar="الأولوية للعربية، لا إضافة لاحقة.">Arabic-first, not bolted on.</h2>
-        <p data-ar="ملاحظات صوتية والتقاط عبر واتساب ومعالجة لغوية تراعي اللهجة الخليجية — لا مسار إنجليزي أُضيفت له ترجمة لاحقاً.">Voice notes, WhatsApp capture, and a Gulf-dialect-aware NLP pipeline — not an English pipeline with translation added later.</p>
+        <p data-ar="ملاحظات صوتية والتقاط عبر واتساب ومعالجة لغوية تراعي اللهجة الخليجية: بُنيت للعربية أولاً، لا كمسار إنجليزي أُضيفت له ترجمة لاحقاً.">Voice notes, WhatsApp capture, and a Gulf-dialect-aware NLP pipeline: built for Arabic first, not translated later.</p>
         <button class="note-button request-access-btn" type="button">
           <span aria-hidden="true">↗</span>
           <span data-ar="اطلب الوصول المبكر">Request Early Access</span>
@@ -150,24 +140,29 @@ export const LANDING_MARKUP = `
       <h2 class="section-heading" data-ar="خمس قدرات تحوّل القنوات المتناثرة إلى سجل واحد قابل للمساءلة.">Five capabilities that turn scattered channels into one accountable record.</h2>
       <div class="feature-grid">
         <article class="feature-card">
+          <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/timeline.svg" />
           <h3 data-ar="خط زمني موحّد للمشروع">Unified project timeline</h3>
-          <p data-ar="تحديثات واتساب، والبريد الإلكتروني، وطلبات المعلومات، ومراسلات التصاريح — مدمجة في سجل واحد مرتبط بالمشروع.">WhatsApp updates, email threads, RFIs, and permit correspondence — merged into one project-anchored record.</p>
+          <p data-ar="تحديثات واتساب، والبريد الإلكتروني، وطلبات المعلومات، ومراسلات التصاريح، مدمجة في سجل واحد مرتبط بالمشروع.">WhatsApp updates, email threads, RFIs, and permit correspondence, merged into one project-anchored record.</p>
         </article>
         <article class="feature-card">
+          <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/trust.svg" />
           <h3 data-ar="موثّق، لا مُصرَّح به ذاتياً">Verified, not self-reported</h3>
           <p data-ar="مطالبات التقدّم ترتبط بدليل مصوَّر موثّق بالتاريخ والموقع الجغرافي لمعلم محدد قبل اعتمادها.">Progress claims tie to timestamped, geotagged photo evidence against a specific milestone before they count.</p>
         </article>
         <article class="feature-card">
+          <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/approvals.svg" />
           <h3 data-ar="سير عمل الحواف الثلاث">The 3 Edges approval flow</h3>
-          <p data-ar="الاستماع، الفهم، الموافقة — فحص استيعاب بأسلوب إعادة الشرح وتوقيع واحد محدد بالاسم ومسؤول، في كل مرة.">Hearing, Understanding, Agreeing — a teach-back check and one named, accountable sign-off, every time.</p>
+          <p data-ar="الاستماع، الفهم، الموافقة: فحص استيعاب بأسلوب إعادة الشرح، وتوقيع واحد محدد بالاسم ومسؤول في كل مرة.">Hearing, Understanding, Agreeing: a teach-back check and one named, accountable sign-off every time.</p>
         </article>
         <article class="feature-card">
+          <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/dashboard.svg" />
           <h3 data-ar="لوحات تحكم مخصصة حسب الدور">Role-specific dashboards</h3>
-          <p data-ar="يرى المالك والمستثمر والاستشاري والمقاول الواجهة المصمَّمة لقراراتهم — من نموذج بيانات واحد.">Owner, Investor, Consultant, and Contractor each see the view built for their decisions — from one data model.</p>
+          <p data-ar="يرى المالك والمستثمر والاستشاري والمقاول الواجهة المصمَّمة لقراراتهم، من نموذج بيانات واحد.">Owner, Investor, Consultant, and Contractor each see the view built for their decisions, all from one data model.</p>
         </article>
         <article class="feature-card">
+          <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/mail.svg" />
           <h3 data-ar="الأولوية للعربية، وجاهز للصوت">Arabic-first, voice-ready</h3>
-          <p data-ar="مبني على معالجة لغوية عربية تراعي اللهجة الخليجية منذ اليوم الأول — لا منتج إنجليزي أُضيفت له ترجمة لاحقاً.">Built on a Gulf-dialect-aware Arabic pipeline from day one — not an English product with translation bolted on.</p>
+          <p data-ar="مبني على معالجة لغوية عربية تراعي اللهجة الخليجية منذ اليوم الأول، لا منتج إنجليزي أُضيفت له ترجمة لاحقاً.">Built on a Gulf-dialect-aware Arabic pipeline from day one, not an English product with translation added later.</p>
         </article>
       </div>
     </div>
@@ -201,7 +196,7 @@ export const LANDING_MARKUP = `
     <div class="section-inner cta-band-inner">
       <div>
         <h2 data-ar="شاهد Truepoint على مشروعك.">See Truepoint on your project.</h2>
-        <p data-ar="دون بطاقة، ودون التزام — فقط جولة توضيحية على خطك الزمني الفعلي.">No card, no commitment — just a walkthrough with your actual timeline.</p>
+        <p data-ar="دون بطاقة، ودون التزام. فقط جولة توضيحية على خطك الزمني الفعلي.">No card, no commitment. Just a walkthrough with your actual timeline.</p>
       </div>
       <button class="note-button note-button--dark request-access-btn" type="button">
         <span aria-hidden="true">↗</span>
@@ -214,7 +209,7 @@ export const LANDING_MARKUP = `
     <div class="section-inner">
       <p class="section-eyebrow" data-ar="الأسعار">Pricing</p>
       <h2 class="section-heading" data-ar="مصمَّمة حسب محفظتك، لا بعدد مقاعد موحّد للجميع.">Scoped to your portfolio, not a one-size-fits-all seat count.</h2>
-      <p class="section-body" data-ar="يُسعَّر Truepoint لكل مشروع خلال مرحلة الوصول المبكر — سترى خطة مقترحة، لا جدار دفع، قبل الاتفاق على أي شيء.">Truepoint is priced per project during early access — you'll see a proposed plan, not a paywall, before anything is agreed.</p>
+      <p class="section-body" data-ar="يُسعَّر Truepoint لكل مشروع خلال مرحلة الوصول المبكر. سترى خطة مقترحة، لا جدار دفع، قبل الاتفاق على أي شيء.">Truepoint is priced per project during early access. You'll see a proposed plan, not a paywall, before anything is agreed.</p>
 
       <div class="pricing-grid">
         <article class="price-card">
@@ -274,15 +269,15 @@ export const LANDING_MARKUP = `
     <div class="section-inner credibility-inner">
       <div class="credibility-main">
         <p class="section-eyebrow" data-ar="من أين جاء هذا">Where this comes from</p>
-        <h2 class="section-heading" data-ar="بُني داخل برنامج مسار التابع لمؤسسة مسك، ومستند إلى الأرقام التي تقف خلفه.">Built inside Misk Foundation's Masar program, and grounded in the numbers behind it.</h2>
+        <h2 class="section-heading" data-ar="مبني على الأرقام الحقيقية للبناء في السعودية، لا على نص تسويقي.">Grounded in the numbers behind Saudi construction, not in marketing copy.</h2>
         <div class="credibility-points">
           <div>
-            <h3 data-ar="برعاية مؤسسة مسك">Incubated by Misk Foundation</h3>
-            <p data-ar="بُني بواسطة San3 (صنع) داخل برنامج مسار التابع لمؤسسة مسك للمؤسسين السعوديين.">Built by San3 (صنع) inside Misk Foundation's Masar program for Saudi founders.</p>
+            <h3 data-ar="بُني لواقع البناء السعودي، لا مُقتبَس منه">Built for Saudi construction, not adapted to it</h3>
+            <p data-ar="بدأ كل سير عمل من نزاعات مشاريع حقيقية وظروف مواقع فعلية في المملكة، لا من قالب إدارة مشاريع عام أُضيفت له العربية لاحقاً.">Every workflow started from real project disputes and site conditions in the Kingdom, not a generic project-management template with Arabic added on.</p>
           </div>
           <div>
             <h3 data-ar="مستند إلى أبحاث منشورة">Grounded in published research</h3>
-            <p data-ar="كل رقم في هذه الصفحة يستشهد بمصدر محكَّم — لا نص تسويقي.">Every stat on this site cites a peer-reviewed source — not marketing copy.</p>
+            <p data-ar="كل رقم في هذه الصفحة يستشهد بمصدر محكَّم، لا نص تسويقي.">Every stat on this page cites a peer-reviewed source, not marketing copy.</p>
           </div>
           <div>
             <h3 data-ar="في الوصول المبكر، عن قصد">In early access, on purpose</h3>
@@ -292,7 +287,7 @@ export const LANDING_MARKUP = `
       </div>
       <blockquote class="credibility-quote">
         <p data-ar="بنينا الخط الزمني وسير الاعتماد أولاً، لأنهما ما انتهت إليه كل نزاعات درسناها: من عَلِم بماذا، ومن وقّع على ماذا.">"We built the timeline and the approval flow first, because those are the two things every dispute we studied came down to: who knew what, and who signed off on it."</p>
-        <p class="credibility-cite" data-ar="— فريق Truepoint">— The Truepoint team</p>
+        <p class="credibility-cite" data-ar="فريق Truepoint">Truepoint team</p>
       </blockquote>
     </div>
   </section>
@@ -304,7 +299,7 @@ export const LANDING_MARKUP = `
       <div class="faq-list">
         <details class="faq-item" open>
           <summary data-ar="هل يحتاج فريق الموقع لتعلّم تطبيق جديد؟">Does my site team need to learn a new app?</summary>
-          <p data-ar="لا. الالتقاط الميداني يعتمد على مجموعات واتساب التي يستخدمها فريقك بالفعل — يقرأ Truepoint من قنوات لم يغيّرها فريقك، بدلاً من مطالبته بتبنّي قناة جديدة.">No. Field capture rides on the WhatsApp groups your trades already use — Truepoint reads from channels your team hasn't changed, rather than asking them to adopt a new one.</p>
+          <p data-ar="لا. الالتقاط الميداني يعتمد على مجموعات واتساب التي يستخدمها فريقك بالفعل. يقرأ Truepoint من قنوات لم يغيّرها فريقك، بدلاً من مطالبته بتبنّي قناة جديدة.">No. Field capture rides on the WhatsApp groups your trades already use. Truepoint reads from channels your team hasn't changed, rather than asking them to adopt a new one.</p>
         </details>
         <details class="faq-item">
           <summary data-ar="أين يتم تخزين بيانات مشروعنا؟">Where is our project data stored?</summary>
@@ -312,11 +307,11 @@ export const LANDING_MARKUP = `
         </details>
         <details class="faq-item">
           <summary data-ar="ماذا يغيّر «الاعتماد» فعلياً في العمل اليومي؟">What does 'approval' actually change day to day?</summary>
-          <p data-ar="كل توقيع يمر عبر الحواف الثلاث — الاستماع، الفهم، الموافقة — مع فحص استيعاب بأسلوب إعادة الشرح ومعتمِد واحد محدد بالاسم ومسؤول، بحيث لا يُعامَل «الاطّلاع» على أنه «موافقة».">Every sign-off passes through the 3 Edges — Hearing, Understanding, Agreeing — with a teach-back comprehension check and a single named, accountable approver, so "seen" stops being treated as "agreed."</p>
+          <p data-ar="كل توقيع يمر عبر الحواف الثلاث (الاستماع، الفهم، الموافقة) مع فحص استيعاب بأسلوب إعادة الشرح ومعتمِد واحد محدد بالاسم ومسؤول، بحيث لا يُعامَل «الاطّلاع» على أنه «موافقة».">Every sign-off passes through the 3 Edges (Hearing, Understanding, Agreeing) with a teach-back comprehension check and a single named, accountable approver, so "seen" stops being treated as "agreed."</p>
         </details>
         <details class="faq-item">
           <summary data-ar="هل Truepoint متاحة بالعربية فقط؟">Is Truepoint only available in Arabic?</summary>
-          <p data-ar="المنصة ثنائية اللغة وتضع العربية أولاً — بدّل اللغة من الشريط العلوي لترى المنتج كاملاً بالإنجليزية أو العربية، بما في ذلك الاتجاه من اليمين لليسار.">It's bilingual and Arabic-first — flip the language switcher in the top nav to see the whole product in English or Arabic, right-to-left included.</p>
+          <p data-ar="المنصة ثنائية اللغة وتضع العربية أولاً. بدّل اللغة من الشريط العلوي لترى المنتج كاملاً بالإنجليزية أو العربية، بما في ذلك الاتجاه من اليمين لليسار.">It's bilingual and Arabic-first. Flip the language switcher in the top nav to see the whole product in English or Arabic, right-to-left included.</p>
         </details>
         <details class="faq-item">
           <summary data-ar="كم تستغرق عملية التأهيل؟">How long does onboarding take?</summary>
@@ -337,11 +332,11 @@ export const LANDING_MARKUP = `
       <div class="legal-grid">
         <div class="legal-block" id="privacy">
           <h3 data-ar="سياسة الخصوصية">Privacy policy</h3>
-          <p data-ar="نجمع فقط بيانات التواصل الخاصة بالمشروع التي تربطها بنفسك — رسائل واتساب والبريد الإلكتروني والأدلة المرفوعة — ونستخدمها حصراً لبناء سجل مشروعك. تُخزَّن البيانات داخل السعودية وفق نظام حماية البيانات الشخصية (PDPL)، ولا تُباع أبداً، ويمكن تصديرها أو حذفها عند الطلب. هذا ملخص — تُشارك السياسة الكاملة أثناء التأهيل.">We collect only the project communication you connect yourself — WhatsApp messages, email threads, and uploaded evidence — and use it solely to build your project record. Data is stored in Saudi Arabia in line with PDPL, is never sold, and can be exported or deleted on request. This is a summary — the full policy is shared during onboarding.</p>
+          <p data-ar="نجمع فقط بيانات التواصل الخاصة بالمشروع التي تربطها بنفسك (رسائل واتساب والبريد الإلكتروني والأدلة المرفوعة) ونستخدمها حصراً لبناء سجل مشروعك. تُخزَّن البيانات داخل السعودية وفق نظام حماية البيانات الشخصية (PDPL)، ولا تُباع أبداً، ويمكن تصديرها أو حذفها عند الطلب. هذا ملخص، تُشارك السياسة الكاملة أثناء التأهيل.">We only collect the project communication you connect yourself (WhatsApp messages, email threads, and uploaded evidence) and use it solely to build your project record. Data is stored in Saudi Arabia in line with PDPL, is never sold, and can be exported or deleted on request. This is a summary; the full policy is shared during onboarding.</p>
         </div>
         <div class="legal-block" id="terms">
           <h3 data-ar="شروط الخدمة">Terms of service</h3>
-          <p data-ar="تُقدَّم Truepoint بموجب اتفاقية وصول مبكر: تسعير لكل مشروع يُتفق عليه قبل التفعيل، دون تجديد تلقائي، مع احتفاظك بملكية كل بيانات وسجلات مشروعك. تُقدَّم الخدمة كما هي خلال الوصول المبكر — تُشارك الشروط الكاملة مع حزمة التأهيل الخاصة بك.">Truepoint is offered under an early-access agreement: per-project pricing agreed before activation, no auto-renewal, and you keep ownership of all your project data and records. The service is provided as-is during early access — the full terms are shared with your onboarding pack.</p>
+          <p data-ar="تُقدَّم Truepoint بموجب اتفاقية وصول مبكر: تسعير لكل مشروع يُتفق عليه قبل التفعيل، دون تجديد تلقائي، مع احتفاظك بملكية كل بيانات وسجلات مشروعك. تُقدَّم الخدمة كما هي خلال الوصول المبكر، تُشارك الشروط الكاملة مع حزمة التأهيل الخاصة بك.">Truepoint is offered under an early-access agreement: per-project pricing agreed before activation, no auto-renewal, and you keep ownership of all your project data and records. The service is provided as-is during early access; the full terms are shared with your onboarding pack.</p>
         </div>
       </div>
     </div>
@@ -352,7 +347,7 @@ export const LANDING_MARKUP = `
   <div class="section-inner footer-top">
     <div>
       <h2 data-ar="جاهز لرؤيتها على مشروعك؟">Ready to see it on your project?</h2>
-      <p data-ar="اطلب الوصول المبكر وسنتابع معك مباشرة — دون بطاقة، ودون التزام.">Request early access and we'll follow up directly — no card, no commitment.</p>
+      <p data-ar="اطلب الوصول المبكر وسنتابع معك مباشرة. دون بطاقة، ودون التزام.">Request early access and we'll follow up directly. No card, no commitment.</p>
     </div>
     <button class="note-button request-access-btn" type="button">
       <span aria-hidden="true">↗</span>
@@ -362,8 +357,8 @@ export const LANDING_MARKUP = `
 
   <div class="section-inner footer-columns">
     <div class="footer-brand">
-      <a class="site-logo" href="#cinema">Truepoint</a>
-      <p data-ar="سجل واحد موثّق، من الموقع إلى التوقيع. بُني بواسطة San3 (صنع)، برعاية برنامج مسار التابع لمؤسسة مسك.">One verified record, from site to signature. Built by San3 (صنع), incubated in Misk Foundation's Masar program.</p>
+      <a class="site-logo" href="#cinema">${LOGO_MARK}<span>Truepoint</span></a>
+      <p data-ar="سجل واحد موثّق، من الموقع إلى التوقيع، مبني لفرق البناء في السعودية ودول الخليج.">One verified record, from site to signature, built for Saudi and GCC construction teams.</p>
       <button class="language-switcher" aria-label="Change language" type="button">
         <span class="language-switcher-label">EN</span>
         <span aria-hidden="true">⌄</span>
@@ -380,7 +375,7 @@ export const LANDING_MARKUP = `
     <div class="footer-col">
       <h3 data-ar="الشركة">Company</h3>
       <ul>
-        <li><a href="#credibility" data-ar="San3 وبرنامج مسار">San3 &amp; the Masar program</a></li>
+        <li><a href="#credibility" data-ar="نهجنا">Our approach</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -394,15 +389,7 @@ export const LANDING_MARKUP = `
 
   <div class="section-inner footer-bottom">
     <p class="pdpl-badge" data-ar="إقامة بيانات متوافقة مع نظام حماية البيانات السعودي (PDPL)">Saudi PDPL-aligned data residency</p>
-    <p class="footer-copy" data-ar="© 2026 Truepoint / San3">© 2026 Truepoint / San3</p>
-  </div>
-
-  <div class="photo-credits">
-    Photography: <a href="https://commons.wikimedia.org/wiki/File:Kingdom_Tower_at_night.JPG" target="_blank" rel="noopener">BroadArrow</a> ·
-    <a href="https://commons.wikimedia.org/wiki/File:At-Turaif_District_in_ad-Dir%27iyah_(8).jpg" target="_blank" rel="noopener">Radosław Botev / Fundacja Nomos</a> ·
-    <a href="https://commons.wikimedia.org/wiki/File:Riyadh_Skyline_showing_the_King_Abdullah_Financial_District_(KAFD)_and_the_famous_Kingdom_Tower_.jpg" target="_blank" rel="noopener">B.alotaby</a> ·
-    <a href="https://commons.wikimedia.org/wiki/File:Masmak_castle.jpg" target="_blank" rel="noopener">Baptiste Marcel</a> (public domain) ·
-    <a href="https://commons.wikimedia.org/wiki/File:Lake_at_Wadi_Hanifah_(5218227168).jpg" target="_blank" rel="noopener">Peter Dowley</a>, via Wikimedia Commons (CC BY / CC BY-SA)
+    <p class="footer-copy" data-ar="© 2026 Truepoint">© 2026 Truepoint</p>
   </div>
 </footer>
 

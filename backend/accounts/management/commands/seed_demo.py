@@ -26,7 +26,7 @@ DEMO_USERS = [
     ("investor@truepoint.sa", "Faisal Al-Harbi", Role.INVESTOR),
     ("consultant@truepoint.sa", "Nora Al-Qahtani", Role.CONSULTANT),
     ("contractor@truepoint.sa", "Khalid Al-Zahrani", Role.CONTRACTOR),
-    ("ops@truepoint.sa", "San3 Ops", Role.ADMIN),
+    ("ops@truepoint.sa", "Truepoint Ops", Role.ADMIN),
 ]
 
 
@@ -52,7 +52,7 @@ class Command(BaseCommand):
             if created:
                 user.set_password(DEMO_PASSWORD)
                 if role == Role.ADMIN:
-                    user.is_staff = True  # San3-internal ops - gates the observability dashboard, not project RBAC
+                    user.is_staff = True  # Truepoint-internal ops - gates the observability dashboard, not project RBAC
                 user.save()
             ProjectMembership.objects.get_or_create(user=user, project=project, defaults={"role": role})
             users[role] = user

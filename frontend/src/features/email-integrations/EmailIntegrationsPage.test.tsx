@@ -6,7 +6,7 @@ import { LanguageProvider } from '../../lib/i18n'
 import { ToastProvider } from '../../components/ui/Toast'
 import type { Project } from '../../lib/types'
 
-const testProject: Project = { id: 7, name: 'Masar Tower', slug: 'masar-tower', role: 'owner' }
+const testProject: Project = { id: 7, name: 'Horizon Tower', slug: 'horizon-tower', role: 'owner' }
 
 function renderPage() {
   return render(
@@ -80,7 +80,7 @@ describe('EmailIntegrationsPage', () => {
     await user.click(screen.getByRole('button', { name: 'Copy' }))
 
     await waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith('https://api.masar-construction.sa/v1/webhooks/gmail/pubsub'),
+      expect(writeText).toHaveBeenCalledWith('https://api.truepoint.sa/v1/webhooks/gmail/pubsub'),
     )
     expect(await screen.findByText('Webhook URL copied to clipboard.')).toBeInTheDocument()
   })

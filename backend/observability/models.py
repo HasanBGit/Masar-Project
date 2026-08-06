@@ -65,9 +65,9 @@ class AlertSeverity(models.TextChoices):
 
 class AlertEvent(TimeStampedModel):
     """
-    Internal alerting - routed to San3's own ops team, distinct from any
+    Internal alerting - routed to Truepoint's own ops team, distinct from any
     customer-facing notification (per skill: "a banned WhatsApp session
-    should page San3 before it pages a customer"). No real paging
+    should page Truepoint before it pages a customer"). No real paging
     integration (PagerDuty/Opsgenie) is wired up here - this is the
     internal alert queue a paging webhook would consume; see README.
     """

@@ -27,7 +27,7 @@ const MESSAGES = {
   'nav.admin': { en: 'Administration', ar: 'الإدارة' },
   'nav.accessControl': { en: 'Access Control', ar: 'التحكم بالوصول' },
   'nav.platformApi': { en: 'Platform API', ar: 'واجهة برمجة المنصة' },
-  'nav.internal': { en: 'San3 Internal', ar: 'صنع الداخلية' },
+  'nav.internal': { en: 'Truepoint Internal', ar: 'داخلية Truepoint' },
   'nav.observability': { en: 'Observability', ar: 'المراقبة' },
   'nav.docs': { en: 'Documentation', ar: 'التوثيق' },
 

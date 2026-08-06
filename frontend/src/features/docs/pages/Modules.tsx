@@ -114,7 +114,7 @@ export function ModulesPage() {
       </Module>
 
       <DocsH2 id="observability">Monitoring & Observability</DocsH2>
-      <Module id="observability-detail" name="San3-internal only" prefix="/api/v1/observability/">
+      <Module id="observability-detail" name="Truepoint-internal only" prefix="/api/v1/observability/">
         <DocsP>
           Integration health, SLA-compliance aggregation across every project, usage/adoption signal, internal
           alerting, and security/incident events - gated on <InlineCode>is_staff</InlineCode>, not project role.

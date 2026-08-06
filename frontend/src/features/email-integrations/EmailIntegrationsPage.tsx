@@ -65,7 +65,7 @@ const INITIAL_EMAILS: ExtractedEmail[] = [
     attachments: ['RFI-47-form.pdf', 'Zone-B-structural.dwg'],
     status: 'pending',
     rawBody:
-      'Dear Masar Team,\n\nPlease refer to drawing ST-104 regarding Zone B column specs. We require the exact admixture supplier certificate and water-cement ratio calculation by Wednesday 5 PM to approve Thursday morning pour.\n\nRegards,\nKhalid Al-Otaibi',
+      'Dear Site Team,\n\nPlease refer to drawing ST-104 regarding Zone B column specs. We require the exact admixture supplier certificate and water-cement ratio calculation by Wednesday 5 PM to approve Thursday morning pour.\n\nRegards,\nKhalid Al-Otaibi',
   },
   {
     id: 'em-002',
@@ -145,7 +145,7 @@ const INITIAL_EMAILS: ExtractedEmail[] = [
   },
 ]
 
-const WEBHOOK_URL = 'https://api.masar-construction.sa/v1/webhooks/gmail/pubsub'
+const WEBHOOK_URL = 'https://api.truepoint.sa/v1/webhooks/gmail/pubsub'
 
 const TABS: { id: TabType; label: string; icon: LucideIcon }[] = [
   { id: 'connection', label: '1. Gmail Connection & OAuth', icon: Mail },
@@ -301,7 +301,7 @@ export function EmailIntegrationsPage({ project }: Props) {
         </div>
       )}
 
-      {/* Header Banner following Saudi / Masar Design System */}
+      {/* Header Banner following Truepoint Design System */}
       <div className="relative overflow-hidden rounded-[var(--radius-l)] border border-gold/30 bg-navy-deep p-6 text-cream shadow-xl">
         <div className="pointer-events-none absolute -end-16 -top-16 h-64 w-64 rounded-full bg-gold/10 blur-3xl" />
         <div className="relative z-10 flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -348,7 +348,7 @@ export function EmailIntegrationsPage({ project }: Props) {
         <div className="mt-6 grid grid-cols-2 gap-3 border-t border-white/10 pt-4 sm:grid-cols-4">
           <div className="rounded-[var(--radius-s)] bg-white/5 p-3">
             <div className="text-xs text-cream/60">Connected Email</div>
-            <div className="mt-0.5 truncate font-mono text-sm font-semibold text-gold">pm@masar-construction.sa</div>
+            <div className="mt-0.5 truncate font-mono text-sm font-semibold text-gold">pm@yourproject.sa</div>
           </div>
           <div className="rounded-[var(--radius-s)] bg-white/5 p-3">
             <div className="text-xs text-cream/60">Emails Processed Today</div>
@@ -424,7 +424,7 @@ export function EmailIntegrationsPage({ project }: Props) {
               <div className="mt-6 space-y-4 rounded-[var(--radius-s)] bg-cream p-4 text-sm text-navy">
                 <div className="flex items-center justify-between border-b border-sand/60 pb-3">
                   <span className="text-navy/60">Connected Email Address:</span>
-                  <span className="font-mono font-semibold text-navy">pm@masar-construction.sa</span>
+                  <span className="font-mono font-semibold text-navy">pm@yourproject.sa</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-sand/60 pb-3">
                   <span className="text-navy/60">Account Holder:</span>
@@ -513,11 +513,11 @@ export function EmailIntegrationsPage({ project }: Props) {
                 <div className="grid gap-3 text-xs sm:grid-cols-2">
                   <div className="rounded-[var(--radius-s)] border border-sand/80 p-3">
                     <span className="text-navy/60">Pub/Sub Topic ID:</span>
-                    <div className="mt-0.5 font-mono font-semibold text-navy">projects/masar-prod/topics/gmail-events</div>
+                    <div className="mt-0.5 font-mono font-semibold text-navy">projects/truepoint-prod/topics/gmail-events</div>
                   </div>
                   <div className="rounded-[var(--radius-s)] border border-sand/80 p-3">
                     <span className="text-navy/60">Push Subscription:</span>
-                    <div className="mt-0.5 font-mono font-semibold text-navy">sub-gmail-masar-rt</div>
+                    <div className="mt-0.5 font-mono font-semibold text-navy">sub-gmail-truepoint-rt</div>
                   </div>
                 </div>
               </div>
