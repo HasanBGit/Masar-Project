@@ -14,8 +14,8 @@ import ur from "./locales/ur.json";
 export const supportedLanguages = ["en", "ar", "hi", "ur"] as const;
 export type SupportedLanguage = (typeof supportedLanguages)[number];
 
-/** The languages the site UI actually lets users pick. */
-export const uiLanguages = ["en", "ar"] as const;
+/** The languages the site UI lets users pick. */
+export const uiLanguages = ["en", "ar", "hi", "ur"] as const;
 
 export const languageNames: Record<SupportedLanguage, string> = {
   en: "English",

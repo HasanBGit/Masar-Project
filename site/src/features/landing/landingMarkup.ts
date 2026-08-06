@@ -18,17 +18,17 @@ export const LANDING_MARKUP = `
         <header class="site-header" aria-label="Primary navigation">
           <a class="site-logo" href="#cinema">Truepoint</a>
           <nav class="site-nav" aria-label="Main menu">
-            <button type="button" data-nav="Product" data-ar="المنتج">Product</button>
-            <button type="button" data-nav="Trust &amp; Evidence" data-ar="الثقة والأدلة">Trust</button>
-            <button type="button" data-nav="Approvals" data-ar="الاعتمادات">Approvals</button>
-            <a href="#features" data-ar="المزايا والإمكانات">Features</a>
-            <a href="#pricing" data-ar="التسعير">Pricing</a>
-            <a href="#faq" data-ar="الأسئلة المتكررة">FAQ</a>
+            <button type="button" data-nav="Product" data-ar="المنتج" data-hi="उत्पाद" data-ur="پروڈکٹ">Product</button>
+            <button type="button" data-nav="Trust &amp; Evidence" data-ar="الثقة والأدلة" data-hi="विश्वास और प्रमाण" data-ur="اعتماد اور شواہد">Trust</button>
+            <button type="button" data-nav="Approvals" data-ar="الاعتمادات" data-hi="अनुमोदन" data-ur="منظوریاں">Approvals</button>
+            <a href="#features" data-ar="المزايا والإمكانات" data-hi="विशेषताएं" data-ur="خصوصیات">Features</a>
+            <a href="#pricing" data-ar="التسعير" data-hi="मूल्य निर्धारण" data-ur="قیمتیں">Pricing</a>
+            <a href="#faq" data-ar="الأسئلة المتكررة" data-hi="अक्सर पूछे जाने वाले प्रश्न" data-ur="بار بار پوچھے گئے سوالات">FAQ</a>
           </nav>
           <div class="site-header-actions">
             <!-- href/visibility set at runtime from VITE_APP_URL in LandingPage.tsx;
                  hidden by default so a dead link is never clickable. -->
-            <a class="site-login-link" id="site-login-link" href="#cinema" hidden data-ar="تسجيل الدخول">Log in</a>
+            <a class="site-login-link" id="site-login-link" href="#cinema" hidden data-ar="تسجيل الدخول" data-hi="साइन इन करें" data-ur="سائن ان کریں">Log in</a>
             <button class="language-switcher" aria-label="Change language" type="button">
               <span class="language-switcher-label">EN</span>
               <span aria-hidden="true">⌄</span>
@@ -42,35 +42,45 @@ export const LANDING_MARKUP = `
           <section class="sights-slider" aria-label="Truepoint modules slider">
             <div class="sights-track">
               <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Approvals Workflow card"
-                data-kicker-ar="وحدة أساسية" data-title-ar="سير عمل الاعتماد" data-body-ar="الحواف الثلاث — الاستماع والفهم والموافقة — شرط لازم قبل إتمام أي توقيع.">
+                data-kicker-ar="وحدة أساسية" data-title-ar="سير عمل الاعتماد" data-body-ar="الحواف الثلاث — الاستماع والفهم والموافقة — شرط لازم قبل إتمام أي توقيع."
+                data-kicker-hi="कोर मॉड्यूल" data-title-hi="अनुमोदन वर्कफ़्लो" data-body-hi="तीन चरण — सुनवाई, समझ, सहमति — किसी भी हस्ताक्षर से पहले अनिवार्य।"
+                data-kicker-ur="بنیادی ماڈیول" data-title-ur="منظوری کا ورک فلو" data-body-ur="تین مراحل — سماعت، تفہیم، اتفاق — کسی بھی دستخط سے پہلے لازمی۔">
                 <span class="sight-kicker">Core Module</span>
                 <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Approvals Workflow</h3>
                 <p>The 3 Edges — Hearing, Understanding, Agreeing — before any sign-off counts.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Trust and Evidence card"
-                data-kicker-ar="النواة الأساسية" data-title-ar="الثقة والأدلة" data-body-ar="معالم مُعتمدة وموثَّقة، وسجل تدقيق جاهز للاحتجاج به في أي نزاع قانوني.">
+                data-kicker-ar="النواة الأساسية" data-title-ar="الثقة والأدلة" data-body-ar="معالم مُعتمدة وموثَّقة، وسجل تدقيق جاهز للاحتجاج به في أي نزاع قانوني."
+                data-kicker-hi="डोमेन कर्नेल" data-title-hi="विश्वास और प्रमाण" data-body-hi="सत्यापित माइलस्टोन और विवाद-तैयार ऑडिट लॉग।"
+                data-kicker-ur="بنیادی مرکز" data-title-ur="اعتماد اور شواہد" data-body-ur="تصدیق شدہ سنگ میل اور تنازعات کے لیے تیار آڈٹ لاگ۔">
                 <span class="sight-kicker">Domain Kernel</span>
                 <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
                 <h3>Trust &amp; Evidence</h3>
                 <p>Verified milestones and a dispute-ready audit trail.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Owner Dashboard card"
-                data-kicker-ar="واجهات مخصصة حسب الدور" data-title-ar="لوحة تحكم المالك" data-body-ar="واجهات مصمَّمة خصيصاً للمالك والاستشاري ومدير المشروع والمصمم.">
+                data-kicker-ar="واجهات مخصصة حسب الدور" data-title-ar="لوحة تحكم المالك" data-body-ar="واجهات مصمَّمة خصيصاً للمالك والاستشاري ومدير المشروع والمصمم."
+                data-kicker-hi="भूमिका दृश्य" data-title-hi="मालिक डैशबोर्ड" data-body-hi="मालिक, सलाहकार, प्रोजेक्ट मैनेजर, डिज़ाइनर के लिए विशिष्ट दृश्य।"
+                data-kicker-ur="کردار کے ویوز" data-title-ur="مالک ڈیش بورڈ" data-body-ur="مالک، مشیر، پراجیکٹ مینیجر، ڈیزائنر کے لیے مخصوص ویوز۔">
                 <span class="sight-kicker">Role Views</span>
                 <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230448_825949c9-ccdb-4857-b4a6-e349eccc9010.png" />
                 <h3>Owner Dashboard</h3>
                 <p>Role-specific views for Owner, Consultant, Project Manager, Designer.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Unified Timeline card"
-                data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحَّد" data-body-ar="يدمج رسائل واتساب والمراسلات الإلكترونية والتصاريح في سجل مشروع موحَّد.">
+                data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحَّد" data-body-ar="يدمج رسائل واتساب والمراسلات الإلكترونية والتصاريح في سجل مشروع موحَّد."
+                data-kicker-hi="कोर मॉड्यूल" data-title-hi="एकीकृत टाइमलाइन" data-body-hi="WhatsApp, ईमेल, और परमिट थ्रेड्स एक ही रिकॉर्ड में विलीन।"
+                data-kicker-ur="بنیادی ماڈیول" data-title-ur="یکجا ٹائم لائن" data-body-ur="WhatsApp، ای میل، اور پرمٹ تھریڈز ایک ہی ریکارڈ میں یکجا۔">
                 <span class="sight-kicker">Core Module</span>
                 <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Unified Timeline</h3>
                 <p>WhatsApp, email, and permit threads merged into one record.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Contract and Payments card"
-                data-kicker-ar="متوافق مع زاتكا" data-title-ar="العقود والمدفوعات" data-body-ar="دفعات مشروطة بأدلة مُعتمدة وموثَّقة، لا بادعاء ذاتي من المقاول.">
+                data-kicker-ar="متوافق مع زاتكا" data-title-ar="العقود والمدفوعات" data-body-ar="دفعات مشروطة بأدلة مُعتمدة وموثَّقة، لا بادعاء ذاتي من المقاول."
+                data-kicker-hi="ZATCA तैयार" data-title-hi="अनुबंध और भुगतान" data-body-hi="सत्यापित प्रमाण से बंधे भुगतान माइलस्टोन, ठेकेदार के दावे से नहीं।"
+                data-kicker-ur="ZATCA تیار" data-title-ur="کنٹریکٹ اور ادائیگیاں" data-body-ur="تصدیق شدہ شواہد سے جڑے ادائیگی کے سنگ میل، ٹھیکیدار کے دعوے سے نہیں۔">
                 <span class="sight-kicker">ZATCA Ready</span>
                 <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230442_140bc25b-b165-4249-904a-f708bff6970e.png" />
                 <h3>Contract &amp; Payments</h3>

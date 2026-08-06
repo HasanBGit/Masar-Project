@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import i18n, { toBaseLanguage } from '../../i18n'
+import i18n, { toBaseLanguage, type SupportedLanguage } from '../../i18n'
 import { LANDING_MARKUP } from './landingMarkup'
 import './landing.css'
 
@@ -440,7 +440,7 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
 
   // The site UI offers en/ar only (see src/i18n/index.ts); a stored regional
   // preference such as "ar-SA" must land on Arabic, not English.
-  let currentLang: 'en' | 'ar' = toBaseLanguage(i18n.resolvedLanguage ?? i18n.language) === 'ar' ? 'ar' : 'en'
+  let currentLang: SupportedLanguage = toBaseLanguage(i18n.resolvedLanguage ?? i18n.language)
   let lastFocused: HTMLElement | null = null
   const cleanups: Array<() => void> = []
 
@@ -631,14 +631,17 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
     )
   }
 
-  // Swaps the visible landing copy between the data-en/data-ar variants. Does
-  // NOT touch document.documentElement — i18next owns lang/dir.
-  function applyLanguageText(lang: 'en' | 'ar') {
+  // Swaps the visible landing copy across all 4 supported languages (en, ar, hi, ur).
+  // Does NOT touch document.documentElement — i18next owns lang/dir globally.
+  function applyLanguageText(lang: SupportedLanguage) {
     currentLang = lang
 
     container.querySelectorAll<HTMLElement>('[data-ar]').forEach((el) => {
       if (!el.dataset.en) el.dataset.en = el.textContent || ''
-      el.textContent = lang === 'ar' ? (el.dataset.ar ?? '') : (el.dataset.en ?? '')
+      if (lang === 'ar') el.textContent = el.dataset.ar ?? ''
+      else if (lang === 'hi' && el.dataset.hi) el.textContent = el.dataset.hi
+      else if (lang === 'ur' && el.dataset.ur) el.textContent = el.dataset.ur
+      else el.textContent = el.dataset.en ?? ''
     })
 
     container.querySelectorAll<HTMLElement>('.sight-card').forEach((card) => {
@@ -647,38 +650,49 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
       const p = card.querySelector<HTMLElement>('p')
       if (kicker && card.dataset.kickerAr) {
         if (!card.dataset.kickerEn) card.dataset.kickerEn = kicker.textContent || ''
-        kicker.textContent = lang === 'ar' ? (card.dataset.kickerAr ?? '') : (card.dataset.kickerEn ?? '')
+        kicker.textContent =
+          lang === 'ar' ? card.dataset.kickerAr : (lang === 'hi' && card.dataset.kickerHi) ? card.dataset.kickerHi : (lang === 'ur' && card.dataset.kickerUr) ? card.dataset.kickerUr : card.dataset.kickerEn
       }
       if (h3 && card.dataset.titleAr) {
         if (!card.dataset.titleEn) card.dataset.titleEn = h3.textContent || ''
-        h3.textContent = lang === 'ar' ? (card.dataset.titleAr ?? '') : (card.dataset.titleEn ?? '')
+        h3.textContent =
+          lang === 'ar' ? card.dataset.titleAr : (lang === 'hi' && card.dataset.titleHi) ? card.dataset.titleHi : (lang === 'ur' && card.dataset.titleUr) ? card.dataset.titleUr : card.dataset.titleEn
       }
       if (p && card.dataset.bodyAr) {
         if (!card.dataset.bodyEn) card.dataset.bodyEn = p.textContent || ''
-        p.textContent = lang === 'ar' ? (card.dataset.bodyAr ?? '') : (card.dataset.bodyEn ?? '')
+        p.textContent =
+          lang === 'ar' ? card.dataset.bodyAr : (lang === 'hi' && card.dataset.bodyHi) ? card.dataset.bodyHi : (lang === 'ur' && card.dataset.bodyUr) ? card.dataset.bodyUr : card.dataset.bodyEn
       }
     })
 
+    const displayCode = lang === 'en' ? 'EN' : lang === 'ar' ? 'AR' : lang === 'hi' ? 'HI' : 'UR'
     container.querySelectorAll<HTMLElement>('.language-switcher-label').forEach((label) => {
-      label.textContent = lang.toUpperCase()
+      label.textContent = displayCode
     })
   }
 
   // i18next is the single source of truth: toggling calls changeLanguage (which
   // persists the choice and updates document lang/dir), and this listener keeps
-  // the markup text in sync — including changes made elsewhere (e.g. the app).
+  // the markup text in sync.
   const onLanguageChanged = (lng: string) => {
-    applyLanguageText(toBaseLanguage(lng) === 'ar' ? 'ar' : 'en')
+    applyLanguageText(toBaseLanguage(lng))
   }
   i18n.on('languageChanged', onLanguageChanged)
   cleanups.push(() => i18n.off('languageChanged', onLanguageChanged))
 
-  // A stored Arabic preference must render Arabic text on first paint.
-  if (currentLang === 'ar') applyLanguageText('ar')
+  const baseLng = toBaseLanguage(i18n.resolvedLanguage ?? i18n.language)
+  applyLanguageText(baseLng)
 
   langSwitchers.forEach((btn) => {
     const onClick = () => {
-      void i18n.changeLanguage(currentLang === 'en' ? 'ar' : 'en')
+      const active = toBaseLanguage(i18n.resolvedLanguage ?? i18n.language)
+      const nextMap: Record<SupportedLanguage, SupportedLanguage> = {
+        en: 'ar',
+        ar: 'hi',
+        hi: 'ur',
+        ur: 'en',
+      }
+      void i18n.changeLanguage(nextMap[active] ?? 'en')
     }
     btn.addEventListener('click', onClick)
     cleanups.push(() => btn.removeEventListener('click', onClick))
