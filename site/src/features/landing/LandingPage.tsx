@@ -347,15 +347,20 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     window.addEventListener('resize', onResize)
     window.addEventListener('pointermove', onPointerMove, { passive: true })
 
+    // Position everything (scroll progress, parallax vars, the sight-card
+    // clones) as soon as the DOM has a layout pass, not on `window.load` -
+    // `load` waits for every last resource including all the scene images,
+    // so on a slow connection the whole rig sat frozen at its unpositioned
+    // resting state (every image showing its blank loading placeholder)
+    // until the very last byte arrived. Nothing here reads pixel data -
+    // `setupSightSlider` only clones DOM nodes and `requestTick`/`update`
+    // only read layout geometry (`getBoundingClientRect`, `offsetWidth`) -
+    // so a single rAF tick after mount is enough.
     const runInitialSetup = () => {
       setupSightSlider()
       requestTick()
     }
-    if (document.readyState === 'complete') {
-      runInitialSetup()
-    } else {
-      window.addEventListener('load', runInitialSetup, { once: true })
-    }
+    requestAnimationFrame(runInitialSetup)
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId)
@@ -365,7 +370,6 @@ function setupCinemaScroll(container: HTMLElement): () => void {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
       window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('load', runInitialSetup)
       cardCleanups.forEach((fn) => fn())
       sightCards = []
     }
