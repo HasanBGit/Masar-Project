@@ -19,18 +19,19 @@ export function OAuthCallbackPage({ project }: { project: Project }) {
 
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
+    const state = params.get('state')
     const oauthError = params.get('error')
 
     if (oauthError) {
       setError('Google sign-in was cancelled or denied.')
       return
     }
-    if (!code) {
+    if (!code || !state) {
       setError('Missing authorization code from Google.')
       return
     }
 
-    completeConnect(project.id, code)
+    completeConnect(project.id, code, state)
       .then(() => navigate('/email-integrations', { replace: true }))
       .catch((err) => setError(getApiError(err, 'Could not finish connecting the Gmail account.')))
   }, [project.id, navigate])

@@ -55,10 +55,11 @@ export async function getConnectUrl(project: number): Promise<string> {
   return res.data.authorize_url
 }
 
-export async function completeConnect(project: number, code: string): Promise<EmailAccount> {
+export async function completeConnect(project: number, code: string, state: string): Promise<EmailAccount> {
   const res = await api.post<EmailAccount>('/email-integrations/callback/', {
     project,
     code,
+    state,
     redirect_uri: oauthRedirectUri(),
   })
   return res.data

@@ -9,6 +9,7 @@ fires (see approvals.services.escalate_if_breached's inbox_email
 special-case). This module owns Gmail OAuth/sync only.
 """
 
+import secrets
 from datetime import datetime, timedelta
 
 import requests
@@ -20,12 +21,26 @@ import trust_evidence.services as trust_evidence
 from accounts.models import ProjectMembership, Role
 
 from .exceptions import GmailNotConfigured
-from .models import ACTION_REQUIRED_CATEGORIES, EMAIL_SUBJECT_TYPE, EmailAccount, EmailCategory, EmailMessage
+from .models import (
+    ACTION_REQUIRED_CATEGORIES,
+    EMAIL_SUBJECT_TYPE,
+    EmailAccount,
+    EmailCategory,
+    EmailMessage,
+    OAuthState,
+)
 
 GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly"
 GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GMAIL_API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me"
+
+# Roles allowed to connect/disconnect/sync the project's Gmail account -
+# same shape as contract_payments.FINANCIAL_ACTION_ROLES: a plain string set
+# checked by the view layer, not a project-wide RBAC primitive.
+EMAIL_ACCOUNT_MANAGE_ROLES = {"owner", "consultant", "project_manager"}
+
+OAUTH_STATE_TTL_MINUTES = 10
 
 _CATEGORY_KEYWORDS = {
     EmailCategory.SAFETY: ("safety", "hazard", "incident", "ppe", "injury"),
@@ -48,8 +63,10 @@ def _classify(subject: str, snippet: str) -> str:
     return EmailCategory.GENERAL
 
 
-def get_authorize_url(project, redirect_uri: str) -> str:
+def get_authorize_url(project, redirect_uri: str, requested_by) -> str:
     _require_configured()
+    state = secrets.token_urlsafe(32)
+    OAuthState.objects.create(state=state, project=project, user=requested_by)
     params = {
         "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
         "redirect_uri": redirect_uri,
@@ -57,14 +74,25 @@ def get_authorize_url(project, redirect_uri: str) -> str:
         "scope": GMAIL_SCOPE,
         "access_type": "offline",
         "prompt": "consent",
-        "state": str(project.id),
+        "state": state,
     }
     query = "&".join(f"{key}={requests.utils.quote(str(value), safe='')}" for key, value in params.items())
     return f"{GOOGLE_AUTHORIZE_URL}?{query}"
 
 
-def connect_account(*, project, code: str, redirect_uri: str, connected_by) -> EmailAccount:
+def _consume_oauth_state(state: str, user, project) -> None:
+    """Single-use, TTL-bound, and bound to the user+project that started the
+    flow - the callback's `project`/`code` are never trusted on their own."""
+    cutoff = timezone.now() - timedelta(minutes=OAUTH_STATE_TTL_MINUTES)
+    row = OAuthState.objects.filter(state=state, user=user, project=project, created_at__gte=cutoff).first()
+    if row is None:
+        raise ValueError("Invalid, expired, or already-used OAuth state.")
+    row.delete()
+
+
+def connect_account(*, project, code: str, redirect_uri: str, connected_by, state: str) -> EmailAccount:
     _require_configured()
+    _consume_oauth_state(state, connected_by, project)
     token_response = requests.post(
         GOOGLE_TOKEN_URL,
         data={

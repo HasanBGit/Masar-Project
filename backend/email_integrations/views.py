@@ -27,35 +27,48 @@ def _project_from_query(request) -> Project:
     return project
 
 
+def _require_manage_role(request, project) -> None:
+    """Connecting/disconnecting/syncing the project's Gmail account is a
+    privileged action - membership alone (checked by _project_from_query)
+    isn't enough, unlike the read-only list/retrieve endpoints below."""
+    if get_role(request.user, project) not in services.EMAIL_ACCOUNT_MANAGE_ROLES:
+        raise PermissionDenied("Only an Owner, Consultant, or Project Manager can manage the connected Gmail account.")
+
+
 class ConnectUrlView(APIView):
     """Returns the Google consent-screen URL the frontend should redirect to."""
 
     def get(self, request):
         project = _project_from_query(request)
+        _require_manage_role(request, project)
         redirect_uri = request.query_params.get("redirect_uri")
         if not redirect_uri:
             raise ValidationError({"redirect_uri": "This field is required."})
         try:
-            return Response({"authorize_url": services.get_authorize_url(project, redirect_uri)})
+            return Response({"authorize_url": services.get_authorize_url(project, redirect_uri, request.user)})
         except GmailNotConfigured as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 class CallbackView(APIView):
-    """The frontend receives Google's `code` redirect and POSTs it here to finish connecting."""
+    """The frontend receives Google's `code`+`state` redirect and POSTs it here to finish connecting."""
 
     def post(self, request):
         project = _project_from_query(request)
+        _require_manage_role(request, project)
         code = request.data.get("code")
         redirect_uri = request.data.get("redirect_uri")
-        if not code or not redirect_uri:
-            raise ValidationError({"code": "Required.", "redirect_uri": "Required."})
+        state = request.data.get("state")
+        if not code or not redirect_uri or not state:
+            raise ValidationError({"code": "Required.", "redirect_uri": "Required.", "state": "Required."})
         try:
             account = services.connect_account(
-                project=project, code=code, redirect_uri=redirect_uri, connected_by=request.user,
+                project=project, code=code, redirect_uri=redirect_uri, connected_by=request.user, state=state,
             )
         except GmailNotConfigured as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except ValueError as exc:
+            raise ValidationError({"state": str(exc)})
         except requests.HTTPError:
             raise ValidationError({"code": "Google rejected that authorization code - try connecting again."})
         return Response(EmailAccountSerializer(account).data, status=status.HTTP_201_CREATED)
@@ -71,6 +84,7 @@ class EmailAccountView(APIView):
 
     def delete(self, request):
         project = _project_from_query(request)
+        _require_manage_role(request, project)
         account = get_object_or_404(EmailAccount, project=project)
         services.disconnect_account(account, removed_by=request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -79,6 +93,7 @@ class EmailAccountView(APIView):
 class SyncView(APIView):
     def post(self, request):
         project = _project_from_query(request)
+        _require_manage_role(request, project)
         try:
             new_count = services.sync_inbox(project)
         except GmailNotConfigured as exc:

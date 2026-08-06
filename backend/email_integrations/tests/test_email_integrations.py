@@ -7,8 +7,8 @@ from rest_framework.test import APIClient
 import approvals.services as approvals
 from accounts.models import ProjectMembership, Role
 from email_integrations.exceptions import GmailNotConfigured
-from email_integrations.models import EMAIL_SUBJECT_TYPE, EmailAccount, EmailCategory, EmailMessage
-from email_integrations.services import acknowledge_message, get_authorize_url, sync_inbox
+from email_integrations.models import EMAIL_SUBJECT_TYPE, EmailAccount, EmailCategory, EmailMessage, OAuthState
+from email_integrations.services import acknowledge_message, connect_account, get_authorize_url, sync_inbox
 
 
 @pytest.fixture
@@ -21,20 +21,52 @@ def email_account(db, project, project_manager_user):
 
 
 @pytest.mark.django_db
-def test_authorize_url_raises_when_unconfigured(project, settings):
+def test_authorize_url_raises_when_unconfigured(project, owner_user, settings):
     settings.GOOGLE_OAUTH_CLIENT_ID = ""
     settings.GOOGLE_OAUTH_CLIENT_SECRET = ""
     with pytest.raises(GmailNotConfigured):
-        get_authorize_url(project, "https://app.example.com/callback")
+        get_authorize_url(project, "https://app.example.com/callback", owner_user)
 
 
 @pytest.mark.django_db
-def test_authorize_url_includes_project_state_when_configured(project, settings):
+def test_authorize_url_mints_an_unguessable_single_use_state(project, owner_user, settings):
     settings.GOOGLE_OAUTH_CLIENT_ID = "test-client-id"
     settings.GOOGLE_OAUTH_CLIENT_SECRET = "test-secret"
-    url = get_authorize_url(project, "https://app.example.com/callback")
-    assert f"state={project.id}" in url
+    url = get_authorize_url(project, "https://app.example.com/callback", owner_user)
     assert "test-client-id" in url
+
+    stored = OAuthState.objects.get(project=project, user=owner_user)
+    assert f"state={stored.state}" in url
+    assert stored.state != str(project.id)
+    assert len(stored.state) > 20
+
+
+@pytest.mark.django_db
+def test_connect_account_rejects_unknown_or_reused_state(project, owner_user, settings):
+    settings.GOOGLE_OAUTH_CLIENT_ID = "test-client-id"
+    settings.GOOGLE_OAUTH_CLIENT_SECRET = "test-secret"
+    with pytest.raises(ValueError):
+        connect_account(
+            project=project, code="anything", redirect_uri="https://app.example.com/callback",
+            connected_by=owner_user, state="forged-or-guessed-state",
+        )
+
+
+@pytest.mark.django_db
+def test_connect_account_rejects_state_minted_for_a_different_project(project, owner_user, settings):
+    settings.GOOGLE_OAUTH_CLIENT_ID = "test-client-id"
+    settings.GOOGLE_OAUTH_CLIENT_SECRET = "test-secret"
+    from core.models import Project
+
+    other_project = Project.objects.create(name="Other Tower", slug="other-tower")
+    url = get_authorize_url(other_project, "https://app.example.com/callback", owner_user)
+    state = url.split("state=")[1]
+
+    with pytest.raises(ValueError):
+        connect_account(
+            project=project, code="anything", redirect_uri="https://app.example.com/callback",
+            connected_by=owner_user, state=state,
+        )
 
 
 @pytest.mark.django_db

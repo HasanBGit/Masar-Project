@@ -24,6 +24,26 @@ ACTION_REQUIRED_CATEGORIES = frozenset(
 )
 
 
+class OAuthState(TimeStampedModel):
+    """
+    A single-use, unguessable token minted in get_authorize_url and consumed
+    in connect_account - the OAuth 'state' parameter's actual job (anti-CSRF
+    on the authorization-code flow), not project.id in disguise. Binds the
+    eventual callback to the user+project that started the flow so the
+    request body's `project` field can never be trusted on its own.
+    """
+
+    state = models.CharField(max_length=64, unique=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="+")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="+")
+
+    class Meta:
+        indexes = [models.Index(fields=["state"])]
+
+    def __str__(self):
+        return f"OAuthState for {self.user} / {self.project}"
+
+
 class EmailAccount(TimeStampedModel):
     """
     One connected Gmail account per project. Tokens are stored in plain
