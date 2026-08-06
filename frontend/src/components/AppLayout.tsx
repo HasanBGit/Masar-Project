@@ -151,11 +151,6 @@ export function AppLayout({
             >
               <Menu size={20} aria-hidden="true" />
             </button>
-            <div className="min-w-0">
-              {activeProject && <p className="truncate text-xs font-semibold text-gold-ink">{activeProject.name}</p>}
-              {/* Pages own the single <h1>; this is chrome. */}
-              <p className="truncate font-[var(--font-display)] text-base font-bold text-navy">{pageTitle}</p>
-            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
