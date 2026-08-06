@@ -77,7 +77,7 @@
     "items": {
       "1": { "title": "Field Capture", "summary": "Ingests photos, voice notes, and text straight from the WhatsApp groups your trades already use - no new app to adopt." },
       "2": { "title": "Unified Project Timeline", "summary": "Merges WhatsApp events and email/RFI/permit correspondence into one project-anchored record that survives staff turnover." },
-      "3": { "title": "Owner Dashboard & Role Views", "summary": "One data model, four audience-specific views - Owner, Investor, Consultant, Contractor - plus a daily digest and a timeline-grounded Q&A interface." },
+      "3": { "title": "Owner Dashboard & Role Views", "summary": "One data model, four audience-specific views - Owner, Consultant, Project Manager, Designer - plus a daily digest and a timeline-grounded Q&A interface." },
       "4": { "title": "Approval & Decision Workflow", "summary": "The 3 Edges: Hearing, Understanding, Agreeing - a teach-back comprehension check and a single named, accountable sign-off." },
       "5": { "title": "Trust & Evidence Infrastructure", "summary": "The verified milestone ledger and audit log every other trust claim depends on, plus automatic contractor-silence detection." },
       "12": { "title": "Contract & Payment Verification", "summary": "Payment milestones gated on verified evidence, a live contract-vs-actual tracker, and Saudi ZATCA e-invoicing compliance." },

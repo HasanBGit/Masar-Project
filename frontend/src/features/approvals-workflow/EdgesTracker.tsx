@@ -35,7 +35,7 @@ export function EdgesTracker({ decision }: { decision: Decision }) {
         return (
           <li key={step.key} className="flex-1">
             <div
-              className={`rounded-[var(--radius-s)] border px-3 py-2.5 text-left transition ${
+              className={`rounded-[var(--radius-s)] border px-3 py-2.5 text-start transition ${
                 done
                   ? 'border-status-agreeing/50 bg-status-agreeing/10'
                   : active

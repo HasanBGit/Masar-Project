@@ -20,6 +20,7 @@
   --font-display: "Plus Jakarta Sans", "Poppins", "Century Gothic", "Segoe UI", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", "Inter", -apple-system, "Segoe UI", sans-serif;
   --font-arabic: "IBM Plex Sans Arabic", "Noto Sans Arabic", "Geeza Pro", Tahoma, sans-serif;
+  --font-devanagari: "Noto Sans Devanagari", "IBM Plex Sans", "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
 
   --radius-s: 10px;
@@ -54,6 +55,11 @@ html {
 html[dir="rtl"] {
   --font-display: var(--font-arabic);
   --font-body: var(--font-arabic);
+}
+
+html[lang="hi"] {
+  --font-display: var(--font-devanagari);
+  --font-body: var(--font-devanagari);
 }
 
 body {

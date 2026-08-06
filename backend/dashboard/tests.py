@@ -7,7 +7,7 @@ from dashboard.services import get_role_dashboard
 
 
 @pytest.mark.django_db
-def test_owner_sees_every_decision(project, owner_user, investor_user, contractor_user):
+def test_owner_sees_every_decision(project, owner_user, project_manager_user):
     request_decision(
         project=project,
         title="Low-stakes item",
@@ -19,7 +19,7 @@ def test_owner_sees_every_decision(project, owner_user, investor_user, contracto
         project=project,
         title="High-stakes item",
         requested_by=owner_user,
-        raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}, {"user": contractor_user, "raci_role": RaciRole.RESPONSIBLE}],
+        raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}, {"user": project_manager_user, "raci_role": RaciRole.RESPONSIBLE}],
         high_stakes=True,
     )
 
@@ -28,47 +28,47 @@ def test_owner_sees_every_decision(project, owner_user, investor_user, contracto
 
 
 @pytest.mark.django_db
-def test_investor_only_sees_high_stakes(project, owner_user, investor_user, contractor_user):
+def test_project_manager_only_sees_own_participant_decisions(project, owner_user, project_manager_user, consultant_user):
     request_decision(
         project=project,
-        title="Low-stakes item",
+        title="Project Manager is Responsible",
         requested_by=owner_user,
-        raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}],
-        high_stakes=False,
-    )
-    request_decision(
-        project=project,
-        title="High-stakes item",
-        requested_by=owner_user,
-        raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}],
-        high_stakes=True,
-    )
-
-    result = get_role_dashboard(investor_user, project)
-    assert len(result["decisions"]) == 1
-    assert result["decisions"][0].high_stakes is True
-
-
-@pytest.mark.django_db
-def test_contractor_only_sees_own_participant_decisions(project, owner_user, contractor_user, consultant_user):
-    request_decision(
-        project=project,
-        title="Contractor is Responsible",
-        requested_by=owner_user,
-        raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}, {"user": contractor_user, "raci_role": RaciRole.RESPONSIBLE}],
+        raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}, {"user": project_manager_user, "raci_role": RaciRole.RESPONSIBLE}],
         high_stakes=True,
     )
     request_decision(
         project=project,
-        title="Contractor not involved",
+        title="Project Manager not involved",
         requested_by=owner_user,
         raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}, {"user": consultant_user, "raci_role": RaciRole.CONSULTED}],
         high_stakes=True,
     )
 
-    result = get_role_dashboard(contractor_user, project)
+    result = get_role_dashboard(project_manager_user, project)
     assert len(result["decisions"]) == 1
-    assert result["decisions"][0].title == "Contractor is Responsible"
+    assert result["decisions"][0].title == "Project Manager is Responsible"
+
+
+@pytest.mark.django_db
+def test_designer_only_sees_own_participant_decisions(project, owner_user, designer_user, consultant_user):
+    request_decision(
+        project=project,
+        title="Designer is Responsible",
+        requested_by=owner_user,
+        raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}, {"user": designer_user, "raci_role": RaciRole.RESPONSIBLE}],
+        high_stakes=True,
+    )
+    request_decision(
+        project=project,
+        title="Designer not involved",
+        requested_by=owner_user,
+        raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}, {"user": consultant_user, "raci_role": RaciRole.CONSULTED}],
+        high_stakes=True,
+    )
+
+    result = get_role_dashboard(designer_user, project)
+    assert len(result["decisions"]) == 1
+    assert result["decisions"][0].title == "Designer is Responsible"
 
 
 @pytest.mark.django_db

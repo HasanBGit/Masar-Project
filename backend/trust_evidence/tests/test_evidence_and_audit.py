@@ -29,9 +29,9 @@ def test_system_event_has_no_actor_and_system_role(project):
 
 
 @pytest.mark.django_db
-def test_evidence_only_counts_after_verification(project, contractor_user, owner_user):
+def test_evidence_only_counts_after_verification(project, project_manager_user, owner_user):
     record = submit_evidence(
-        project=project, subject_type="milestone", subject_id=1, submitted_by=contractor_user,
+        project=project, subject_type="milestone", subject_id=1, submitted_by=project_manager_user,
         caption="Level 5 slab poured", captured_at=timezone.now(),
     )
     status_before = get_verification_status(project, "milestone", 1)

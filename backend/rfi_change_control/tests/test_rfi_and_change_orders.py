@@ -17,26 +17,26 @@ from trust_evidence.services import get_open_silence_flags
 
 
 @pytest.mark.django_db
-def test_create_rfi_is_under_review_with_sla_deadline(project, contractor_user):
+def test_create_rfi_is_under_review_with_sla_deadline(project, project_manager_user):
     respond_by = timezone.now() + timedelta(days=3)
-    rfi = create_rfi(project=project, raised_by=contractor_user, title="Anchor spec", question="Which anchor?", respond_by=respond_by)
+    rfi = create_rfi(project=project, raised_by=project_manager_user, title="Anchor spec", question="Which anchor?", respond_by=respond_by)
     assert rfi.status == DocumentLifecycleStatus.UNDER_REVIEW
     assert rfi.number == "RFI-001"
     assert rfi.sla_deadline == respond_by
 
 
 @pytest.mark.django_db
-def test_second_rfi_gets_sequential_number(project, contractor_user):
+def test_second_rfi_gets_sequential_number(project, project_manager_user):
     respond_by = timezone.now() + timedelta(days=1)
-    create_rfi(project=project, raised_by=contractor_user, title="A", question="?", respond_by=respond_by)
-    rfi2 = create_rfi(project=project, raised_by=contractor_user, title="B", question="?", respond_by=respond_by)
+    create_rfi(project=project, raised_by=project_manager_user, title="A", question="?", respond_by=respond_by)
+    rfi2 = create_rfi(project=project, raised_by=project_manager_user, title="B", question="?", respond_by=respond_by)
     assert rfi2.number == "RFI-002"
 
 
 @pytest.mark.django_db
-def test_respond_to_rfi_closes_it_and_resolves_silence(project, contractor_user, consultant_user):
+def test_respond_to_rfi_closes_it_and_resolves_silence(project, project_manager_user, consultant_user):
     respond_by = timezone.now() - timedelta(hours=1)
-    rfi = create_rfi(project=project, raised_by=contractor_user, title="Anchor spec", question="Which anchor?", respond_by=respond_by)
+    rfi = create_rfi(project=project, raised_by=project_manager_user, title="Anchor spec", question="Which anchor?", respond_by=respond_by)
     flag_silent_rfis(project=project)
     assert len(get_open_silence_flags(project)) == 1
 
@@ -47,17 +47,17 @@ def test_respond_to_rfi_closes_it_and_resolves_silence(project, contractor_user,
 
 
 @pytest.mark.django_db
-def test_respond_to_rfi_rejects_empty_response(project, contractor_user, consultant_user):
-    rfi = create_rfi(project=project, raised_by=contractor_user, title="X", question="?", respond_by=timezone.now() + timedelta(days=1))
+def test_respond_to_rfi_rejects_empty_response(project, project_manager_user, consultant_user):
+    rfi = create_rfi(project=project, raised_by=project_manager_user, title="X", question="?", respond_by=timezone.now() + timedelta(days=1))
     with pytest.raises(ValueError):
         respond_to_rfi(rfi, consultant_user, "   ")
 
 
 @pytest.mark.django_db
-def test_at_risk_rfi_detection(project, contractor_user):
-    overdue = create_rfi(project=project, raised_by=contractor_user, title="Overdue", question="?", respond_by=timezone.now() - timedelta(hours=1))
-    soon = create_rfi(project=project, raised_by=contractor_user, title="Due soon", question="?", respond_by=timezone.now() + timedelta(hours=2))
-    safe = create_rfi(project=project, raised_by=contractor_user, title="Safe", question="?", respond_by=timezone.now() + timedelta(days=5))
+def test_at_risk_rfi_detection(project, project_manager_user):
+    overdue = create_rfi(project=project, raised_by=project_manager_user, title="Overdue", question="?", respond_by=timezone.now() - timedelta(hours=1))
+    soon = create_rfi(project=project, raised_by=project_manager_user, title="Due soon", question="?", respond_by=timezone.now() + timedelta(hours=2))
+    safe = create_rfi(project=project, raised_by=project_manager_user, title="Safe", question="?", respond_by=timezone.now() + timedelta(days=5))
 
     at_risk_ids = {rfi.id for rfi in get_at_risk_rfis(project)}
     assert at_risk_ids == {overdue.id, soon.id}

@@ -5,8 +5,66 @@ import { EmailIntegrationsPage } from './EmailIntegrationsPage'
 import { LanguageProvider } from '../../lib/i18n'
 import { ToastProvider } from '../../components/ui/Toast'
 import type { Project } from '../../lib/types'
+import type { EmailAccount, EmailMessage } from './api'
+
+const {
+  getEmailAccountMock,
+  listMessagesMock,
+  getConnectUrlMock,
+  syncInboxMock,
+  disconnectAccountMock,
+  acknowledgeMessageMock,
+} = vi.hoisted(() => ({
+  getEmailAccountMock: vi.fn(),
+  listMessagesMock: vi.fn(),
+  getConnectUrlMock: vi.fn(),
+  syncInboxMock: vi.fn(),
+  disconnectAccountMock: vi.fn(),
+  acknowledgeMessageMock: vi.fn(),
+}))
+
+vi.mock('./api', async () => {
+  const actual = await vi.importActual<typeof import('./api')>('./api')
+  return {
+    ...actual,
+    getEmailAccount: getEmailAccountMock,
+    listMessages: listMessagesMock,
+    getConnectUrl: getConnectUrlMock,
+    syncInbox: syncInboxMock,
+    disconnectAccount: disconnectAccountMock,
+    acknowledgeMessage: acknowledgeMessageMock,
+  }
+})
 
 const testProject: Project = { id: 7, name: 'Horizon Tower', slug: 'horizon-tower', role: 'owner' }
+
+const testAccount: EmailAccount = {
+  id: 1,
+  project: 7,
+  email_address: 'pm@horizon-tower.sa',
+  connected_by: 2,
+  connected_by_name: 'Sara Al-Fahad',
+  last_synced_at: '2026-08-01T10:00:00Z',
+  created_at: '2026-07-01T10:00:00Z',
+}
+
+const testMessage: EmailMessage = {
+  id: 10,
+  project: 7,
+  gmail_thread_id: 't1',
+  from_address: 'consultant@example.sa',
+  subject: 'RFI: Concrete mix for Zone B',
+  snippet: 'Please confirm the mix design.',
+  category: 'rfi',
+  requires_action: true,
+  received_at: '2026-08-01T09:00:00Z',
+  read_at: null,
+  read_by: null,
+  read_by_name: null,
+  decision_id: 5,
+  decision_status: 'hearing',
+  created_at: '2026-08-01T09:00:00Z',
+}
 
 function renderPage() {
   return render(
@@ -23,81 +81,49 @@ afterEach(() => {
 })
 
 describe('EmailIntegrationsPage', () => {
-  it('shows the dismissible demo-preview banner', async () => {
-    const user = userEvent.setup()
+  it('shows a connect prompt with no fabricated data when no account is connected', async () => {
+    getEmailAccountMock.mockResolvedValue(null)
+    listMessagesMock.mockResolvedValue([])
     renderPage()
 
-    const banner = screen.getByRole('status')
-    expect(banner).toHaveTextContent(/Demo preview — sample data, not connected to your account/)
-
-    await user.click(screen.getByRole('button', { name: 'Dismiss demo notice' }))
-    expect(screen.queryByText(/Demo preview — sample data/)).not.toBeInTheDocument()
+    expect(await screen.findByText('No Gmail account connected')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Connect Gmail' })).toBeInTheDocument()
+    expect(screen.queryByText(/RFI #47/)).not.toBeInTheDocument()
   })
 
-  it('exposes the section tabs as a tablist with arrow-key navigation', async () => {
+  it('redirects to the Google consent URL when connecting', async () => {
+    getEmailAccountMock.mockResolvedValue(null)
+    listMessagesMock.mockResolvedValue([])
+    getConnectUrlMock.mockResolvedValue('https://accounts.google.com/o/oauth2/v2/auth?client_id=test')
     const user = userEvent.setup()
     renderPage()
 
-    expect(screen.getByRole('tablist', { name: 'Email integration sections' })).toBeInTheDocument()
-    const tabs = screen.getAllByRole('tab')
-    expect(tabs).toHaveLength(5)
+    await user.click(await screen.findByRole('button', { name: 'Connect Gmail' }))
 
-    const connectionTab = screen.getByRole('tab', { name: /Gmail Connection & OAuth/ })
-    expect(connectionTab).toHaveAttribute('aria-selected', 'true')
-    // Roving tabindex: only the active tab is in the tab order.
-    expect(connectionTab).toHaveAttribute('tabindex', '0')
-    expect(screen.getByRole('tab', { name: /Live Extraction Pipeline/ })).toHaveAttribute('tabindex', '-1')
-
-    connectionTab.focus()
-    await user.keyboard('{ArrowRight}')
-
-    const extractionTab = screen.getByRole('tab', { name: /Live Extraction Pipeline/ })
-    expect(extractionTab).toHaveFocus()
-    expect(extractionTab).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'panel-extraction')
-
-    // ArrowLeft wraps back to the previous tab.
-    await user.keyboard('{ArrowLeft}')
-    expect(connectionTab).toHaveFocus()
-    expect(connectionTab).toHaveAttribute('aria-selected', 'true')
-
-    // End jumps to the last tab.
-    await user.keyboard('{End}')
-    const healthTab = screen.getByRole('tab', { name: /Sync Health & Webhooks/ })
-    expect(healthTab).toHaveFocus()
-    expect(healthTab).toHaveAttribute('aria-selected', 'true')
+    await waitFor(() => expect(getConnectUrlMock).toHaveBeenCalledWith(7))
   })
 
-  it('copies the webhook URL to the clipboard and confirms with a toast', async () => {
-    const user = userEvent.setup()
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(window.navigator, 'clipboard', {
-      value: { writeText },
-      configurable: true,
-    })
+  it('shows the connected account and its real synced messages', async () => {
+    getEmailAccountMock.mockResolvedValue(testAccount)
+    listMessagesMock.mockResolvedValue([testMessage])
     renderPage()
 
-    await user.click(screen.getByRole('button', { name: 'Copy' }))
-
-    await waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith('https://api.truepoint.sa/v1/webhooks/gmail/pubsub'),
-    )
-    expect(await screen.findByText('Webhook URL copied to clipboard.')).toBeInTheDocument()
+    expect(await screen.findByText('pm@horizon-tower.sa')).toBeInTheDocument()
+    expect(screen.getByText(/Connected by Sara Al-Fahad/)).toBeInTheDocument()
+    expect(screen.getByText('RFI: Concrete mix for Zone B')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Acknowledge' })).toBeInTheDocument()
   })
 
-  it('opens the email preview as a dialog and closes it on Escape', async () => {
+  it('syncs the inbox and reloads the message list', async () => {
+    getEmailAccountMock.mockResolvedValue(testAccount)
+    listMessagesMock.mockResolvedValue([])
+    syncInboxMock.mockResolvedValue({ new_messages: 2 })
     const user = userEvent.setup()
     renderPage()
 
-    await user.click(screen.getByRole('tab', { name: /Live Extraction Pipeline/ }))
-    const previewButtons = screen.getAllByRole('button', { name: /Preview Email & AI JSON Payload/ })
-    await user.click(previewButtons[0])
+    await user.click(await screen.findByRole('button', { name: 'Sync now' }))
 
-    const dialog = await screen.findByRole('dialog')
-    expect(dialog).toHaveTextContent('Raw Email & Extraction Inspection')
-    expect(dialog).toHaveTextContent('RFI #47 — Concrete Mix Specification Zone B')
-
-    await user.keyboard('{Escape}')
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(syncInboxMock).toHaveBeenCalledWith(7))
+    expect(await screen.findByText('2 new message(s) synced.')).toBeInTheDocument()
   })
 })

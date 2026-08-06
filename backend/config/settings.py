@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "platform_api",
     "drawings_studio",
     "contract_payments",
+    "email_integrations",
 ]
 
 MIDDLEWARE = [
@@ -257,6 +258,20 @@ DATA_RESIDENCY_REGION = env("DATA_RESIDENCY_REGION", default="sa")
 # AI / LLM Integration - OpenRouter (Gemini Flash) with fallbacks
 OPENROUTER_API_KEY = env("OPENROUTER_API_KEY", default="")
 OPENROUTER_MODEL = env("OPENROUTER_MODEL", default="google/gemini-2.5-flash")
+
+# Google Sign-In (Google Identity Services). The frontend posts the ID token
+# credential from the GIS button here; GoogleAuthView verifies it against
+# this OAuth client ID before trusting the email it carries.
+GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="")
 VOYAGE_API_KEY = env("VOYAGE_API_KEY", default="")
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+
+# Inbox Decisions (email_integrations) - full OAuth2 authorization-code flow
+# against Gmail (read-only), distinct from the GOOGLE_OAUTH_CLIENT_ID-only
+# sign-in flow above, which never exchanges a client secret. Both can point
+# at the same Google Cloud OAuth client if that client has the Gmail API
+# scope enabled. Unset -> GmailNotConfigured, 503, rest of the module (and
+# the whole app) still works per skills convention (see contract_payments's
+# LegalAgentNotConfigured).
+GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
 

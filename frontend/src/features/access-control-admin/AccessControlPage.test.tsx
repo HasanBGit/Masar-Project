@@ -42,10 +42,10 @@ const testProject: Project = { id: 10, name: 'Riyadh Tower Phase 1', slug: 'riya
 const testEntry: RosterEntry = {
   id: 1,
   user: 5,
-  user_name: 'Salem Contractor',
+  user_name: 'Salem Project Manager',
   user_email: 'salem@example.com',
   project: 10,
-  role: 'contractor',
+  role: 'project_manager',
   created_at: new Date().toISOString(),
 }
 
@@ -94,7 +94,7 @@ describe('AccessControlPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
 
-    expect(await screen.findByText('Salem Contractor')).toBeInTheDocument()
+    expect(await screen.findByText('Salem Project Manager')).toBeInTheDocument()
   })
 
   it('shows an empty state when the roster has no members', async () => {
@@ -108,7 +108,7 @@ describe('AccessControlPage', () => {
     mockLoad()
     renderPage()
 
-    expect(await screen.findByText('Salem Contractor')).toBeInTheDocument()
+    expect(await screen.findByText('Salem Project Manager')).toBeInTheDocument()
     expect(screen.getByText('salem@example.com')).toBeInTheDocument()
     expect(screen.getAllByText('KSA').length).toBe(2)
     expect(screen.getByText('10y')).toBeInTheDocument()
@@ -128,7 +128,7 @@ describe('AccessControlPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Remove member' }))
 
     await waitFor(() => expect(removeRosterMemberMock).toHaveBeenCalledWith(1))
-    expect(await screen.findByText('Salem Contractor removed from the roster.')).toBeInTheDocument()
+    expect(await screen.findByText('Salem Project Manager removed from the roster.')).toBeInTheDocument()
     expect(listRosterMock).toHaveBeenCalledTimes(2)
   })
 

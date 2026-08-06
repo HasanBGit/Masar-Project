@@ -1086,7 +1086,7 @@ export function RfiChangeControlPage({ project }: { project: Project }) {
             <span className="rounded-full bg-gold/20 px-2 py-0.5 font-bold text-gold-ink">
               <span aria-hidden="true">📧</span> Gmail Live Sync
             </span>
-            <span>Automatically parsing incoming consultant &amp; contractor emails into RFIs.</span>
+            <span>Automatically parsing incoming consultant &amp; project manager emails into RFIs.</span>
           </div>
           <Link to="/email-integrations" className="text-xs font-bold text-gold transition hover:underline">
             View Gmail Extraction Source &amp; Review Queue{' '}

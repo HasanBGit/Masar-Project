@@ -22,8 +22,8 @@ def test_owner_can_manage_roster(project, owner_user):
 
 
 @pytest.mark.django_db
-def test_contractor_cannot_manage_roster(project, contractor_user):
-    assert has_permission(contractor_user, project, "manage_roster") is False
+def test_project_manager_cannot_manage_roster(project, project_manager_user):
+    assert has_permission(project_manager_user, project, "manage_roster") is False
 
 
 @pytest.mark.django_db
@@ -42,8 +42,8 @@ def test_any_member_can_do_non_elevated_actions(project, consultant_user):
 def test_add_reassign_remove_roster_member_all_write_audit_events(project, owner_user, django_user_model):
     new_user = django_user_model.objects.create(email="new@test.local", username="new@test.local")
 
-    membership = add_roster_member(project=project, user=new_user, role=Role.CONTRACTOR, added_by=owner_user)
-    assert get_role(new_user, project) == Role.CONTRACTOR
+    membership = add_roster_member(project=project, user=new_user, role=Role.PROJECT_MANAGER, added_by=owner_user)
+    assert get_role(new_user, project) == Role.PROJECT_MANAGER
 
     reassign_roster_member(membership, Role.CONSULTANT, changed_by=owner_user)
     assert get_role(new_user, project) == Role.CONSULTANT
@@ -109,15 +109,15 @@ def test_roster_detail_hidden_from_non_member(project, owner_user, django_user_m
 
 
 @pytest.mark.django_db
-def test_roster_detail_visible_but_not_editable_by_fellow_member(project, owner_user, contractor_user):
+def test_roster_detail_visible_but_not_editable_by_fellow_member(project, owner_user, project_manager_user):
     owner_membership = ProjectMembership.objects.get(user=owner_user, project=project)
     client = APIClient()
-    client.force_authenticate(contractor_user)
+    client.force_authenticate(project_manager_user)
 
     get_response = client.get(f"/api/v1/accounts/roster/{owner_membership.id}/")
-    assert get_response.status_code == 200  # visible - contractor shares the project
+    assert get_response.status_code == 200  # visible - the PM shares the project
 
-    patch_response = client.patch(f"/api/v1/accounts/roster/{owner_membership.id}/", {"role": "contractor"})
+    patch_response = client.patch(f"/api/v1/accounts/roster/{owner_membership.id}/", {"role": "project_manager"})
     assert patch_response.status_code == 403  # but cannot reassign - not elevated
 
 

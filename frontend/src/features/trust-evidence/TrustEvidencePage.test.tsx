@@ -35,7 +35,7 @@ const testEvidence: EvidenceRecord = {
   subject_type: 'milestone',
   subject_id: '4',
   submitted_by: 3,
-  submitted_by_name: 'Salem Contractor',
+  submitted_by_name: 'Salem Project Manager',
   caption: 'Foundation rebar in place before pour',
   media_url: '',
   latitude: null,

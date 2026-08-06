@@ -24,13 +24,6 @@ def owner_user(db, project):
 
 
 @pytest.fixture
-def investor_user(db, project):
-    user = _make_user("investor@test.local")
-    ProjectMembership.objects.create(user=user, project=project, role=Role.INVESTOR)
-    return user
-
-
-@pytest.fixture
 def consultant_user(db, project):
     user = _make_user("consultant@test.local")
     ProjectMembership.objects.create(user=user, project=project, role=Role.CONSULTANT)
@@ -38,7 +31,14 @@ def consultant_user(db, project):
 
 
 @pytest.fixture
-def contractor_user(db, project):
-    user = _make_user("contractor@test.local")
-    ProjectMembership.objects.create(user=user, project=project, role=Role.CONTRACTOR)
+def project_manager_user(db, project):
+    user = _make_user("pm@test.local")
+    ProjectMembership.objects.create(user=user, project=project, role=Role.PROJECT_MANAGER)
+    return user
+
+
+@pytest.fixture
+def designer_user(db, project):
+    user = _make_user("designer@test.local")
+    ProjectMembership.objects.create(user=user, project=project, role=Role.DESIGNER)
     return user

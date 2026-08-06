@@ -63,8 +63,8 @@ def test_api_key_raw_key_shown_once_never_on_list(project, owner_user):
 
 
 @pytest.mark.django_db
-def test_api_key_list_rejected_for_non_admin_member(project, contractor_user):
-    response = _client(contractor_user).get(f"{INTERNAL}/api-keys/", {"project": project.id})
+def test_api_key_list_rejected_for_non_admin_member(project, project_manager_user):
+    response = _client(project_manager_user).get(f"{INTERNAL}/api-keys/", {"project": project.id})
     assert response.status_code == 403
 
 
@@ -120,6 +120,6 @@ def test_webhook_subscription_rejects_unknown_event_type(project, owner_user):
 
 
 @pytest.mark.django_db
-def test_webhook_deliveries_rejected_for_non_admin_member(project, contractor_user):
-    response = _client(contractor_user).get(f"{INTERNAL}/webhook-deliveries/", {"project": project.id})
+def test_webhook_deliveries_rejected_for_non_admin_member(project, project_manager_user):
+    response = _client(project_manager_user).get(f"{INTERNAL}/webhook-deliveries/", {"project": project.id})
     assert response.status_code == 403

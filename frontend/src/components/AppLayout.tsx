@@ -1,17 +1,18 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, Mail, ChevronDown, Sparkles, Zap, Radio, ShieldCheck } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useAuth } from '../features/auth/AuthContext'
 import { useLang, type MessageKey } from '../lib/i18n'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { Sidebar } from './Sidebar'
 import { NewProjectForm } from './NewProjectForm'
 import type { Project } from '../lib/types'
 
 const ROLE_LABEL: Record<string, string> = {
   owner: 'Owner',
-  investor: 'Investor',
   consultant: 'Consultant',
-  contractor: 'Contractor',
+  project_manager: 'Project Manager',
+  designer: 'Designer',
   admin: 'Admin',
 }
 
@@ -28,14 +29,6 @@ const PAGE_TITLE_KEYS: Record<string, MessageKey> = {
   '/observability': 'title.observability',
 }
 
-const INTEGRATION_MENU_ITEMS = [
-  { icon: Mail, iconClass: 'text-status-escalated', title: 'OAuth Connection Status', hint: 'Manage accounts & background sync' },
-  { icon: Zap, iconClass: 'text-status-hearing', title: 'Live Extraction Queue', hint: 'Review extracted approvals & RFIs' },
-  { icon: Sparkles, iconClass: 'text-gold', title: 'AI Intelligence & Rules', hint: 'Bilingual LLM extraction schema' },
-  { icon: Radio, iconClass: 'text-status-agreeing', title: 'Multi-Channel Stream', hint: 'Gmail, WhatsApp & Site Logs' },
-  { icon: ShieldCheck, iconClass: 'text-status-understanding', title: 'Sync Health & Webhooks', hint: 'Pub/Sub push metrics & latency' },
-]
-
 export function AppLayout({
   children,
   activeProject,
@@ -48,14 +41,12 @@ export function AppLayout({
   showObservability?: boolean
 }) {
   const { me, projects, logout } = useAuth()
-  const { t, lang, toggle } = useLang()
+  const { t } = useLang()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [integrationsMenuOpen, setIntegrationsMenuOpen] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
-  const integrationsMenuRef = useRef<HTMLDivElement>(null)
   const userMenuButtonRef = useRef<HTMLButtonElement>(null)
   const navToggleButtonRef = useRef<HTMLButtonElement>(null)
   const mobileDrawerRef = useRef<HTMLDivElement>(null)
@@ -67,23 +58,6 @@ export function AppLayout({
     logout()
     navigate('/login')
   }
-
-  // Close the integrations menu on outside click or Escape
-  useEffect(() => {
-    if (!integrationsMenuOpen) return
-    function onPointerDown(e: MouseEvent) {
-      if (!integrationsMenuRef.current?.contains(e.target as Node)) setIntegrationsMenuOpen(false)
-    }
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setIntegrationsMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [integrationsMenuOpen])
 
   // Close the user menu on outside click or Escape, returning focus to its trigger.
   useEffect(() => {
@@ -205,63 +179,7 @@ export function AppLayout({
               </label>
             )}
 
-            {/* Email Integrations quick menu (feature preview) */}
-            <div className="relative hidden md:block" ref={integrationsMenuRef}>
-              <button
-                onClick={() => setIntegrationsMenuOpen((v) => !v)}
-                aria-haspopup="menu"
-                aria-expanded={integrationsMenuOpen}
-                className="flex items-center gap-1.5 rounded-[var(--radius-s)] border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs font-bold text-navy transition hover:bg-gold/20"
-              >
-                <Mail size={15} className="text-gold-ink" aria-hidden="true" />
-                <span>Gmail Integration</span>
-                <ChevronDown size={14} className="text-navy/60" aria-hidden="true" />
-              </button>
-
-              {integrationsMenuOpen && (
-                <div
-                  role="menu"
-                  aria-label="Email integrations"
-                  className="absolute end-0 top-full z-50 mt-2 w-72 rounded-[var(--radius-m)] border border-sand bg-white p-2 shadow-2xl"
-                >
-                  <div className="border-b border-sand/60 px-3 py-2">
-                    <p className="text-xs font-bold text-navy">Gmail & Email Integrations</p>
-                    <p className="text-[11px] text-navy/60">Feature preview — explore the integration workspace</p>
-                  </div>
-                  <div className="py-1">
-                    {INTEGRATION_MENU_ITEMS.map((item) => {
-                      const Icon = item.icon
-                      return (
-                        <button
-                          key={item.title}
-                          role="menuitem"
-                          onClick={() => {
-                            setIntegrationsMenuOpen(false)
-                            navigate('/email-integrations')
-                          }}
-                          className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-start text-xs font-medium text-navy transition hover:bg-cream"
-                        >
-                          <Icon size={15} className={item.iconClass} aria-hidden="true" />
-                          <div>
-                            <div className="font-semibold">{item.title}</div>
-                            <div className="text-[10px] text-navy/50">{item.hint}</div>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={toggle}
-              aria-label={t('chrome.languageLabel')}
-              className="rounded-[var(--radius-s)] border border-sand bg-white px-2.5 py-1.5 text-xs font-semibold text-navy transition hover:bg-cream"
-            >
-              <span aria-hidden="true">🌐 </span>
-              {lang === 'ar' ? 'English' : 'العربية'}
-            </button>
+            <LanguageSwitcher />
 
             <div className="relative">
               <NewProjectForm

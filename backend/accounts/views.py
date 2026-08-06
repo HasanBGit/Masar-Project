@@ -1,10 +1,15 @@
 from core.models import Project
+from django.conf import settings
 from django.db import IntegrityError
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 from rest_framework import generics
 from rest_framework.exceptions import AuthenticationFailed, NotFound, PermissionDenied, ValidationError
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from . import services
@@ -46,6 +51,55 @@ class ThrottledTokenRefreshView(TokenRefreshView):
 
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "auth"
+
+
+class GoogleAuthView(APIView):
+    """
+    Sign in (or register on first sign-in) with a Google ID token from the
+    frontend's Google Identity Services button. The token is verified against
+    GOOGLE_OAUTH_CLIENT_ID server-side before its email claim is trusted, so
+    a request can't just hand over an arbitrary email/credential pair.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        credential = request.data.get("credential")
+        if not credential:
+            raise ValidationError({"credential": "This field is required."})
+        if not settings.GOOGLE_OAUTH_CLIENT_ID:
+            raise AuthenticationFailed("Google sign-in is not configured.")
+
+        try:
+            payload = google_id_token.verify_oauth2_token(
+                credential, google_requests.Request(), settings.GOOGLE_OAUTH_CLIENT_ID,
+            )
+        except ValueError:
+            import observability.services as observability
+
+            observability.record_authentication_failure("google-oauth")
+            raise AuthenticationFailed("Invalid Google credential.")
+
+        email = payload.get("email")
+        if not email or not payload.get("email_verified"):
+            raise AuthenticationFailed("Google account email is not verified.")
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "username": email,
+                "first_name": payload.get("given_name", ""),
+                "last_name": payload.get("family_name", ""),
+            },
+        )
+        if created:
+            user.set_unusable_password()
+            user.save(update_fields=["password"])
+
+        refresh = RefreshToken.for_user(user)
+        return Response({"access": str(refresh.access_token), "refresh": str(refresh)})
 
 
 class MeView(generics.RetrieveAPIView):

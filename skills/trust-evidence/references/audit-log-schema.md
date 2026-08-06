@@ -15,7 +15,7 @@ Every instruction, approval, and complaint on the platform must be attributable 
 | `id` | UUID | Primary key |
 | `project_id` | FK → Project | Every event is project-anchored, not person-anchored - survives staff turnover |
 | `actor` | FK → User (nullable) | Nullable only for system-generated events (e.g. auto-escalation firing); never nullable for human actions |
-| `actor_role` | enum | Owner / Investor / Consultant / Contractor / Subcontractor / Foreman / Laborer / PMC / San3 staff - snapshot at event time, not a live FK to a role that might change later |
+| `actor_role` | enum | Owner / Consultant / Project Manager / Designer / Subcontractor / Foreman / Laborer / PMC / San3 staff / System - snapshot at event time, not a live FK to a role that might change later |
 | `event_type` | enum | e.g. `decision_requested`, `decision_hearing_confirmed`, `decision_understood`, `decision_agreed`, `escalated`, `evidence_submitted`, `evidence_verified`, `payment_released`, `complaint_raised` - extend per-module, but always through this shared enum, not a free-text field |
 | `channel` | enum | `whatsapp` / `email` / `voice_call` / `platform_ui` / `system` - where the action actually happened |
 | `subject_ref` | generic reference (content_type + object_id, or equivalent) | Points at the tracked object this event is about (an RFI, a Decision, a Milestone, ...) - generic on purpose so `trust_evidence` never imports another app's models |

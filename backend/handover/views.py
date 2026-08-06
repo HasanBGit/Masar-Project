@@ -130,7 +130,7 @@ class OMChecklistItemViewSet(ProjectScopedViewSet):
     def verify(self, request, pk=None):
         item = self.get_object()
         # Same independent-verifier bar as evidence verification
-        # (owner/admin/consultant) - a contractor can't self-verify O&M docs.
+        # (owner/admin/consultant) - a project manager can't self-verify O&M docs.
         if not has_permission(request.user, item.project, "verify_evidence"):
             raise PermissionDenied("Only an owner, admin, or consultant/PMC can verify an O&M item.")
         services.verify_om_item(item, request.user)
@@ -139,10 +139,10 @@ class OMChecklistItemViewSet(ProjectScopedViewSet):
 
 
 # Who may move a defect through its lifecycle (see the RBAC matrix in
-# accounts.services): the contractor acknowledges the work is theirs (owner/
-# admin can too), while resolution needs an independent verifier - the same
-# owner/admin/consultant set as evidence verification.
-DEFECT_ACKNOWLEDGE_ROLES = {"contractor", "owner", "admin"}
+# accounts.services): the project manager acknowledges the work is theirs
+# (owner/admin can too), while resolution needs an independent verifier -
+# the same owner/admin/consultant set as evidence verification.
+DEFECT_ACKNOWLEDGE_ROLES = {"project_manager", "owner", "admin"}
 
 
 class PostHandoverDefectViewSet(ProjectScopedViewSet):
@@ -164,7 +164,7 @@ class PostHandoverDefectViewSet(ProjectScopedViewSet):
     def acknowledge(self, request, pk=None):
         defect = self.get_object()
         if get_role(request.user, defect.project) not in DEFECT_ACKNOWLEDGE_ROLES:
-            raise PermissionDenied("Only the contractor or an owner/admin can acknowledge a defect.")
+            raise PermissionDenied("Only the project manager or an owner/admin can acknowledge a defect.")
         try:
             services.acknowledge_defect(defect, request.user)
         except ValueError as exc:

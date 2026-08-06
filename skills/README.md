@@ -13,7 +13,7 @@ This folder is consumed by Claude Code (and read by any engineer joining the tea
 | [`engineering-principles`](engineering-principles/SKILL.md) | DRY/KISS/YAGNI/SOLID + testing conventions for Django/DRF/pytest and React/TS/Jest, plus the app-boundary rule |
 | [`platform-guidelines`](platform-guidelines/SKILL.md) | Brand identity, product overview, shared architecture conventions, domain glossary - the source every module skill links back to |
 
-## Feature modules (17 + 1 proposed)
+## Feature modules (17 + 2 proposed)
 
 | # | Module | Phase | Skill | Django app | React feature folder |
 |---|---|---|---|---|---|
@@ -35,6 +35,7 @@ This folder is consumed by Claude Code (and read by any engineer joining the tea
 | 16 | Search | Phase 2 | [`search`](search/SKILL.md) | `search` | `features/search/` |
 | 17 | Security, Access Control & Team Admin | Core baseline | [`access-control-admin`](access-control-admin/SKILL.md) | `accounts` | `features/access-control-admin/` |
 | 18 | Drawings Studio (3D model viewer) | **Proposed - not in the original product scope, built by direct request; confirm phasing** | [`drawings-studio`](drawings-studio/SKILL.md) | `drawings_studio` | `features/drawings-studio/` |
+| 19 | Inbox Decisions (Gmail sync) | **Proposed - not in the original product scope, built by direct request; confirm phasing** | [`email-integrations`](email-integrations/SKILL.md) | `email_integrations` | `features/email-integrations/` |
 
 ## Phasing
 

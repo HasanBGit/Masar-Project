@@ -13,6 +13,7 @@ import { DecisionDetailPage } from './features/approvals-workflow/DecisionDetail
 import { TrustEvidencePage } from './features/trust-evidence/TrustEvidencePage'
 import { ContractPaymentsPage } from './features/contract-payments/ContractPaymentsPage'
 import { EmailIntegrationsPage } from './features/email-integrations/EmailIntegrationsPage'
+import { OAuthCallbackPage } from './features/email-integrations/OAuthCallbackPage'
 import { RfiChangeControlPage } from './features/rfi-change-control/RfiChangeControlPage'
 import { HandoverPage } from './features/handover-closeout/HandoverPage'
 import { AccessControlPage } from './features/access-control-admin/AccessControlPage'
@@ -63,6 +64,7 @@ function Workspace() {
         <Routes>
           <Route path="/dashboard" element={<DashboardPage project={activeProject} />} />
           <Route path="/email-integrations" element={<EmailIntegrationsPage project={activeProject} />} />
+          <Route path="/email-integrations/oauth-callback" element={<OAuthCallbackPage project={activeProject} />} />
           <Route path="/decisions/:id" element={<DecisionDetailPage />} />
           <Route path="/trust-evidence" element={<TrustEvidencePage project={activeProject} />} />
           <Route path="/contract-payments" element={<ContractPaymentsPage project={activeProject} />} />

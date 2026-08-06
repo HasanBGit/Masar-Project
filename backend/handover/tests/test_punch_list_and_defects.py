@@ -17,16 +17,16 @@ from handover.services import (
 
 
 @pytest.mark.django_db
-def test_punch_list_item_requires_unit_or_zone(project, contractor_user):
-    item = create_punch_list_item(project=project, raised_by=contractor_user, unit_or_zone="Unit 4B", title="Chipped tile")
+def test_punch_list_item_requires_unit_or_zone(project, project_manager_user):
+    item = create_punch_list_item(project=project, raised_by=project_manager_user, unit_or_zone="Unit 4B", title="Chipped tile")
     assert item.status == PunchListStatus.OPEN
     assert item.unit_or_zone == "Unit 4B"
 
 
 @pytest.mark.django_db
-def test_request_closure_signoff_routes_through_approvals(project, contractor_user, owner_user):
-    item = create_punch_list_item(project=project, raised_by=contractor_user, unit_or_zone="Unit 4B", title="Chipped tile")
-    decision = request_closure_signoff(item, requested_by=contractor_user, accountable_user=owner_user)
+def test_request_closure_signoff_routes_through_approvals(project, project_manager_user, owner_user):
+    item = create_punch_list_item(project=project, raised_by=project_manager_user, unit_or_zone="Unit 4B", title="Chipped tile")
+    decision = request_closure_signoff(item, requested_by=project_manager_user, accountable_user=owner_user)
 
     item.refresh_from_db()
     assert item.status == PunchListStatus.PENDING_SIGNOFF
@@ -35,21 +35,21 @@ def test_request_closure_signoff_routes_through_approvals(project, contractor_us
 
 
 @pytest.mark.django_db
-def test_cannot_request_signoff_twice(project, contractor_user, owner_user):
-    item = create_punch_list_item(project=project, raised_by=contractor_user, unit_or_zone="Unit 4B", title="Chipped tile")
-    request_closure_signoff(item, requested_by=contractor_user, accountable_user=owner_user)
+def test_cannot_request_signoff_twice(project, project_manager_user, owner_user):
+    item = create_punch_list_item(project=project, raised_by=project_manager_user, unit_or_zone="Unit 4B", title="Chipped tile")
+    request_closure_signoff(item, requested_by=project_manager_user, accountable_user=owner_user)
     item.refresh_from_db()
 
     with pytest.raises(ValueError):
-        request_closure_signoff(item, requested_by=contractor_user, accountable_user=owner_user)
+        request_closure_signoff(item, requested_by=project_manager_user, accountable_user=owner_user)
 
 
 @pytest.mark.django_db
-def test_sync_closure_from_decision_closes_item_once_decision_agreed(project, contractor_user, owner_user):
+def test_sync_closure_from_decision_closes_item_once_decision_agreed(project, project_manager_user, owner_user):
     import approvals.services as approvals
 
-    item = create_punch_list_item(project=project, raised_by=contractor_user, unit_or_zone="Unit 4B", title="Chipped tile")
-    decision = request_closure_signoff(item, requested_by=contractor_user, accountable_user=owner_user)
+    item = create_punch_list_item(project=project, raised_by=project_manager_user, unit_or_zone="Unit 4B", title="Chipped tile")
+    decision = request_closure_signoff(item, requested_by=project_manager_user, accountable_user=owner_user)
 
     approvals.confirm_hearing(decision, owner_user)  # low-stakes: collapses straight to agreeing
     approvals.record_agreement(decision, owner_user)

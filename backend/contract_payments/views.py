@@ -38,11 +38,11 @@ def _project_from_query(request) -> Project:
 FINANCIAL_ACTION_ROLES = {"owner", "admin"}
 
 
-def _forbid_contractor(request, project):
+def _forbid_project_manager_and_designer(request, project):
     """Financial reporting (contract-vs-actual, ceiling, legal agent) is not
-    contractor-visible per the RBAC matrix - the paying side's data."""
-    if get_role(request.user, project) == "contractor":
-        raise PermissionDenied("Contractors cannot access contract financial data.")
+    project-manager/designer-visible per the RBAC matrix - the paying side's data."""
+    if get_role(request.user, project) in {"project_manager", "designer"}:
+        raise PermissionDenied("Project Managers and Designers cannot access contract financial data.")
 
 
 class ContractViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -77,13 +77,13 @@ class ContractViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Ret
     @action(detail=True, methods=["get"])
     def contract_vs_actual(self, request, pk=None):
         contract = self.get_object()
-        _forbid_contractor(request, contract.project)
+        _forbid_project_manager_and_designer(request, contract.project)
         return Response(services.get_contract_vs_actual(contract.project))
 
     @action(detail=True, methods=["get"])
     def ceiling_check(self, request, pk=None):
         contract = self.get_object()
-        _forbid_contractor(request, contract.project)
+        _forbid_project_manager_and_designer(request, contract.project)
         additional_amount = request.query_params.get("additional_amount", "0")
         return Response(services.check_ceiling_breach(contract.project, additional_amount=additional_amount))
 
@@ -99,7 +99,7 @@ class ContractViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Ret
     @action(detail=True, methods=["post"], url_path="legal-agent/ask")
     def legal_agent_ask(self, request, pk=None):
         contract = self.get_object()
-        _forbid_contractor(request, contract.project)
+        _forbid_project_manager_and_designer(request, contract.project)
         serializer = LegalAgentQuestionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
@@ -200,6 +200,6 @@ class CeilingBreachCheckView(APIView):
 
     def get(self, request):
         project = _project_from_query(request)
-        _forbid_contractor(request, project)
+        _forbid_project_manager_and_designer(request, project)
         additional_amount = request.query_params.get("additional_amount", "0")
         return Response(services.check_ceiling_breach(project, additional_amount=additional_amount))

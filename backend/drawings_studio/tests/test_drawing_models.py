@@ -12,8 +12,8 @@ def _gltf_file(name="tower.gltf"):
 
 
 @pytest.mark.django_db
-def test_create_drawing_model_derives_format_and_records_audit_event(project, contractor_user):
-    model = create_drawing_model(project=project, uploaded_by=contractor_user, name="Tower shell", file=_gltf_file())
+def test_create_drawing_model_derives_format_and_records_audit_event(project, project_manager_user):
+    model = create_drawing_model(project=project, uploaded_by=project_manager_user, name="Tower shell", file=_gltf_file())
     assert model.format == "gltf"
     assert model.project == project
 
@@ -23,15 +23,15 @@ def test_create_drawing_model_derives_format_and_records_audit_event(project, co
 
 
 @pytest.mark.django_db
-def test_create_drawing_model_rejects_unsupported_extension(project, contractor_user):
+def test_create_drawing_model_rejects_unsupported_extension(project, project_manager_user):
     with pytest.raises(ValueError):
-        create_drawing_model(project=project, uploaded_by=contractor_user, name="Bad file", file=_gltf_file("plan.rvt"))
+        create_drawing_model(project=project, uploaded_by=project_manager_user, name="Bad file", file=_gltf_file("plan.rvt"))
 
 
 @pytest.mark.django_db
-def test_delete_drawing_model_removes_row_and_records_audit_event(project, contractor_user):
-    model = create_drawing_model(project=project, uploaded_by=contractor_user, name="Tower shell", file=_gltf_file())
-    delete_drawing_model(model, deleted_by=contractor_user)
+def test_delete_drawing_model_removes_row_and_records_audit_event(project, project_manager_user):
+    model = create_drawing_model(project=project, uploaded_by=project_manager_user, name="Tower shell", file=_gltf_file())
+    delete_drawing_model(model, deleted_by=project_manager_user)
 
     assert not DrawingModel.objects.filter(id=model.id).exists()
     events = get_audit_events(project, event_type="drawing_model_deleted")
@@ -39,11 +39,11 @@ def test_delete_drawing_model_removes_row_and_records_audit_event(project, contr
 
 
 @pytest.mark.django_db
-def test_list_endpoint_requires_project_membership(project, contractor_user, django_user_model):
-    create_drawing_model(project=project, uploaded_by=contractor_user, name="Tower shell", file=_gltf_file())
+def test_list_endpoint_requires_project_membership(project, project_manager_user, django_user_model):
+    create_drawing_model(project=project, uploaded_by=project_manager_user, name="Tower shell", file=_gltf_file())
 
     client = APIClient()
-    client.force_authenticate(contractor_user)
+    client.force_authenticate(project_manager_user)
     res = client.get("/api/v1/drawings-studio/models/", {"project": project.id})
     assert res.status_code == 200
     assert res.data["count"] == 1
@@ -55,9 +55,9 @@ def test_list_endpoint_requires_project_membership(project, contractor_user, dja
 
 
 @pytest.mark.django_db
-def test_upload_endpoint_accepts_valid_file_and_rejects_unsupported(project, contractor_user):
+def test_upload_endpoint_accepts_valid_file_and_rejects_unsupported(project, project_manager_user):
     client = APIClient()
-    client.force_authenticate(contractor_user)
+    client.force_authenticate(project_manager_user)
 
     res = client.post(
         "/api/v1/drawings-studio/models/",
@@ -76,11 +76,11 @@ def test_upload_endpoint_accepts_valid_file_and_rejects_unsupported(project, con
 
 
 @pytest.mark.django_db
-def test_destroy_endpoint_deletes_model(project, contractor_user):
-    model = create_drawing_model(project=project, uploaded_by=contractor_user, name="Tower shell", file=_gltf_file())
+def test_destroy_endpoint_deletes_model(project, project_manager_user):
+    model = create_drawing_model(project=project, uploaded_by=project_manager_user, name="Tower shell", file=_gltf_file())
 
     client = APIClient()
-    client.force_authenticate(contractor_user)
+    client.force_authenticate(project_manager_user)
     res = client.delete(f"/api/v1/drawings-studio/models/{model.id}/")
     assert res.status_code == 204
     assert not DrawingModel.objects.filter(id=model.id).exists()

@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from accounts.views import MonitoredTokenObtainPairView, ThrottledTokenRefreshView
+from accounts.views import GoogleAuthView, MonitoredTokenObtainPairView, ThrottledTokenRefreshView
 from observability.views import SystemHealthCheckView
 
 urlpatterns = [
@@ -15,6 +15,7 @@ urlpatterns = [
     # already expects {"email": ..., "password": ...} - no override needed.
     path("api/v1/auth/token/", MonitoredTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/v1/auth/token/refresh/", ThrottledTokenRefreshView.as_view(), name="token_refresh"),
+    path("api/v1/auth/google/", GoogleAuthView.as_view(), name="google_auth"),
     path("api/v1/accounts/", include("accounts.urls")),
     path("api/v1/approvals/", include("approvals.urls")),
     path("api/v1/dashboard/", include("dashboard.urls")),
@@ -24,6 +25,7 @@ urlpatterns = [
     path("api/v1/observability/", include("observability.urls")),
     path("api/v1/drawings-studio/", include("drawings_studio.urls")),
     path("api/v1/contract-payments/", include("contract_payments.urls")),
+    path("api/v1/email-integrations/", include("email_integrations.urls")),
     path("api/v1/platform-api/", include("platform_api.urls_internal")),
     path("api/public/v1/", include("platform_api.urls")),
     # Developer documentation portal (Module 14) - drf-spectacular generates

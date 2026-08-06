@@ -8,6 +8,7 @@ interface AuthState {
   projects: Project[]
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithGoogle: (credential: string) => Promise<void>
   logout: () => void
   createProject: (name: string, description?: string) => Promise<Project>
 }
@@ -61,6 +62,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadProfile()
   }
 
+  async function loginWithGoogle(credential: string) {
+    const res = await api.post('/auth/google/', { credential })
+    tokenStore.setTokens(res.data.access, res.data.refresh)
+    await loadProfile()
+  }
+
   function logout() {
     tokenStore.clear()
     setMe(null)
@@ -74,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ me, projects, loading, login, logout, createProject }}>
+    <AuthContext.Provider value={{ me, projects, loading, login, loginWithGoogle, logout, createProject }}>
       {children}
     </AuthContext.Provider>
   )

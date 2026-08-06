@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 TOKEN_URL = "/api/v1/auth/token/"
 REFRESH_URL = "/api/v1/auth/token/refresh/"
+GOOGLE_URL = "/api/v1/auth/google/"
 
 
 @pytest.fixture(autouse=True)
@@ -63,3 +64,72 @@ def test_token_obtain_throttles_rapid_failures(owner_user):
             statuses.append(response.status_code)
     assert 429 in statuses
     assert statuses[-1] == 429
+
+
+@pytest.mark.django_db
+def test_google_auth_creates_a_user_on_first_sign_in(settings):
+    from accounts.models import User
+
+    settings.GOOGLE_OAUTH_CLIENT_ID = "test-client-id"
+    client = APIClient()
+    with patch("accounts.views.google_id_token.verify_oauth2_token") as verify:
+        verify.return_value = {
+            "email": "new.googler@gmail.com",
+            "email_verified": True,
+            "given_name": "New",
+            "family_name": "Googler",
+        }
+        response = client.post(GOOGLE_URL, {"credential": "fake-credential"})
+
+    assert response.status_code == 200
+    assert "access" in response.data and "refresh" in response.data
+    user = User.objects.get(email="new.googler@gmail.com")
+    assert user.first_name == "New"
+    assert not user.has_usable_password()
+
+
+@pytest.mark.django_db
+def test_google_auth_signs_in_an_existing_user(settings, owner_user):
+    settings.GOOGLE_OAUTH_CLIENT_ID = "test-client-id"
+    client = APIClient()
+    with patch("accounts.views.google_id_token.verify_oauth2_token") as verify:
+        verify.return_value = {"email": owner_user.email, "email_verified": True}
+        response = client.post(GOOGLE_URL, {"credential": "fake-credential"})
+
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_google_auth_rejects_an_invalid_credential(settings):
+    settings.GOOGLE_OAUTH_CLIENT_ID = "test-client-id"
+    client = APIClient()
+    with patch("accounts.views.google_id_token.verify_oauth2_token", side_effect=ValueError("bad token")):
+        response = client.post(GOOGLE_URL, {"credential": "garbage"})
+
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_google_auth_rejects_an_unverified_email(settings):
+    settings.GOOGLE_OAUTH_CLIENT_ID = "test-client-id"
+    client = APIClient()
+    with patch("accounts.views.google_id_token.verify_oauth2_token") as verify:
+        verify.return_value = {"email": "unverified@gmail.com", "email_verified": False}
+        response = client.post(GOOGLE_URL, {"credential": "fake-credential"})
+
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_google_auth_requires_a_configured_client_id(settings):
+    settings.GOOGLE_OAUTH_CLIENT_ID = ""
+    client = APIClient()
+    response = client.post(GOOGLE_URL, {"credential": "fake-credential"})
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_google_auth_requires_a_credential():
+    client = APIClient()
+    response = client.post(GOOGLE_URL, {})
+    assert response.status_code == 400

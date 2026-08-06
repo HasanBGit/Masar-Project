@@ -9,7 +9,9 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=True)
     preferred_language = models.CharField(
-        max_length=2, choices=[("en", "English"), ("ar", "Arabic")], default="en"
+        max_length=2,
+        choices=[("en", "English"), ("ar", "Arabic"), ("ur", "Urdu"), ("hi", "Hindi")],
+        default="en",
     )
 
     USERNAME_FIELD = "email"
@@ -20,10 +22,19 @@ class User(AbstractUser):
 
 
 class Role(models.TextChoices):
+    """
+    Project role hierarchy: Owner sees everything; Consultant reviews and
+    approves what the Project Manager and Designer produce (peers, both
+    reporting to Consultant); Project Manager is accountable for turning
+    site activity into reports/payment tasks; Designer owns project
+    architecture/drawings. Admin is a platform-operations role, not a
+    project stakeholder in this hierarchy.
+    """
+
     OWNER = "owner", "Owner"
-    INVESTOR = "investor", "Investor"
     CONSULTANT = "consultant", "Consultant"
-    CONTRACTOR = "contractor", "Contractor"
+    PROJECT_MANAGER = "project_manager", "Project Manager"
+    DESIGNER = "designer", "Designer"
     ADMIN = "admin", "Admin"
 
 

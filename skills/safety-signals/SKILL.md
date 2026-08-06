@@ -39,7 +39,7 @@ Anonymous, low-friction near-miss/hazard reporting, routed to the owner/safety l
 
 ## Rules or Process
 
-- Contractor-visible views of hazard reports must never expose the reporting worker's identity - enforce this at the query/serializer layer, not just by hiding a field in the UI (a hidden-but-present field is still a leak).
+- Project-Manager-visible views of hazard reports must never expose the reporting worker's identity - enforce this at the query/serializer layer, not just by hiding a field in the UI (a hidden-but-present field is still a leak).
 - Force-majeure explanations should be auto-generated in plain language and pushed proactively, not held back until requested.
 - A discrepancy flag (e.g. no photos despite "on track") should reference the specific missing evidence window, not just a generic "discrepancy detected" message.
 

@@ -17,17 +17,17 @@ const ROLE_COPY: Record<Role, { greeting: string; hint: string }> = {
     greeting: 'Your project, one seat with full visibility.',
     hint: 'Every open decision across the project, prioritized by what needs you.',
   },
-  investor: {
-    greeting: 'Portfolio-level signal for oversight.',
-    hint: 'Aggregated status - high-stakes items only, operational detail kept out of the way.',
-  },
   consultant: {
-    greeting: 'Items needing your technical input.',
-    hint: 'Decisions where you are Responsible or Consulted.',
+    greeting: 'What needs your review and sign-off.',
+    hint: 'Decisions where you are the accountable approver for the PM or Designer.',
   },
-  contractor: {
-    greeting: 'Your action queue.',
+  project_manager: {
+    greeting: 'Your site report and payment queue.',
     hint: 'Decisions awaiting your submission or response.',
+  },
+  designer: {
+    greeting: 'Your design review queue.',
+    hint: 'Drawings and submittals awaiting Consultant sign-off.',
   },
   admin: { greeting: 'Workspace administration.', hint: 'Roster and access overview.' },
 }

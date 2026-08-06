@@ -25,9 +25,9 @@ BASE = "/api/v1/rfi-change-control"
 
 
 @pytest.fixture
-def client(contractor_user):
+def client(project_manager_user):
     client = APIClient()
-    client.force_authenticate(contractor_user)
+    client.force_authenticate(project_manager_user)
     return client
 
 
@@ -106,7 +106,7 @@ def test_create_change_order_via_api(project, client):
 
 
 @pytest.mark.django_db
-def test_create_submittal_via_api(project, client, contractor_user):
+def test_create_submittal_via_api(project, client, project_manager_user):
     response = client.post(
         f"{BASE}/submittals/",
         {"project": project.id, "title": "Lobby marble sample", "spec_section": "09 30 00"},
@@ -114,7 +114,7 @@ def test_create_submittal_via_api(project, client, contractor_user):
     assert response.status_code == 201
     submittal = Submittal.objects.get(id=response.data["id"])
     assert submittal.current_as_of is not None
-    assert submittal.submitted_by == contractor_user
+    assert submittal.submitted_by == project_manager_user
     assert submittal.status == DocumentLifecycleStatus.UNDER_REVIEW
 
 
@@ -142,14 +142,14 @@ def test_create_supplier_delivery_via_api(project, client):
 
 
 @pytest.mark.django_db
-def test_create_quality_checkpoint_without_inspector_defaults_to_requester(project, client, contractor_user):
+def test_create_quality_checkpoint_without_inspector_defaults_to_requester(project, client, project_manager_user):
     response = client.post(
         f"{BASE}/quality-checkpoints/",
         {"project": project.id, "title": "Rebar inspection - Level 16"},
     )
     assert response.status_code == 201
     checkpoint = QualityCheckpoint.objects.get(id=response.data["id"])
-    assert checkpoint.inspector == contractor_user
+    assert checkpoint.inspector == project_manager_user
     assert checkpoint.status == DocumentLifecycleStatus.UNDER_REVIEW
 
 

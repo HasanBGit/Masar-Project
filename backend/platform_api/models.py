@@ -10,9 +10,9 @@ class ApiKeyScope(models.TextChoices):
     """Mirrors accounts.Role's values (not a cross-app model import - just the same vocabulary for API scoping)."""
 
     OWNER = "owner", "Owner (full project data)"
-    INVESTOR = "investor", "Investor (aggregate/high-stakes only)"
     CONSULTANT = "consultant", "Consultant"
-    CONTRACTOR = "contractor", "Contractor"
+    PROJECT_MANAGER = "project_manager", "Project Manager"
+    DESIGNER = "designer", "Designer"
 
 
 class ApiKeyTier(models.TextChoices):
@@ -58,7 +58,7 @@ class APIKey(TimeStampedModel):
 class WebhookEventType(models.TextChoices):
     APPROVAL_REQUESTED = "approval.requested", "Approval requested"
     EVIDENCE_VERIFIED = "evidence.verified", "Evidence verified"
-    CONTRACTOR_OVERDUE = "contractor.overdue", "Contractor overdue"
+    PROJECT_MANAGER_OVERDUE = "project_manager.overdue", "Project Manager overdue"
     PAYMENT_RELEASED = "payment.released", "Payment released"
 
 

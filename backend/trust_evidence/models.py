@@ -8,9 +8,9 @@ class ActorRole(models.TextChoices):
     """Snapshot at event time - never a live FK to a role that might change later."""
 
     OWNER = "owner", "Owner"
-    INVESTOR = "investor", "Investor"
     CONSULTANT = "consultant", "Consultant"
-    CONTRACTOR = "contractor", "Contractor"
+    PROJECT_MANAGER = "project_manager", "Project Manager"
+    DESIGNER = "designer", "Designer"
     SUBCONTRACTOR = "subcontractor", "Subcontractor"
     FOREMAN = "foreman", "Foreman"
     LABORER = "laborer", "Laborer"

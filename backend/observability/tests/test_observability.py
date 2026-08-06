@@ -71,7 +71,7 @@ def test_quiet_project_detection(project, owner_user):
 
 
 @pytest.mark.django_db
-def test_sla_compliance_summary_reflects_escalations(project, owner_user, contractor_user):
+def test_sla_compliance_summary_reflects_escalations(project, owner_user, project_manager_user):
     decision = request_decision(
         project=project, title="Overdue item", requested_by=owner_user,
         raci=[{"user": owner_user, "raci_role": RaciRole.ACCOUNTABLE}], high_stakes=False,

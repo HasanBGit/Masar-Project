@@ -21,7 +21,14 @@ import {
   updateRetentionPolicy,
 } from './api'
 
-const ROLES: Role[] = ['owner', 'investor', 'consultant', 'contractor', 'admin']
+const ROLES: Role[] = ['owner', 'consultant', 'project_manager', 'designer', 'admin']
+const ROLE_LABEL: Record<Role, string> = {
+  owner: 'Owner',
+  consultant: 'Consultant',
+  project_manager: 'Project Manager',
+  designer: 'Designer',
+  admin: 'Admin',
+}
 const ELEVATED_ROLES = new Set(['owner', 'admin'])
 
 const AUDIT_COLUMNS: Column<AuditLogEntry>[] = [
@@ -52,7 +59,7 @@ const AUDIT_COLUMNS: Column<AuditLogEntry>[] = [
 function AddMemberForm({ project, onChanged }: { project: Project; onChanged: () => void }) {
   const toast = useToast()
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<Role>('contractor')
+  const [role, setRole] = useState<Role>('project_manager')
   const [emailError, setEmailError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -101,7 +108,7 @@ function AddMemberForm({ project, onChanged }: { project: Project; onChanged: ()
           <SelectField label="Role" value={role} onChange={(e) => setRole(e.target.value as Role)}>
             {ROLES.map((r) => (
               <option key={r} value={r}>
-                {r}
+                {ROLE_LABEL[r]}
               </option>
             ))}
           </SelectField>
@@ -290,13 +297,13 @@ export function AccessControlPage({ project }: { project: Project }) {
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>
-                  {r}
+                  {ROLE_LABEL[r]}
                 </option>
               ))}
             </SelectField>
           </div>
         ) : (
-          <Badge label={entry.role} tone="neutral" />
+          <Badge label={ROLE_LABEL[entry.role] ?? entry.role} tone="neutral" />
         ),
     },
     ...(canManage

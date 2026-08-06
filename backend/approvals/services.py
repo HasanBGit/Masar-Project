@@ -19,6 +19,15 @@ from .models import Decision, DecisionParticipant, DecisionStatus, EscalationRul
 GENERIC_UNDERSTANDING_PHRASES = {"i agree", "ok", "okay", "agreed", "yes", "approved", "sounds good"}
 MIN_UNDERSTANDING_LENGTH = 12
 
+# Inbox Decisions (email_integrations) escalate to the Project Manager
+# specifically, not the project's general EscalationRule.fallback_role -
+# they're the one who needs to know an incoming email got neglected, not
+# necessarily the Owner. A subject_type string check, not a model import
+# (email_integrations owns this constant too; kept as a literal here so
+# approvals never imports another app's module, per the app-boundary rule).
+EMAIL_ESCALATION_SUBJECT_TYPE = "inbox_email"
+EMAIL_ESCALATION_FALLBACK_ROLE = "project_manager"
+
 
 def _get_rule(project) -> EscalationRule:
     rule, _ = EscalationRule.objects.get_or_create(project=project)
@@ -177,8 +186,11 @@ def escalate_if_breached(decision: Decision) -> Decision:
         return decision
 
     rule = _get_rule(decision.project)
+    fallback_role = (
+        EMAIL_ESCALATION_FALLBACK_ROLE if decision.subject_type == EMAIL_ESCALATION_SUBJECT_TYPE else rule.fallback_role
+    )
     accountable_participant = _accountable(decision)
-    fallback_qs = decision.project.memberships.filter(role=rule.fallback_role)
+    fallback_qs = decision.project.memberships.filter(role=fallback_role)
     if accountable_participant:
         fallback_qs = fallback_qs.exclude(user=accountable_participant.user)
     fallback_membership = fallback_qs.first()
@@ -196,7 +208,7 @@ def escalate_if_breached(decision: Decision) -> Decision:
         channel="system",
         subject_type="decision",
         subject_id=decision.id,
-        payload={"fallback_role": rule.fallback_role},
+        payload={"fallback_role": fallback_role},
     )
     return decision
 
@@ -246,6 +258,18 @@ def get_decision_for_subject(subject_type: str, subject_id) -> Decision | None:
         .order_by("-created_at")
         .first()
     )
+
+
+def get_decisions_for_subjects(subject_type: str, subject_ids) -> dict[str, Decision]:
+    """Bulk form of get_decision_for_subject - one query for a page of items
+    (e.g. email_integrations listing a page of EmailMessage rows) instead of
+    N. Keyed by subject_ref (string); last-created wins per ref, matching
+    get_decision_for_subject's ordering."""
+    decisions = (
+        Decision.objects.filter(subject_type=subject_type, subject_ref__in=[str(i) for i in subject_ids])
+        .order_by("created_at")
+    )
+    return {decision.subject_ref: decision for decision in decisions}
 
 
 def get_digest_items(project, user, limit: int = 3) -> list[Decision]:

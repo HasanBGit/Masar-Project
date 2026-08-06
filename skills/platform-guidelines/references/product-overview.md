@@ -27,7 +27,7 @@ Only ~6% of Saudi contractors use any modern PM tool. WhatsApp is the dominant r
 
 ## Target users
 
-Owner, Investor, Consultant, Contractor/GC, Subcontractor (multi-tier), Site foreman, Field/migrant laborer, PMC, Government authority (e.g. Balady), San3's internal ops team, API/partner integrators. See `skills/access-control-admin/SKILL.md` for the role model and `skills/owner-dashboard/SKILL.md` for how each role's view differs.
+Owner, Consultant, Project Manager/GC, Designer, Subcontractor (multi-tier), Site foreman, Field/migrant laborer, PMC, Government authority (e.g. Balady), San3's internal ops team, API/partner integrators. See `skills/access-control-admin/SKILL.md` for the role model and `skills/owner-dashboard/SKILL.md` for how each role's view differs.
 
 ## Eight structural competitor gaps (G1–G8)
 

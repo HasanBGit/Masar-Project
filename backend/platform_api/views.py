@@ -140,7 +140,7 @@ PROJECT_ID_PARAM = OpenApiParameter("project_id", int, OpenApiParameter.PATH, de
 
 
 class PublicApprovalsView(PublicAPIView):
-    """List approval decisions for a project. An `investor`-scoped key only sees high-stakes decisions."""
+    """List approval decisions for a project."""
 
     @extend_schema(parameters=[PROJECT_ID_PARAM], responses=PublicApprovalSerializer(many=True))
     def get(self, request, project_id):
@@ -151,8 +151,6 @@ class PublicApprovalsView(PublicAPIView):
         import approvals.services as approvals
 
         decisions = approvals.get_all_project_decisions(key.project)
-        if key.scope == "investor":
-            decisions = [d for d in decisions if d.high_stakes]
         return Response(PublicApprovalSerializer(decisions, many=True).data)
 
 

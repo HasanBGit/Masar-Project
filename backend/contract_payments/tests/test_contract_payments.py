@@ -61,12 +61,12 @@ def test_release_payment_milestone_rejects_unverified_evidence(milestone, owner_
 
 
 @pytest.mark.django_db
-def test_release_payment_milestone_succeeds_with_verified_evidence_and_generates_invoice(milestone, owner_user, contractor_user):
+def test_release_payment_milestone_succeeds_with_verified_evidence_and_generates_invoice(milestone, owner_user, project_manager_user):
     import trust_evidence.services as trust_evidence
 
     record = trust_evidence.submit_evidence(
         project=milestone.project, subject_type="payment_milestone", subject_id=milestone.id,
-        submitted_by=contractor_user, caption="Slab poured", captured_at=timezone.now(),
+        submitted_by=project_manager_user, caption="Slab poured", captured_at=timezone.now(),
     )
     trust_evidence.verify_evidence(record, owner_user)
 
@@ -86,18 +86,18 @@ def test_generate_invoice_for_milestone_is_idempotent(milestone):
 
 
 @pytest.mark.django_db
-def test_contract_vs_actual_counts_only_approved_change_orders(project, contract, contractor_user):
+def test_contract_vs_actual_counts_only_approved_change_orders(project, contract, project_manager_user):
     import rfi_change_control.services as rfi_change_control
 
     approved_co = rfi_change_control.create_change_order(
-        project=project, raised_by=contractor_user, title="Extra bathroom", baseline_scope="4 bed",
+        project=project, raised_by=project_manager_user, title="Extra bathroom", baseline_scope="4 bed",
         scope_delta="+1 bathroom", cost_impact=Decimal("50000"), schedule_impact_days=5,
     )
     approved_co.status = DocumentLifecycleStatus.APPROVED
     approved_co.save(update_fields=["status"])
 
     rfi_change_control.create_change_order(
-        project=project, raised_by=contractor_user, title="Draft-only change", baseline_scope="4 bed",
+        project=project, raised_by=project_manager_user, title="Draft-only change", baseline_scope="4 bed",
         scope_delta="+pool", cost_impact=Decimal("200000"), schedule_impact_days=10,
     )  # left in DRAFT - must not count
 

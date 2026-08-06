@@ -101,7 +101,7 @@ def test_legal_agent_ask_endpoint_returns_503_when_not_configured(contract, owne
 
 
 @pytest.mark.django_db
-def test_double_release_is_400_with_single_webhook_and_audit_event(contract, owner_user, contractor_user):
+def test_double_release_is_400_with_single_webhook_and_audit_event(contract, owner_user, project_manager_user):
     from unittest.mock import Mock, patch
 
     from django.utils import timezone
@@ -119,7 +119,7 @@ def test_double_release_is_400_with_single_webhook_and_audit_event(contract, own
     )
     record = trust_evidence.submit_evidence(
         project=contract.project, subject_type="payment_milestone", subject_id=milestone.id,
-        submitted_by=contractor_user, caption="Slab poured", captured_at=timezone.now(),
+        submitted_by=project_manager_user, caption="Slab poured", captured_at=timezone.now(),
     )
     trust_evidence.verify_evidence(record, owner_user)
 
@@ -164,9 +164,9 @@ def test_second_contract_for_project_returns_400(contract, project, owner_user):
 
 
 @pytest.mark.django_db
-def test_contractor_blocked_from_contract_vs_actual_and_ceiling(contract, contractor_user):
+def test_project_manager_blocked_from_contract_vs_actual_and_ceiling(contract, project_manager_user):
     client = APIClient()
-    client.force_authenticate(contractor_user)
+    client.force_authenticate(project_manager_user)
     assert client.get(f"/api/v1/contract-payments/contracts/{contract.id}/contract_vs_actual/").status_code == 403
     assert client.get(f"/api/v1/contract-payments/contracts/{contract.id}/ceiling_check/").status_code == 403
     assert client.get(f"/api/v1/contract-payments/ceiling-check/?project={contract.project_id}").status_code == 403

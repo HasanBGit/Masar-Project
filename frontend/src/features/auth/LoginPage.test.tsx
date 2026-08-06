@@ -3,21 +3,27 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoginPage } from './LoginPage'
+import { LanguageProvider } from '../../lib/i18n'
 
-const { loginMock } = vi.hoisted(() => ({ loginMock: vi.fn() }))
+const { loginMock, loginWithGoogleMock } = vi.hoisted(() => ({
+  loginMock: vi.fn(),
+  loginWithGoogleMock: vi.fn(),
+}))
 
 vi.mock('./AuthContext', () => ({
-  useAuth: () => ({ login: loginMock }),
+  useAuth: () => ({ login: loginMock, loginWithGoogle: loginWithGoogleMock }),
 }))
 
 function renderLogin() {
   return render(
-    <MemoryRouter initialEntries={['/login']}>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<div>Dashboard destination</div>} />
-      </Routes>
-    </MemoryRouter>,
+    <LanguageProvider>
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<div>Dashboard destination</div>} />
+        </Routes>
+      </MemoryRouter>
+    </LanguageProvider>,
   )
 }
 

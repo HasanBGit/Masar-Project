@@ -1,8 +1,8 @@
 ---
 name: owner-dashboard
 description: >
-  Use when building or extending role-differentiated views (Owner, Investor,
-  Consultant, Contractor) over the unified project timeline, the daily/
+  Use when building or extending role-differentiated views (Owner, Consultant,
+  Project Manager, Designer) over the unified project timeline, the daily/
   weekly digest, the conversational Q&A interface, or PDF/Excel export.
   Triggers on: "owner dashboard", "role view", "investor view", "digest",
   "plain-language summary", "ask a question about the project", "export
@@ -24,7 +24,7 @@ allowed-tools: Read, Grep, Glob
 
 ## Why this exists / Ground truth
 
-Same underlying data (the unified timeline), four audience-specific views generated from one data model: Owner, Investor, Consultant, Contractor. This is the platform's headline differentiator - no competitor gives the owner a real seat (Gap G1) or differentiates roles at all (Gap G4). Includes: a single daily/weekly digest ("3 things need your decision"); a plain-language summary layer for drawings/specs; a **conversational Q&A interface** (owner asks free-form questions, gets an AI-grounded answer sourced from the timeline - explicitly named in the research as an unbuilt market gap, "the bidirectional half of owner communication"); on-demand PDF/Excel export.
+Same underlying data (the unified timeline), four audience-specific views generated from one data model: Owner, Consultant, Project Manager, Designer - Consultant reviews and approves what the Project Manager and Designer produce; both report up to them, and the Owner sees everything. This is the platform's headline differentiator - no competitor gives the owner a real seat (Gap G1) or differentiates roles at all (Gap G4). Includes: a single daily/weekly digest ("3 things need your decision"); a plain-language summary layer for drawings/specs; a **conversational Q&A interface** (owner asks free-form questions, gets an AI-grounded answer sourced from the timeline - explicitly named in the research as an unbuilt market gap, "the bidirectional half of owner communication"); on-demand PDF/Excel export.
 
 ## Owns vs. does not own
 

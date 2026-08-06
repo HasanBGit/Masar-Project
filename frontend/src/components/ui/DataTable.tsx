@@ -79,7 +79,13 @@ export function DataTable<T>({
   const rangeStart = clampedPage * pageSize + 1
   const rangeEnd = Math.min(sorted.length, (clampedPage + 1) * pageSize)
   const rangeLabel =
-    lang === 'ar' ? `${rangeStart}–${rangeEnd} من ${sorted.length}` : `${rangeStart}–${rangeEnd} of ${sorted.length}`
+    lang === 'ar'
+      ? `${rangeStart}-${rangeEnd} من ${sorted.length}`
+      : lang === 'ur'
+        ? `${rangeStart}-${rangeEnd} از ${sorted.length}`
+        : lang === 'hi'
+          ? `${sorted.length} में से ${rangeStart}-${rangeEnd}`
+          : `${rangeStart}-${rangeEnd} of ${sorted.length}`
 
   return (
     <div className="overflow-hidden rounded-[var(--radius-m)] border border-sand/70 bg-paper">

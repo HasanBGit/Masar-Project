@@ -23,12 +23,12 @@ def _raci(accountable, responsible=None):
 
 
 @pytest.mark.django_db
-def test_high_stakes_decision_walks_all_three_edges(project, owner_user, contractor_user):
+def test_high_stakes_decision_walks_all_three_edges(project, owner_user, project_manager_user):
     decision = request_decision(
         project=project,
         title="Change order",
-        requested_by=contractor_user,
-        raci=_raci(accountable=owner_user, responsible=contractor_user),
+        requested_by=project_manager_user,
+        raci=_raci(accountable=owner_user, responsible=project_manager_user),
         high_stakes=True,
     )
     assert decision.status == DecisionStatus.HEARING
@@ -62,18 +62,18 @@ def test_low_stakes_decision_collapses_hearing_and_agreeing(project, owner_user)
 
 
 @pytest.mark.django_db
-def test_only_accountable_can_record_understanding(project, owner_user, contractor_user):
+def test_only_accountable_can_record_understanding(project, owner_user, project_manager_user):
     decision = request_decision(
         project=project,
         title="Change order",
-        requested_by=contractor_user,
-        raci=_raci(accountable=owner_user, responsible=contractor_user),
+        requested_by=project_manager_user,
+        raci=_raci(accountable=owner_user, responsible=project_manager_user),
         high_stakes=True,
     )
     confirm_hearing(decision, owner_user)
 
     with pytest.raises(NotAuthorized):
-        record_understanding(decision, contractor_user, "Responsible tries to close the gate themselves.")
+        record_understanding(decision, project_manager_user, "Responsible tries to close the gate themselves.")
 
 
 @pytest.mark.django_db
@@ -107,33 +107,33 @@ def test_cannot_agree_before_understanding_gate(project, owner_user):
 
 
 @pytest.mark.django_db
-def test_exactly_one_accountable_enforced_at_creation(project, owner_user, contractor_user):
+def test_exactly_one_accountable_enforced_at_creation(project, owner_user, project_manager_user):
     with pytest.raises(ValueError):
         request_decision(
             project=project,
             title="No accountable",
             requested_by=owner_user,
-            raci=[{"user": contractor_user, "raci_role": RaciRole.RESPONSIBLE}],
+            raci=[{"user": project_manager_user, "raci_role": RaciRole.RESPONSIBLE}],
         )
 
 
 @pytest.mark.django_db
-def test_second_accountable_rejected_at_db_level(project, owner_user, contractor_user):
+def test_second_accountable_rejected_at_db_level(project, owner_user, project_manager_user):
     from approvals.models import Decision, DecisionParticipant
 
     decision = Decision.objects.create(project=project, title="x", status=DecisionStatus.HEARING)
     DecisionParticipant.objects.create(decision=decision, user=owner_user, raci_role=RaciRole.ACCOUNTABLE)
     with pytest.raises(IntegrityError):
-        DecisionParticipant.objects.create(decision=decision, user=contractor_user, raci_role=RaciRole.ACCOUNTABLE)
+        DecisionParticipant.objects.create(decision=decision, user=project_manager_user, raci_role=RaciRole.ACCOUNTABLE)
 
 
 @pytest.mark.django_db
-def test_sla_breach_escalates_to_fallback_owner(project, owner_user, consultant_user, contractor_user):
+def test_sla_breach_escalates_to_fallback_owner(project, owner_user, consultant_user, project_manager_user):
     decision = request_decision(
         project=project,
         title="RFI",
-        requested_by=contractor_user,
-        raci=_raci(accountable=consultant_user, responsible=contractor_user),
+        requested_by=project_manager_user,
+        raci=_raci(accountable=consultant_user, responsible=project_manager_user),
         high_stakes=True,
     )
     decision.sla_deadline = timezone.now() - timedelta(hours=1)

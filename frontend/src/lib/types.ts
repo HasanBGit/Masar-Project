@@ -1,4 +1,4 @@
-export type Role = 'owner' | 'investor' | 'consultant' | 'contractor' | 'admin'
+export type Role = 'owner' | 'consultant' | 'project_manager' | 'designer' | 'admin'
 
 export type RaciRole = 'R' | 'A' | 'C' | 'I'
 
@@ -365,7 +365,7 @@ export interface SecurityEvent {
 
 // --- Platform API & Documentation (Module 14) ---
 
-export type ApiKeyScope = 'owner' | 'investor' | 'consultant' | 'contractor'
+export type ApiKeyScope = 'owner' | 'consultant' | 'project_manager' | 'designer'
 export type ApiKeyTier = 'standard' | 'partner'
 
 export interface APIKey {

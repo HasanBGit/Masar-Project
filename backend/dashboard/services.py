@@ -9,17 +9,10 @@ import approvals.services as approvals
 from accounts.services import get_role
 from rest_framework.exceptions import PermissionDenied
 
-# Investor gets an oversight view: aggregate signal, no per-person
-# operational detail. Consultant/Contractor get an action-oriented slice of
-# the same decisions, filtered by their RACI involvement (done inside
-# approvals.get_visible_decisions, which already scopes to participants).
-INVESTOR_DIGEST_HIGH_STAKES_ONLY = True
-
-
-def _redact_for_investor(decisions: list) -> list:
-    # Investor view keeps status/SLA/high-stakes signal but not the
-    # operational identity of who's holding up a decision.
-    return [d for d in decisions if d.high_stakes]
+# Owner/Admin get the full project feed. Consultant/Project Manager/Designer
+# get an action-oriented slice of the same decisions, filtered by their RACI
+# involvement (done inside approvals.get_visible_decisions, which already
+# scopes to participants).
 
 
 def get_role_dashboard(user, project) -> dict:
@@ -35,14 +28,8 @@ def get_role_dashboard(user, project) -> dict:
             [d for d in decisions if d.status != "closed"],
             key=lambda d: d.sla_deadline or d.created_at,
         )[:3]
-    elif role == "investor":
-        decisions = _redact_for_investor(list(approvals.get_all_project_decisions(project)))
-        digest = sorted(
-            [d for d in decisions if d.status != "closed"],
-            key=lambda d: d.sla_deadline or d.created_at,
-        )[:3]
     else:
-        # consultant / contractor: their own participant-scoped queue
+        # consultant / project_manager / designer: their own participant-scoped queue
         decisions = list(approvals.get_visible_decisions(project, user))
         digest = approvals.get_digest_items(project, user)
 
