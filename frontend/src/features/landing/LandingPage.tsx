@@ -678,7 +678,7 @@ function LandingPageContent() {
   // The landing page shares the app-wide language store: it initialises from
   // it and its EN/AR switchers write back through setLang, so the choice
   // persists across the whole app (and LanguageProvider keeps document
-  // lang/dir in sync — no destructive reset on unmount).
+  // lang/dir in sync  -  no destructive reset on unmount).
   const { lang, setLang } = useLang()
   const langRef = useRef(lang)
 

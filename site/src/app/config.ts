@@ -17,7 +17,7 @@ export const GMAIL_SCOPES = [
 export const APP_NAME = "San3";
 // Messages pulled per channel, per sync. Two AI layers means roughly
 // 2 calls per message plus one per project, and a free-tier key allows ~20
-// requests/minute — so 15 keeps a cold sync near two minutes. Cached syncs are
+// requests/minute  -  so 15 keeps a cold sync near two minutes. Cached syncs are
 // instant regardless. Raise this on a paid key.
 export const MAX_MESSAGES = 15;
 
@@ -34,14 +34,14 @@ export const GEMINI_FALLBACK_MODEL = "gemini-2.0-flash";
  *  straight onto the timeline. */
 export const CONFIDENCE_THRESHOLD = 0.7;
 
-/** Parallel extraction calls in flight. Kept low deliberately — free-tier keys
+/** Parallel extraction calls in flight. Kept low deliberately  -  free-tier keys
  *  throttle by requests-per-minute, and a throttled sync is slower than a
  *  paced one. Raise this on a paid key. */
 export const EXTRACTION_CONCURRENCY = 2;
 
 // ─── Layer 2 · reasoning ──────────────────────────────────────────────────────
 // Reasoning costs one model call per event plus one per project. Turn it off to
-// run extraction only — the record still works, it just has no interpretation.
+// run extraction only  -  the record still works, it just has no interpretation.
 export const REASONING_ENABLED = true;
 
 /** How many prior events the reasoning layer sees as context. Higher means
@@ -54,12 +54,12 @@ export const MAX_REASONED_EVENTS = 25;
 
 // ─── Label-based ingestion filter ─────────────────────────────────────────────
 // Only Gmail messages with this label are pulled. The AI decides what is and
-// isn't construction-related — this is just a demo-scoping convenience.
+// isn't construction-related  -  this is just a demo-scoping convenience.
 // Set to "" to pull the whole inbox and let the model do all the filtering.
 export const GMAIL_LABEL_FILTER = "San3 Demo";
 
 // ─── Project aliases ──────────────────────────────────────────────────────────
-// How people actually refer to each project on site — nicknames, zone names,
+// How people actually refer to each project on site  -  nicknames, zone names,
 // short forms. The model reads meaning on its own; what it cannot know is that
 // "Zone C" means the Diriyah villas on *this* account. That is account-specific
 // fact, not intelligence.

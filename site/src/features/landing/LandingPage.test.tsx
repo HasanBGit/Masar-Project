@@ -100,7 +100,7 @@ describe('LandingPage', () => {
 
     expect(email.getAttribute('aria-invalid')).toBe('true')
     expect(container.querySelector<HTMLElement>('#ea-email-error')!.hidden).toBe(false)
-    // Form is still there — nothing was submitted.
+    // Form is still there  -  nothing was submitted.
     expect(container.querySelector('#early-access-form')).not.toBeNull()
     expect(container.querySelector('.modal-success')).toBeNull()
   })

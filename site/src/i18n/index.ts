@@ -7,7 +7,7 @@ import hi from "./locales/hi.json";
 import ur from "./locales/ur.json";
 
 // Languages with locale resources bundled. NOTE: the site UI (landing page and
-// workspace demo) only offers English and Arabic — the landing content is
+// workspace demo) only offers English and Arabic  -  the landing content is
 // authored as EN text + data-ar attributes and has no hi/ur translations, so
 // `uiLanguages` below is what language switchers must cycle through. The hi/ur
 // JSON files are kept for future use but are not user-selectable.
@@ -25,7 +25,7 @@ export const languageNames: Record<SupportedLanguage, string> = {
 };
 
 // ar and ur are both Perso-Arabic-script, right-to-left languages. (ur stays
-// listed even though it is not currently user-selectable — harmless, and
+// listed even though it is not currently user-selectable  -  harmless, and
 // correct if it ever becomes selectable.)
 export const rtlLanguages: SupportedLanguage[] = ["ar", "ur"];
 

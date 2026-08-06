@@ -3,7 +3,7 @@
 // the project*: what came before it, what state the project is in, what it
 // contradicts, what it depends on, what it puts at risk.
 //
-// It consumes ConstructionEvents only — never raw messages, never channel
+// It consumes ConstructionEvents only  -  never raw messages, never channel
 // formats. That is what lets WhatsApp, Outlook, Balady, Primavera or Teams plug
 // in later without this file changing by a single line.
 
@@ -31,7 +31,7 @@ const PRIORITIES: Priority[] = ["high", "medium", "low"];
 
 // ─── Context building ─────────────────────────────────────────────────────────
 // Events are shown to the model under short refs (E1, E2 …) rather than raw
-// ids: fewer tokens, and a generated id can never be mistaken for a real one —
+// ids: fewer tokens, and a generated id can never be mistaken for a real one  - 
 // anything the model returns is resolved through the map or dropped.
 
 interface RefTable {
@@ -121,13 +121,13 @@ function buildEventPrompt(
 ): string {
   return `You are the reasoning layer of San3, a construction intelligence platform for project owners in Saudi Arabia and the GCC.
 
-A new construction event has just entered the project record. Your job is NOT to describe it — that is already done. Your job is to reason about what it MEANS for this project, given everything already on the record.
+A new construction event has just entered the project record. Your job is NOT to describe it  -  that is already done. Your job is to reason about what it MEANS for this project, given everything already on the record.
 
 CURRENT PROJECT STATE
 ${projectStateBlock(project, priorEvents)}
 
 PREVIOUS EVENTS ON THIS PROJECT (most recent first)
-${table.lines.length ? table.lines.join("\n") : "(none — this is the first event on record)"}
+${table.lines.length ? table.lines.join("\n") : "(none  -  this is the first event on record)"}
 
 THE NEW EVENT
 Date: ${event.occurredAt}
@@ -140,16 +140,16 @@ Deadline: ${event.deadline ?? "(none stated)"}
 Stakeholders: ${event.stakeholders.join(", ") || "(none named)"}
 
 REASON ABOUT
-1. relation — is this genuinely NEW information, an UPDATE to an event already listed above, or a DUPLICATE of one? If update or duplicate, put that event's ref (e.g. "E3") in updatesEventRef. Use "" otherwise.
-2. dependsOnEventRefs — earlier events this one depends on or follows from: an RFI answering an earlier RFI, a delivery unblocking earlier work, an inspection of work reported earlier. Explain the link in one sentence.
-3. createsRisk / riskType / riskSeverity — does this create or escalate a real risk to the project? Not every event does. A routine progress update creates no risk; a bearing-capacity failure creates a critical one. Explain concretely, referencing what specifically is at stake.
-4. scheduleImpact — could this delay the project? "none" if not, "possible" if it might, "likely" if it probably will, "confirmed" if a delay is already stated. scheduleImpactDays is your best numeric estimate in days, or 0 if unknown or none.
-5. notifyProjectManager — should the project manager be told now, rather than reading it in a weekly report? True for safety, for anything blocking work, for contradictions, for decisions with a deadline. False for routine information.
-6. contradictsPrevious — does this conflict with something already on the record? A contractor reporting "on track" after a delay was reported, two different dates for the same milestone, an approval of something previously rejected. List the conflicting refs and explain the conflict precisely.
-7. rationale — 1-3 sentences explaining your reasoning to the owner. Write it as an analyst briefing a decision-maker, not as a summary of the event.
-8. confidence — 0 to 1, how confident you are in this reasoning.
+1. relation  -  is this genuinely NEW information, an UPDATE to an event already listed above, or a DUPLICATE of one? If update or duplicate, put that event's ref (e.g. "E3") in updatesEventRef. Use "" otherwise.
+2. dependsOnEventRefs  -  earlier events this one depends on or follows from: an RFI answering an earlier RFI, a delivery unblocking earlier work, an inspection of work reported earlier. Explain the link in one sentence.
+3. createsRisk / riskType / riskSeverity  -  does this create or escalate a real risk to the project? Not every event does. A routine progress update creates no risk; a bearing-capacity failure creates a critical one. Explain concretely, referencing what specifically is at stake.
+4. scheduleImpact  -  could this delay the project? "none" if not, "possible" if it might, "likely" if it probably will, "confirmed" if a delay is already stated. scheduleImpactDays is your best numeric estimate in days, or 0 if unknown or none.
+5. notifyProjectManager  -  should the project manager be told now, rather than reading it in a weekly report? True for safety, for anything blocking work, for contradictions, for decisions with a deadline. False for routine information.
+6. contradictsPrevious  -  does this conflict with something already on the record? A contractor reporting "on track" after a delay was reported, two different dates for the same milestone, an approval of something previously rejected. List the conflicting refs and explain the conflict precisely.
+7. rationale  -  1-3 sentences explaining your reasoning to the owner. Write it as an analyst briefing a decision-maker, not as a summary of the event.
+8. confidence  -  0 to 1, how confident you are in this reasoning.
 
-Every *Ar field is the same content in formal Arabic, natural for a Saudi construction professional. Leave a field "" when it does not apply — do not invent links, risks, or contradictions that are not there. Being wrong about a contradiction is worse than missing one.
+Every *Ar field is the same content in formal Arabic, natural for a Saudi construction professional. Leave a field "" when it does not apply  -  do not invent links, risks, or contradictions that are not there. Being wrong about a contradiction is worse than missing one.
 
 Return only the structured JSON.`;
 }
@@ -272,7 +272,7 @@ function buildProjectPrompt(project: Project, events: ConstructionEvent[], table
 
   return `You are the reasoning layer of San3, a construction intelligence platform for project owners in Saudi Arabia and the GCC.
 
-Brief the project owner on the current state of this project. You are writing for someone who will not read the individual events — this briefing IS their view of the project.
+Brief the project owner on the current state of this project. You are writing for someone who will not read the individual events  -  this briefing IS their view of the project.
 
 PROJECT STATE
 ${projectStateBlock(project, events)}
@@ -284,19 +284,19 @@ WHAT THE PER-EVENT REASONING FLAGGED
 ${flags || "(no flags raised)"}
 
 PRODUCE
-1. headline — one sentence, under 15 words, on where this project actually stands. Not a count of events; a judgement.
-2. narrative — 2-4 sentences connecting what has happened into a story: what is progressing, what is stuck, what changed recently, what the owner should be worried about. Reference specific events by what they were, not by ref code.
-3. scheduleOutlook — "on-track", "at-risk", "slipping", or "unknown". Base it on evidence in the record, not on the reported progress percentage, which is self-reported by the contractor.
-4. scheduleNote — one sentence justifying that outlook.
-5. topRisks — up to 4, most serious first, each with the refs of the events that evidence it. Only real risks visible in the record. If there are none, return an empty array rather than inventing one.
-6. recommendedActions — up to 4 concrete next steps for the owner's team, most urgent first, each with supporting event refs. Actions the OWNER can take, not instructions to the contractor.
+1. headline  -  one sentence, under 15 words, on where this project actually stands. Not a count of events; a judgement.
+2. narrative  -  2-4 sentences connecting what has happened into a story: what is progressing, what is stuck, what changed recently, what the owner should be worried about. Reference specific events by what they were, not by ref code.
+3. scheduleOutlook  -  "on-track", "at-risk", "slipping", or "unknown". Base it on evidence in the record, not on the reported progress percentage, which is self-reported by the contractor.
+4. scheduleNote  -  one sentence justifying that outlook.
+5. topRisks  -  up to 4, most serious first, each with the refs of the events that evidence it. Only real risks visible in the record. If there are none, return an empty array rather than inventing one.
+6. recommendedActions  -  up to 4 concrete next steps for the owner's team, most urgent first, each with supporting event refs. Actions the OWNER can take, not instructions to the contractor.
 
 Every *Ar field is the same content in formal Arabic, natural for a Saudi construction professional.
 
 Return only the structured JSON.`;
 }
 
-/** Shape of one topRisks entry as the model may return it — every field is
+/** Shape of one topRisks entry as the model may return it  -  every field is
  *  unknown until sanitised. */
 interface RawRisk {
   title?: unknown;

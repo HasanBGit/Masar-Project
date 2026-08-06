@@ -39,7 +39,7 @@ const SCRIPT_POLL_INTERVAL_MS = 200;
 const SCRIPT_POLL_TIMEOUT_MS = 10_000;
 
 const SCRIPT_LOAD_ERROR =
-  "Google sign-in failed to load — refresh to retry, or check your network/ad-blocker.";
+  "Google sign-in failed to load  -  refresh to retry, or check your network/ad-blocker.";
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -64,7 +64,7 @@ export function useGmailAuth() {
       setAuthState((prev) => ({
         ...prev,
         isLoading: false,
-        error: "Google Client ID not configured — set VITE_GOOGLE_CLIENT_ID.",
+        error: "Google Client ID not configured  -  set VITE_GOOGLE_CLIENT_ID.",
       }));
       return;
     }
@@ -109,7 +109,7 @@ export function useGmailAuth() {
       }
     };
 
-    // Poll for the async/defer GIS script instead of checking once — a single
+    // Poll for the async/defer GIS script instead of checking once  -  a single
     // check races the script and permanently breaks sign-in when it loses.
     const startedAt = Date.now();
     let timer: ReturnType<typeof setTimeout> | undefined;

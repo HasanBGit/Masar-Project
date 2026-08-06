@@ -91,7 +91,7 @@ export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps
     };
   }, [resetForTeardown]);
 
-  // ── Full geometry rebuild — only when the shape or colour changes ──────────
+  // ── Full geometry rebuild  -  only when the shape or colour changes ──────────
   useEffect(() => {
     const sm = sceneManagerRef.current;
     if (!sm) return;
@@ -134,7 +134,7 @@ export function PrimitiveViewer({ shape, dims, className }: PrimitiveViewerProps
     // rescale (effect below) instead of rebuilding all geometry.
   }, [shape, color, sceneManager, clearSelection, clearMeasure]);
 
-  // ── Cheap scale update — numeric dimension changes rescale the built mesh ──
+  // ── Cheap scale update  -  numeric dimension changes rescale the built mesh ──
   useEffect(() => {
     const sm = sceneManagerRef.current;
     const obj = loadedObjectRef.current;

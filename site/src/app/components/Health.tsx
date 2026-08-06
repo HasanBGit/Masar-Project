@@ -83,12 +83,12 @@ export function Health({ connectors, darkMode }: Props) {
               </div>
               {statusBadge(c)}
             </div>
-            <div className={`text-[0.85rem] ${subCls}`}>{(isAr ? c.detailAr : c.detail) ?? "—"}</div>
+            <div className={`text-[0.85rem] ${subCls}`}>{(isAr ? c.detailAr : c.detail) ?? " - "}</div>
             {c.healthy === false && (
               <div className={`mt-3 rounded-xl border p-3 text-[0.8rem] ${toneClasses("danger", darkMode)}`}>
                 {isAr
-                  ? "بدون هذه الطبقة لا يمكن تحويل الرسائل إلى أحداث إنشائية — تُحفظ الرسائل في قائمة المراجعة بدلاً من تخمين محتواها."
-                  : "Without this layer messages cannot become construction events — they are held in the review queue rather than guessed at."}
+                  ? "بدون هذه الطبقة لا يمكن تحويل الرسائل إلى أحداث إنشائية  -  تُحفظ الرسائل في قائمة المراجعة بدلاً من تخمين محتواها."
+                  : "Without this layer messages cannot become construction events  -  they are held in the review queue rather than guessed at."}
               </div>
             )}
           </div>

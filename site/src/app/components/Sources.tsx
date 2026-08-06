@@ -295,8 +295,8 @@ export function Sources({
                       ? "سجّل الدخول لبدء الاستيعاب."
                       : "Sign in to begin ingesting."
                     : isAr
-                    ? "محوّل جاهز في السجل — يُفعّل دون تغيير النموذج."
-                    : "Adapter slot ready — enabling it changes no data model."}
+                    ? "محوّل جاهز في السجل  -  يُفعّل دون تغيير النموذج."
+                    : "Adapter slot ready  -  enabling it changes no data model."}
                 </div>
               </div>
             );

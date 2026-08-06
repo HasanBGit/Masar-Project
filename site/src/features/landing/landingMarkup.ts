@@ -5,7 +5,7 @@
 export const LANDING_MARKUP = `
 <!-- NOTE: every image below is hotlinked from CloudFront/Wikimedia. These MUST
      be self-hosted (copied into /public and referenced locally) before any
-     production deploy — third-party hosts can rate-limit, remove, or replace
+     production deploy  -  third-party hosts can rate-limit, remove, or replace
      them at any time. The width/height attributes are approximate placeholder
      ratios to reduce layout shift; set the exact intrinsic sizes when the
      files are self-hosted. -->
@@ -42,13 +42,13 @@ export const LANDING_MARKUP = `
           <section class="sights-slider" aria-label="Truepoint modules slider">
             <div class="sights-track">
               <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Approvals Workflow card"
-                data-kicker-ar="وحدة أساسية" data-title-ar="سير عمل الاعتماد" data-body-ar="الحواف الثلاث — الاستماع والفهم والموافقة — شرط لازم قبل إتمام أي توقيع."
-                data-kicker-hi="कोर मॉड्यूल" data-title-hi="अनुमोदन वर्कफ़्लो" data-body-hi="तीन चरण — सुनवाई, समझ, सहमति — किसी भी हस्ताक्षर से पहले अनिवार्य।"
-                data-kicker-ur="بنیادی ماڈیول" data-title-ur="منظوری کا ورک فلو" data-body-ur="تین مراحل — سماعت، تفہیم، اتفاق — کسی بھی دستخط سے پہلے لازمی۔">
+                data-kicker-ar="وحدة أساسية" data-title-ar="سير عمل الاعتماد" data-body-ar="الحواف الثلاث  -  الاستماع والفهم والموافقة  -  شرط لازم قبل إتمام أي توقيع."
+                data-kicker-hi="कोर मॉड्यूल" data-title-hi="अनुमोदन वर्कफ़्लो" data-body-hi="तीन चरण  -  सुनवाई, समझ, सहमति  -  किसी भी हस्ताक्षर से पहले अनिवार्य।"
+                data-kicker-ur="بنیادی ماڈیول" data-title-ur="منظوری کا ورک فلو" data-body-ur="تین مراحل  -  سماعت، تفہیم، اتفاق  -  کسی بھی دستخط سے پہلے لازمی۔">
                 <span class="sight-kicker">Core Module</span>
                 <img class="sight-pin" alt="" aria-hidden="true" loading="lazy" width="512" height="512" src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_230438_d526b8b6-8a2e-4e3b-9993-3908acae03a7.png" />
                 <h3>Approvals Workflow</h3>
-                <p>The 3 Edges — Hearing, Understanding, Agreeing — before any sign-off counts.</p>
+                <p>The 3 Edges  -  Hearing, Understanding, Agreeing  -  before any sign-off counts.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-pressed="false" aria-label="Open Trust and Evidence card"
                 data-kicker-ar="النواة الأساسية" data-title-ar="الثقة والأدلة" data-body-ar="معالم مُعتمدة وموثَّقة، وسجل تدقيق جاهز للاحتجاج به في أي نزاع قانوني."
@@ -109,7 +109,7 @@ export const LANDING_MARKUP = `
       </div>
 
       <section class="intro-copy" aria-label="Truepoint overview">
-        <p data-ar="تحوّل Truepoint مجموعات الواتساب والمراسلات الإلكترونية وتقارير استشاري إدارة المشاريع إلى سجل مشروع موحَّد وموثَّق باللغة العربية أولاً — دون أن يُكلَّف فريق الموقع بتغيير أسلوب عمله.">Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record — without asking your site team to change how they work.</p>
+        <p data-ar="تحوّل Truepoint مجموعات الواتساب والمراسلات الإلكترونية وتقارير استشاري إدارة المشاريع إلى سجل مشروع موحَّد وموثَّق باللغة العربية أولاً  -  دون أن يُكلَّف فريق الموقع بتغيير أسلوب عمله.">Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record  -  without asking your site team to change how they work.</p>
         <div class="hero-tags" aria-label="Truepoint highlights">
           <span data-ar="الأولوية للمالك">Owner-first</span>
           <span data-ar="الأولوية للعربية">Arabic-first</span>
@@ -119,7 +119,7 @@ export const LANDING_MARKUP = `
 
       <section class="story-panel story-panel-bridge" aria-label="Approvals and trust details">
         <h2 data-ar="النواة التي تستند إليها جميع الوحدات.">The kernel every module depends on.</h2>
-        <p data-ar="الاعتمادات وبنية الثقة والأدلة هما النواة الأساسية — تستند إليها معظم الوحدات الأخرى.">Approvals and Trust &amp; Evidence are the domain kernel — most other modules build on both.</p>
+        <p data-ar="الاعتمادات وبنية الثقة والأدلة هما النواة الأساسية  -  تستند إليها معظم الوحدات الأخرى.">Approvals and Trust &amp; Evidence are the domain kernel  -  most other modules build on both.</p>
         <dl class="facts">
           <div>
             <dt>6%</dt>
@@ -134,7 +134,7 @@ export const LANDING_MARKUP = `
 
       <section class="story-panel story-panel-bazaar" aria-label="Arabic-first details">
         <h2 data-ar="الأولوية للعربية، لا ترجمة أُضيفت لاحقاً.">Arabic-first, not bolted on.</h2>
-        <p data-ar="ملاحظات صوتية والتقاط عبر واتساب ومعالجة لغوية تراعي اللهجة الخليجية — لا مسار إنجليزي أُضيفت إليه ترجمة في مرحلة لاحقة.">Voice notes, WhatsApp capture, and a Gulf-dialect-aware NLP pipeline — not an English pipeline with translation added later.</p>
+        <p data-ar="ملاحظات صوتية والتقاط عبر واتساب ومعالجة لغوية تراعي اللهجة الخليجية  -  لا مسار إنجليزي أُضيفت إليه ترجمة في مرحلة لاحقة.">Voice notes, WhatsApp capture, and a Gulf-dialect-aware NLP pipeline  -  not an English pipeline with translation added later.</p>
         <button class="note-button request-access-btn" type="button">
           <span aria-hidden="true">↗</span>
           <span data-ar="طلب الوصول المبكر">Request Early Access</span>
@@ -150,7 +150,7 @@ export const LANDING_MARKUP = `
       <div class="feature-grid">
         <article class="feature-card">
           <h3 data-ar="الخط الزمني الموحَّد للمشروع">Unified project timeline</h3>
-          <p data-ar="تحديثات واتساب والمراسلات الإلكترونية وطلبات المعلومات ومراسلات التصاريح — مدمجة في سجل واحد مرتبط بالمشروع.">WhatsApp updates, email threads, RFIs, and permit correspondence — merged into one project-anchored record.</p>
+          <p data-ar="تحديثات واتساب والمراسلات الإلكترونية وطلبات المعلومات ومراسلات التصاريح  -  مدمجة في سجل واحد مرتبط بالمشروع.">WhatsApp updates, email threads, RFIs, and permit correspondence  -  merged into one project-anchored record.</p>
         </article>
         <article class="feature-card">
           <h3 data-ar="موثَّق، لا مُصرَّح به ذاتياً">Verified, not self-reported</h3>
@@ -158,15 +158,15 @@ export const LANDING_MARKUP = `
         </article>
         <article class="feature-card">
           <h3 data-ar="سير عمل الحواف الثلاث للاعتماد">The 3 Edges approval flow</h3>
-          <p data-ar="الاستماع والفهم والموافقة — فحص استيعاب وفق أسلوب إعادة الشرح، وتوقيع واحد محدَّد بالاسم تقع عليه المسؤولية الكاملة، في كل مرة.">Hearing, Understanding, Agreeing — a teach-back check and one named, accountable sign-off, every time.</p>
+          <p data-ar="الاستماع والفهم والموافقة  -  فحص استيعاب وفق أسلوب إعادة الشرح، وتوقيع واحد محدَّد بالاسم تقع عليه المسؤولية الكاملة، في كل مرة.">Hearing, Understanding, Agreeing  -  a teach-back check and one named, accountable sign-off, every time.</p>
         </article>
         <article class="feature-card">
           <h3 data-ar="واجهات مخصصة حسب الدور الوظيفي">Role-specific dashboards</h3>
-          <p data-ar="يطّلع المالك والاستشاري ومدير المشروع والمصمم على الواجهة المصمَّمة خصيصاً لقراراتهم — من نموذج بيانات موحَّد.">Owner, Consultant, Project Manager, and Designer each see the view built for their decisions — from one data model.</p>
+          <p data-ar="يطّلع المالك والاستشاري ومدير المشروع والمصمم على الواجهة المصمَّمة خصيصاً لقراراتهم  -  من نموذج بيانات موحَّد.">Owner, Consultant, Project Manager, and Designer each see the view built for their decisions  -  from one data model.</p>
         </article>
         <article class="feature-card">
           <h3 data-ar="الأولوية للعربية، ومدعوم صوتياً">Arabic-first, voice-ready</h3>
-          <p data-ar="مبنيٌّ على معالجة لغوية عربية تراعي اللهجة الخليجية منذ اليوم الأول — لا منتج إنجليزي أُضيفت إليه ترجمة في مرحلة لاحقة.">Built on a Gulf-dialect-aware Arabic pipeline from day one — not an English product with translation bolted on.</p>
+          <p data-ar="مبنيٌّ على معالجة لغوية عربية تراعي اللهجة الخليجية منذ اليوم الأول  -  لا منتج إنجليزي أُضيفت إليه ترجمة في مرحلة لاحقة.">Built on a Gulf-dialect-aware Arabic pipeline from day one  -  not an English product with translation bolted on.</p>
         </article>
       </div>
     </div>
@@ -180,7 +180,7 @@ export const LANDING_MARKUP = `
         <div class="step">
           <span class="step-num">1</span>
           <h3 data-ar="ربط قنوات التواصل">Connect your channels</h3>
-          <p data-ar="أضف Truepoint إلى مجموعات واتساب وصناديق البريد التي يستخدمها فريقك بالفعل — دون أن تُكلِّف فريق الموقع بتبنّي تطبيق جديد.">Add Truepoint to the WhatsApp groups and inboxes your team already uses. No new app for the site team to adopt.</p>
+          <p data-ar="أضف Truepoint إلى مجموعات واتساب وصناديق البريد التي يستخدمها فريقك بالفعل  -  دون أن تُكلِّف فريق الموقع بتبنّي تطبيق جديد.">Add Truepoint to the WhatsApp groups and inboxes your team already uses. No new app for the site team to adopt.</p>
         </div>
         <div class="step">
           <span class="step-num">2</span>
@@ -200,7 +200,7 @@ export const LANDING_MARKUP = `
     <div class="section-inner cta-band-inner">
       <div>
         <h2 data-ar="اطّلع على Truepoint مطبَّقاً على مشروعك.">See Truepoint on your project.</h2>
-        <p data-ar="دون بطاقة ائتمانية أو أي التزام — جولة توضيحية على خطك الزمني الفعلي.">No card, no commitment — just a walkthrough with your actual timeline.</p>
+        <p data-ar="دون بطاقة ائتمانية أو أي التزام  -  جولة توضيحية على خطك الزمني الفعلي.">No card, no commitment  -  just a walkthrough with your actual timeline.</p>
       </div>
       <button class="note-button note-button--dark request-access-btn" type="button">
         <span aria-hidden="true">↗</span>
@@ -213,7 +213,7 @@ export const LANDING_MARKUP = `
     <div class="section-inner">
       <p class="section-eyebrow" data-ar="التسعير">Pricing</p>
       <h2 class="section-heading" data-ar="تسعير مُصمَّم حسب محفظتك، لا وفق عدد مقاعد موحَّد للجميع.">Scoped to your portfolio, not a one-size-fits-all seat count.</h2>
-      <p class="section-body" data-ar="يُسعَّر Truepoint لكل مشروع على حدة خلال مرحلة الوصول المبكر — ستطّلع على خطة مقترحة، لا على جدار دفع، قبل الاتفاق على أي شيء.">Truepoint is priced per project during early access — you'll see a proposed plan, not a paywall, before anything is agreed.</p>
+      <p class="section-body" data-ar="يُسعَّر Truepoint لكل مشروع على حدة خلال مرحلة الوصول المبكر  -  ستطّلع على خطة مقترحة، لا على جدار دفع، قبل الاتفاق على أي شيء.">Truepoint is priced per project during early access  -  you'll see a proposed plan, not a paywall, before anything is agreed.</p>
 
       <div class="pricing-grid">
         <article class="price-card">
@@ -281,7 +281,7 @@ export const LANDING_MARKUP = `
           </div>
           <div>
             <h3 data-ar="مستند إلى أبحاث محكَّمة ومنشورة">Grounded in published research</h3>
-            <p data-ar="كل إحصائية في هذه الصفحة مستندة إلى مصدر محكَّم ومنشور — لا إلى محتوى تسويقي.">Every stat on this site cites a peer-reviewed source — not marketing copy.</p>
+            <p data-ar="كل إحصائية في هذه الصفحة مستندة إلى مصدر محكَّم ومنشور  -  لا إلى محتوى تسويقي.">Every stat on this site cites a peer-reviewed source  -  not marketing copy.</p>
           </div>
           <div>
             <h3 data-ar="في مرحلة الوصول المبكر، بقصد واضح">In early access, on purpose</h3>
@@ -291,7 +291,7 @@ export const LANDING_MARKUP = `
       </div>
       <blockquote class="credibility-quote">
         <p data-ar="بدأنا ببناء الخط الزمني وسير الاعتماد أولاً، لأنهما ما آلت إليه كل النزاعات التي درسناها: من عَلِم بماذا، ومن وافق على ماذا.">"We built the timeline and the approval flow first, because those are the two things every dispute we studied came down to: who knew what, and who signed off on it."</p>
-        <p class="credibility-cite" data-ar="— فريق Truepoint">— The Truepoint team</p>
+        <p class="credibility-cite" data-ar=" -  فريق Truepoint"> -  The Truepoint team</p>
       </blockquote>
     </div>
   </section>
@@ -303,7 +303,7 @@ export const LANDING_MARKUP = `
       <div class="faq-list">
         <details class="faq-item" open>
           <summary data-ar="هل يحتاج فريق الموقع إلى تعلّم تطبيق جديد؟">Does my site team need to learn a new app?</summary>
-          <p data-ar="لا. يعتمد الالتقاط الميداني على مجموعات واتساب التي يستخدمها فريقك بالفعل — تقرأ Truepoint من قنوات لم يُغيِّرها فريقك، عوضاً عن مطالبته بتبنّي قناة جديدة.">No. Field capture rides on the WhatsApp groups your trades already use — Truepoint reads from channels your team hasn't changed, rather than asking them to adopt a new one.</p>
+          <p data-ar="لا. يعتمد الالتقاط الميداني على مجموعات واتساب التي يستخدمها فريقك بالفعل  -  تقرأ Truepoint من قنوات لم يُغيِّرها فريقك، عوضاً عن مطالبته بتبنّي قناة جديدة.">No. Field capture rides on the WhatsApp groups your trades already use  -  Truepoint reads from channels your team hasn't changed, rather than asking them to adopt a new one.</p>
         </details>
         <details class="faq-item">
           <summary data-ar="أين تُخزَّن بيانات مشروعنا؟">Where is our project data stored?</summary>
@@ -311,11 +311,11 @@ export const LANDING_MARKUP = `
         </details>
         <details class="faq-item">
           <summary data-ar="ما الذي يغيّره «الاعتماد» فعلياً في العمل اليومي؟">What does 'approval' actually change day to day?</summary>
-          <p data-ar="يمر كل توقيع عبر الحواف الثلاث — الاستماع والفهم والموافقة — مع فحص استيعاب وفق أسلوب إعادة الشرح ومعتمِد واحد محدَّد بالاسم تقع عليه المسؤولية الكاملة، بحيث لا يُعامَل «الاطّلاع» على أنه «موافقة».">Every sign-off passes through the 3 Edges — Hearing, Understanding, Agreeing — with a teach-back comprehension check and a single named, accountable approver, so "seen" stops being treated as "agreed."</p>
+          <p data-ar="يمر كل توقيع عبر الحواف الثلاث  -  الاستماع والفهم والموافقة  -  مع فحص استيعاب وفق أسلوب إعادة الشرح ومعتمِد واحد محدَّد بالاسم تقع عليه المسؤولية الكاملة، بحيث لا يُعامَل «الاطّلاع» على أنه «موافقة».">Every sign-off passes through the 3 Edges  -  Hearing, Understanding, Agreeing  -  with a teach-back comprehension check and a single named, accountable approver, so "seen" stops being treated as "agreed."</p>
         </details>
         <details class="faq-item">
           <summary data-ar="هل Truepoint متاحة باللغة العربية فقط؟">Is Truepoint only available in Arabic?</summary>
-          <p data-ar="المنصة ثنائية اللغة وتضع العربية في المقدمة — يمكنك تبديل اللغة من شريط التنقل العلوي لاستعراض المنتج كاملاً بالإنجليزية أو العربية، بما في ذلك دعم الاتجاه من اليمين إلى اليسار.">It's bilingual and Arabic-first — flip the language switcher in the top nav to see the whole product in English or Arabic, right-to-left included.</p>
+          <p data-ar="المنصة ثنائية اللغة وتضع العربية في المقدمة  -  يمكنك تبديل اللغة من شريط التنقل العلوي لاستعراض المنتج كاملاً بالإنجليزية أو العربية، بما في ذلك دعم الاتجاه من اليمين إلى اليسار.">It's bilingual and Arabic-first  -  flip the language switcher in the top nav to see the whole product in English or Arabic, right-to-left included.</p>
         </details>
         <details class="faq-item">
           <summary data-ar="كم تستغرق مرحلة التأهيل؟">How long does onboarding take?</summary>
@@ -335,7 +335,7 @@ export const LANDING_MARKUP = `
       <div class="legal-grid">
         <article class="legal-block" id="privacy">
           <h2 class="legal-heading" data-ar="سياسة الخصوصية">Privacy policy</h2>
-          <p data-ar="نجمع خلال مرحلة الوصول المبكر البيانات التي تشاركها معنا فحسب — اسمك وبريدك الإلكتروني وتفاصيل مشروعك — ونستخدمها حصراً للتواصل معك بشأن Truepoint. لا نبيع بياناتك ولا نتيح الاطّلاع عليها لأي طرف ثالث.">During early access we collect only the data you share with us — your name, email, and project details — and use it solely to follow up with you about Truepoint. We never sell your data or share it with third parties.</p>
+          <p data-ar="نجمع خلال مرحلة الوصول المبكر البيانات التي تشاركها معنا فحسب  -  اسمك وبريدك الإلكتروني وتفاصيل مشروعك  -  ونستخدمها حصراً للتواصل معك بشأن Truepoint. لا نبيع بياناتك ولا نتيح الاطّلاع عليها لأي طرف ثالث.">During early access we collect only the data you share with us  -  your name, email, and project details  -  and use it solely to follow up with you about Truepoint. We never sell your data or share it with third parties.</p>
           <p data-ar="تخضع إقامة البيانات والوصول إليها لأحكام نظام حماية البيانات الشخصية السعودي (PDPL). يمكنك التواصل معنا في أي وقت لطلب حذف بياناتك.">Data residency and access follow Saudi PDPL requirements. Contact us at any time to have your data deleted.</p>
         </article>
         <article class="legal-block" id="terms">
@@ -352,7 +352,7 @@ export const LANDING_MARKUP = `
   <div class="section-inner footer-top">
     <div>
       <h2 data-ar="هل أنت مستعد لاستعراض Truepoint على مشروعك؟">Ready to see it on your project?</h2>
-      <p data-ar="قدِّم طلب الوصول المبكر وسنتواصل معك مباشرةً — دون بطاقة ائتمانية أو أي التزام.">Request early access and we'll follow up directly — no card, no commitment.</p>
+      <p data-ar="قدِّم طلب الوصول المبكر وسنتواصل معك مباشرةً  -  دون بطاقة ائتمانية أو أي التزام.">Request early access and we'll follow up directly  -  no card, no commitment.</p>
     </div>
     <button class="note-button request-access-btn" type="button">
       <span aria-hidden="true">↗</span>

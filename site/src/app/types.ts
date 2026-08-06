@@ -1,10 +1,10 @@
-// ─── San3 — Construction Intelligence Platform · shared types ─────────────────
+// ─── San3  -  Construction Intelligence Platform · shared types ─────────────────
 //
 // Architectural rule: nothing below this line knows what Gmail is.
 // A communication channel produces `RawMessage`; the AI extraction layer turns
 // that into a `ConstructionEvent`; the UI only ever renders ConstructionEvents.
 // Adding WhatsApp / Outlook / Balady / Primavera / Teams means writing one new
-// ChannelAdapter — no change to this model and no change to any component.
+// ChannelAdapter  -  no change to this model and no change to any component.
 
 export type Priority = "high" | "medium" | "low";
 export type RiskLevel = "critical" | "high" | "medium" | "low" | "none";
@@ -51,7 +51,7 @@ export interface Project {
 /** A channel-neutral inbound message. Every connector emits exactly this. */
 export interface RawMessage {
   channel: SourceChannel;
-  externalId: string;   // channel-internal id — used for dedupe/caching, never rendered
+  externalId: string;   // channel-internal id  -  used for dedupe/caching, never rendered
   threadRef?: string;
   sender: string;       // display name
   senderHandle: string; // email address / phone number / portal reference
@@ -64,10 +64,10 @@ export interface RawMessage {
 // ─── Evidence ─────────────────────────────────────────────────────────────────
 
 /** The original communication, kept as supporting evidence behind the event.
- *  Human-readable fields only — no headers, ids, payloads or auth metadata. */
+ *  Human-readable fields only  -  no headers, ids, payloads or auth metadata. */
 export interface Evidence {
   channel: SourceChannel;
-  externalId: string;   // internal only — never rendered in the UI
+  externalId: string;   // internal only  -  never rendered in the UI
   sender: string;
   senderHandle: string;
   originalSubject: string;
@@ -123,7 +123,7 @@ export interface EventReasoning {
   confidence: number;
 }
 
-/** Project-level synthesis across every event — what the Dashboard shows. */
+/** Project-level synthesis across every event  -  what the Dashboard shows. */
 export interface ProjectIntelligence {
   projectId: string;
   headline: string;
@@ -151,7 +151,7 @@ export interface ProjectIntelligence {
 
 // ─── The unit of truth ────────────────────────────────────────────────────────
 
-/** A structured construction event. This — not a message — is what the
+/** A structured construction event. This  -  not a message  -  is what the
  *  timeline, dashboard and every future channel converge on. */
 export interface ConstructionEvent {
   id: string;
@@ -174,7 +174,7 @@ export interface ConstructionEvent {
   confidence: number;          // 0–1, from the extraction layer
   needsHumanReview: boolean;
   evidence: Evidence;
-  /** Layer 2's verdict. Absent when reasoning is off or unavailable — the event
+  /** Layer 2's verdict. Absent when reasoning is off or unavailable  -  the event
    *  is still a valid record entry, it just has no interpretation yet. */
   reasoning?: EventReasoning;
 }
@@ -186,7 +186,7 @@ export interface IngestionStats {
   events: number;      // construction events extracted
   filtered: number;    // understood as not construction-related, discarded
   needsReview: number; // low confidence / explicitly flagged by the model
-  failed: number;      // extraction errors — routed to review, never dropped
+  failed: number;      // extraction errors  -  routed to review, never dropped
   reasoned: number;    // events Layer 2 produced an interpretation for
   lastRun?: string;
 }

@@ -2,7 +2,7 @@
 // One question, asked of every inbound message from every channel:
 //   "What construction event, if any, is this?"
 //
-// It knows nothing about the project's history — that is Layer 2's job. Keeping
+// It knows nothing about the project's history  -  that is Layer 2's job. Keeping
 // the layers separate means extraction stays cheap and cacheable, and reasoning
 // can be re-run over the record without re-reading a single message.
 
@@ -76,7 +76,7 @@ function buildPrompt(msg: RawMessage, projects: Project[]): string {
 
   return `You are the extraction layer of San3, a construction intelligence platform for owners and developers in Saudi Arabia and the GCC.
 
-You read one raw communication from a project channel and decide what CONSTRUCTION EVENT — if any — it represents. You are not summarising an email; you are converting scattered communication into a structured project record.
+You read one raw communication from a project channel and decide what CONSTRUCTION EVENT  -  if any  -  it represents. You are not summarising an email; you are converting scattered communication into a structured project record.
 
 PROJECTS ON THIS ACCOUNT:
 ${roster}
@@ -93,15 +93,15 @@ ${(msg.body || msg.subject).slice(0, 6000)}
 """
 
 INSTRUCTIONS
-1. Decide whether this is genuinely about a construction project (site work, permits, inspections, design, procurement, contracts, safety, schedule, payment for construction work). Newsletters, marketing, personal mail, receipts unrelated to a project, automated notifications, and social messages are NOT construction-related — set isConstructionRelated to false and leave the other fields empty.
+1. Decide whether this is genuinely about a construction project (site work, permits, inspections, design, procurement, contracts, safety, schedule, payment for construction work). Newsletters, marketing, personal mail, receipts unrelated to a project, automated notifications, and social messages are NOT construction-related  -  set isConstructionRelated to false and leave the other fields empty.
 2. "confidence" is your confidence in that judgement AND in the extracted fields, from 0 to 1.
 3. Set needsHumanReview to true when the message is ambiguous, when it may be construction-related but you cannot tell, when critical details contradict each other, or when you had to guess the project.
-4. "project" must be exactly one "name" value from the roster above, copied verbatim — never a combination of a name and its Arabic form, never both. Use "" if you genuinely cannot tell which project it belongs to.
-5. "eventTitle" describes what HAPPENED, in the language of construction — not the email subject line. Write it as a project record entry.
+4. "project" must be exactly one "name" value from the roster above, copied verbatim  -  never a combination of a name and its Arabic form, never both. Use "" if you genuinely cannot tell which project it belongs to.
+5. "eventTitle" describes what HAPPENED, in the language of construction  -  not the email subject line. Write it as a project record entry.
    Bad: "RE: RFI-102"           Good: "Consultant requested clarification on reinforcement layout"
    Bad: "Permit Approved"        Good: "Municipality approved the excavation permit"
 6. "summary" is 1-2 sentences on what this means for the project. "actionRequired" is the concrete next step for the owner's team, or "" if none.
-7. eventTitleAr / summaryAr / actionRequiredAr are the same content in formal Arabic — natural for a Saudi construction professional, not a literal translation.
+7. eventTitleAr / summaryAr / actionRequiredAr are the same content in formal Arabic  -  natural for a Saudi construction professional, not a literal translation.
 8. "stakeholders" are the people or organisations involved (names, companies, authorities), as mentioned.
 9. Set isSafetyAlert true ONLY for genuine safety matters: injury, accident, fire, fall, near miss, hazard, evacuation, or a safety violation. Safety events are always priority "high".
 10. "deadline" is an ISO date (YYYY-MM-DD) if the message states or clearly implies one, otherwise "".
@@ -136,7 +136,7 @@ function normalise(raw: any): Extraction {
   };
 }
 
-/** Returns null when extraction was impossible — the caller routes those to
+/** Returns null when extraction was impossible  -  the caller routes those to
  *  human review rather than guessing. */
 export async function extract(msg: RawMessage, projects: Project[]): Promise<Extraction | null> {
   const raw = await generateJson<any>({

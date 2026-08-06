@@ -1,7 +1,7 @@
 // ─── Gmail channel adapter ────────────────────────────────────────────────────
 // Gmail is a *source of communication*, nothing more. This file's only job is
 // to turn Gmail's wire format into channel-neutral RawMessages. Nothing
-// downstream — not the pipeline, not the timeline, not the dashboard — knows
+// downstream  -  not the pipeline, not the timeline, not the dashboard  -  knows
 // that Gmail was involved beyond the channel tag on the evidence record.
 
 import type { RawMessage, GmailUser } from "../../types";

@@ -19,14 +19,14 @@ export const PROJECTS: Project[] = [
     name: "King Abdulaziz Road Tower",
     nameAr: "برج طريق الملك عبدالعزيز",
     location: "Riyadh",
-    phase: "Structure — Floor 14",
-    phaseAr: "الهيكل الإنشائي — الطابق 14",
+    phase: "Structure  -  Floor 14",
+    phaseAr: "الهيكل الإنشائي  -  الطابق 14",
     progress: 42,
   },
   {
     id: "villas-c",
-    name: "Diriyah Gate Villas — Zone C",
-    nameAr: "فلل بوابة الدرعية — المنطقة ج",
+    name: "Diriyah Gate Villas  -  Zone C",
+    nameAr: "فلل بوابة الدرعية  -  المنطقة ج",
     location: "Diriyah",
     phase: "MEP Rough-in",
     phaseAr: "الكهروميكانيكية الأولية",
@@ -53,7 +53,7 @@ const EMPTY_STATS: IngestionStats = {
   reasoned: 0,
 };
 
-/** Which stage of the pipeline is currently running — surfaced in the UI so a
+/** Which stage of the pipeline is currently running  -  surfaced in the UI so a
  *  two-layer sync doesn't look like a hang. */
 export type PipelineStage = "idle" | "fetching" | "extracting" | "reasoning" | "synthesising";
 
@@ -105,7 +105,7 @@ export function useWorkspaceState(token: string | null) {
           return;
         }
 
-        // Every message failed extraction — surface it rather than showing an
+        // Every message failed extraction  -  surface it rather than showing an
         // empty record that looks like "no activity".
         if (result.stats.received > 0 && result.stats.failed === result.stats.received) {
           setSyncError(getLayerHealth("extraction").lastError ?? "AI extraction unavailable");
@@ -124,7 +124,7 @@ export function useWorkspaceState(token: string | null) {
     [token]
   );
 
-  /** Re-runs Layer 2 only. No channel is touched — the record is already
+  /** Re-runs Layer 2 only. No channel is touched  -  the record is already
    *  channel-neutral, so this costs nothing against Gmail. */
   const reanalyse = useCallback(async () => {
     if (events.length === 0) return;

@@ -249,7 +249,7 @@ export function Dashboard({
         )}
       </div>
 
-      {/* ─── Contradictions — the reasoning layer's sharpest signal ──────── */}
+      {/* ─── Contradictions  -  the reasoning layer's sharpest signal ──────── */}
       {intel.contradictions.length > 0 && (
         <div className={`rounded-2xl border p-5 ${darkMode ? "border-red-500/30 bg-red-500/5" : "border-red-200 bg-red-50"}`}>
           <div className="mb-3 flex items-center gap-2">

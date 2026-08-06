@@ -78,7 +78,7 @@ export function Topbar({
           </button>
         )}
 
-        {/* Safety counter — its own lane, never mixed into the bell */}
+        {/* Safety counter  -  its own lane, never mixed into the bell */}
         {safetyEvents.length > 0 && (
           <div className="relative">
             <button
@@ -114,7 +114,7 @@ export function Topbar({
           </div>
         )}
 
-        {/* Language toggle — i18next persists the choice and owns document
+        {/* Language toggle  -  i18next persists the choice and owns document
             lang/dir via its languageChanged listener (src/i18n/index.ts). */}
         <button
           onClick={() => void i18n.changeLanguage(isAr ? "en" : "ar")}

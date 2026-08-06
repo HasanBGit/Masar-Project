@@ -1043,7 +1043,7 @@ html[dir="rtl"] .credibility-quote p { font-family: "Noto Kufi Arabic", Georgia,
   line-height: 1.6;
 }
 
-/* Legal (privacy policy / terms of service — targets of the footer links) */
+/* Legal (privacy policy / terms of service  -  targets of the footer links) */
 .legal-section { background: #12191b; }
 .legal-grid {
   display: grid;

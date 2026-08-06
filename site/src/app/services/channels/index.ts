@@ -2,7 +2,7 @@
 // Every communication source the platform can ingest from. To add WhatsApp,
 // Outlook, Balady, Primavera or Teams: write an adapter whose fetch() returns
 // RawMessage[], register it below, flip `available` to true. The pipeline, the
-// data model, the timeline and the dashboard require no changes at all — the
+// data model, the timeline and the dashboard require no changes at all  -  the
 // channel becomes a source of construction events like any other.
 
 import type { RawMessage, SourceChannel } from "../../types";

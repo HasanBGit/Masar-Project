@@ -49,7 +49,7 @@ const SHAPE_BUTTONS: Record<PrimitiveShape, { icon: string; short: string }> = {
   sphere: { icon: '🛢️', short: 'Sphere' },
 }
 
-/** Numeric dimension keys — colour has its own setter with its own type. */
+/** Numeric dimension keys  -  colour has its own setter with its own type. */
 type DimKey = 'width' | 'depth' | 'height' | 'radius'
 
 interface PresetBlock {

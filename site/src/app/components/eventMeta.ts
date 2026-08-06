@@ -81,7 +81,7 @@ export const RISK_META: Record<RiskLevel, { label: string; labelAr: string; tone
   none: { label: "No risk flagged", labelAr: "لا مخاطر", tone: "neutral" },
 };
 
-/** How a source is credited on an event. Purely presentational — the platform
+/** How a source is credited on an event. Purely presentational  -  the platform
  *  treats every channel identically. */
 export const CHANNEL_META: Record<SourceChannel, { icon: string; label: string; labelAr: string }> = {
   gmail: { icon: "✉", label: "Verified Gmail", labelAr: "Gmail موثّق" },

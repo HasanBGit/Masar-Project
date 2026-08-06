@@ -10,7 +10,7 @@
 //
 // Every stage below the channel boundary speaks only ConstructionEvent. Adding
 // WhatsApp, Outlook, Balady, Primavera or Teams means writing one adapter that
-// emits RawMessage — no stage in this file changes, and neither AI layer knows
+// emits RawMessage  -  no stage in this file changes, and neither AI layer knows
 // a new source appeared.
 
 import type {
@@ -31,9 +31,9 @@ import { extract, type Extraction } from "./extraction";
 import { reasonEvent, synthesizeProject } from "./reasoning";
 
 export interface PipelineResult {
-  /** Confident construction events — the project record. */
+  /** Confident construction events  -  the project record. */
   events: ConstructionEvent[];
-  /** Extracted but unsure — awaiting a human decision. */
+  /** Extracted but unsure  -  awaiting a human decision. */
   review: ConstructionEvent[];
   /** Owner briefing per project, from the reasoning layer. */
   intelligence: Record<string, ProjectIntelligence>;
@@ -105,7 +105,7 @@ function buildEvent(msg: RawMessage, extraction: Extraction, projects: Project[]
   };
 }
 
-/** A message the model couldn't process — held for a human, not guessed at. */
+/** A message the model couldn't process  -  held for a human, not guessed at. */
 function unprocessedEvent(msg: RawMessage): ConstructionEvent {
   return {
     id: `evt-${msg.channel}-${msg.externalId}`,
@@ -175,7 +175,7 @@ async function runExtraction(messages: RawMessage[], projects: Project[]) {
   }));
 
   for (const { msg, extraction } of extractions) {
-    // Extraction unavailable — hold for review rather than guess.
+    // Extraction unavailable  -  hold for review rather than guess.
     if (!extraction) {
       failed += 1;
       review.push(unprocessedEvent(msg));
@@ -284,7 +284,7 @@ export async function runPipeline(
 }
 
 /** Re-runs reasoning and synthesis over an existing record without touching
- *  any channel — the record is already channel-neutral, so this is free of I/O
+ *  any channel  -  the record is already channel-neutral, so this is free of I/O
  *  against Gmail or anything else. */
 export async function rerunReasoning(
   events: ConstructionEvent[],

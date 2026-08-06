@@ -36,7 +36,7 @@ export const LANDING_MARKUP = `
           <section class="sights-slider" aria-label="Truepoint modules slider">
             <div class="sights-track">
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Approval Chain card"
-                data-kicker-ar="وحدة أساسية" data-title-ar="سلسلة الاعتماد" data-body-ar="الحواف الثلاث: الاستماع والفهم والموافقة — شرطٌ لازم قبل إتمام أي توقيع.">
+                data-kicker-ar="وحدة أساسية" data-title-ar="سلسلة الاعتماد" data-body-ar="الحواف الثلاث: الاستماع والفهم والموافقة  -  شرطٌ لازم قبل إتمام أي توقيع.">
                 <span class="sight-kicker">Core Module</span>
                 <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/approvals.svg" />
                 <h3>Approval Chain</h3>
@@ -50,7 +50,7 @@ export const LANDING_MARKUP = `
                 <p>Verified milestones and a dispute-ready audit trail.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Owner Dashboard card"
-                data-kicker-ar="واجهات خاصة بكل دور" data-title-ar="لوحة تحكم المالك" data-body-ar="واجهة مصمَّمة لك — سواء كنت مالكًا أو استشاريًا أو مدير مشروع.">
+                data-kicker-ar="واجهات خاصة بكل دور" data-title-ar="لوحة تحكم المالك" data-body-ar="واجهة مصمَّمة لك  -  سواء كنت مالكًا أو استشاريًا أو مدير مشروع.">
                 <span class="sight-kicker">Role Views</span>
                 <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/dashboard.svg" />
                 <h3>Owner Dashboard</h3>
@@ -64,7 +64,7 @@ export const LANDING_MARKUP = `
                 <p>Auto-extract RFIs, submittals, and ZATCA pay claims directly from your project Gmail.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Unified Timeline card"
-                data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحَّد" data-body-ar="واتسابك، بريدك، وتصاريحك — كلها في سجلٍّ واحد.">
+                data-kicker-ar="وحدة أساسية" data-title-ar="الخط الزمني الموحَّد" data-body-ar="واتسابك، بريدك، وتصاريحك  -  كلها في سجلٍّ واحد.">
                 <span class="sight-kicker">Core Module</span>
                 <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/timeline.svg" />
                 <h3>Unified Timeline</h3>
@@ -100,7 +100,7 @@ export const LANDING_MARKUP = `
       </div>
 
       <section class="intro-copy" aria-label="Truepoint overview">
-        <p data-ar="تحوّل Truepoint مجموعات واتسابك ورسائلك الإلكترونية وتقارير استشاريك إلى سجل مشروعك الموحَّد — بالعربية أولاً — دون أن تطلب من فريقك تغيير أسلوب عمله.">Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record, without asking your site team to change how they work.</p>
+        <p data-ar="تحوّل Truepoint مجموعات واتسابك ورسائلك الإلكترونية وتقارير استشاريك إلى سجل مشروعك الموحَّد  -  بالعربية أولاً  -  دون أن تطلب من فريقك تغيير أسلوب عمله.">Truepoint turns your WhatsApp groups, email threads, and PMC reports into one verified, Arabic-first project record, without asking your site team to change how they work.</p>
         <div class="hero-tags" aria-label="Truepoint highlights">
           <span data-ar="المالك أولاً">Owner-first</span>
           <span data-ar="العربية أولاً">Arabic-first</span>
@@ -110,7 +110,7 @@ export const LANDING_MARKUP = `
 
       <section class="story-panel story-panel-bridge" aria-label="Approvals and trust details">
         <h2 data-ar="النواة التي تستند إليها كل وحدة.">The kernel every module depends on.</h2>
-        <p data-ar="الاعتمادات وبنية الثقة والأدلة هما النواة الأساسية — تستند إليها معظم الوحدات الأخرى.">Approvals and Trust &amp; Evidence form the domain kernel that most other modules build on.</p>
+        <p data-ar="الاعتمادات وبنية الثقة والأدلة هما النواة الأساسية  -  تستند إليها معظم الوحدات الأخرى.">Approvals and Trust &amp; Evidence form the domain kernel that most other modules build on.</p>
         <dl class="facts">
           <div>
             <dt>6%</dt>
@@ -125,7 +125,7 @@ export const LANDING_MARKUP = `
 
       <section class="story-panel story-panel-bazaar" aria-label="Arabic-first details">
         <h2 data-ar="العربية أولاً، ليست إضافة لاحقة.">Arabic-first, not bolted on.</h2>
-        <p data-ar="ملاحظات صوتية والتقاط عبر واتساب ومعالجة لغوية تراعي اللهجة الخليجية — مبنيٌّ للعربية منذ اليوم الأول، لا مسار إنجليزي أُضيفت إليه ترجمة لاحقًا.">Voice notes, WhatsApp capture, and a Gulf-dialect-aware NLP pipeline: built for Arabic first, not translated later.</p>
+        <p data-ar="ملاحظات صوتية والتقاط عبر واتساب ومعالجة لغوية تراعي اللهجة الخليجية  -  مبنيٌّ للعربية منذ اليوم الأول، لا مسار إنجليزي أُضيفت إليه ترجمة لاحقًا.">Voice notes, WhatsApp capture, and a Gulf-dialect-aware NLP pipeline: built for Arabic first, not translated later.</p>
         <button class="note-button request-access-btn" type="button">
           <span aria-hidden="true">↗</span>
           <span data-ar="ابدأ مجانًا">Request Early Access</span>
@@ -196,7 +196,7 @@ export const LANDING_MARKUP = `
     <div class="section-inner cta-band-inner">
       <div>
         <h2 data-ar="اطّلع على Truepoint في مشروعك.">See Truepoint on your project.</h2>
-        <p data-ar="بدون بطاقة ائتمانية أو أي التزام — جولة توضيحية على خطك الزمني الفعلي.">No card, no commitment. Just a walkthrough with your actual timeline.</p>
+        <p data-ar="بدون بطاقة ائتمانية أو أي التزام  -  جولة توضيحية على خطك الزمني الفعلي.">No card, no commitment. Just a walkthrough with your actual timeline.</p>
       </div>
       <button class="note-button note-button--dark request-access-btn" type="button">
         <span aria-hidden="true">↗</span>
@@ -347,7 +347,7 @@ export const LANDING_MARKUP = `
   <div class="section-inner footer-top">
     <div>
       <h2 data-ar="هل أنت جاهزٌّ لاستعراض Truepoint على مشروعك؟">Ready to see it on your project?</h2>
-      <p data-ar="قدِّم طلبك وسنتواصل معك مباشرةً — بدون بطاقة أو أي التزام.">Request early access and we'll follow up directly. No card, no commitment.</p>
+      <p data-ar="قدِّم طلبك وسنتواصل معك مباشرةً  -  بدون بطاقة أو أي التزام.">Request early access and we'll follow up directly. No card, no commitment.</p>
     </div>
     <button class="note-button request-access-btn" type="button">
       <span aria-hidden="true">↗</span>
@@ -358,7 +358,7 @@ export const LANDING_MARKUP = `
   <div class="section-inner footer-columns">
     <div class="footer-brand">
       <a class="site-logo" href="#cinema">${LOGO_MARK}<span>Truepoint</span></a>
-      <p data-ar="سجلٌّ واحد موثَّق، من موقعك إلى توقيعك — مبنيٌّ لفرق البناء في السعودية ودول الخليج.">One verified record, from site to signature, built for Saudi and GCC construction teams.</p>
+      <p data-ar="سجلٌّ واحد موثَّق، من موقعك إلى توقيعك  -  مبنيٌّ لفرق البناء في السعودية ودول الخليج.">One verified record, from site to signature, built for Saudi and GCC construction teams.</p>
       <button class="language-switcher" aria-label="Change language" type="button">
         <span class="language-switcher-label">EN</span>
         <span aria-hidden="true">⌄</span>

@@ -612,7 +612,7 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   line-height: 1;
 }
 
-/* Hover feedback — subtle transform/brightness/alpha shifts built only from
+/* Hover feedback  -  subtle transform/brightness/alpha shifts built only from
    colors that already exist in this stylesheet. */
 .note-button,
 .sight-card,

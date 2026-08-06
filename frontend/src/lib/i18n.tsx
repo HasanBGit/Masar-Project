@@ -35,7 +35,7 @@ const MESSAGES = {
   'nav.admin': { en: 'Administration', ar: 'الإدارة', ur: 'انتظامیہ', hi: 'प्रशासन' },
   'nav.accessControl': { en: 'Access Control', ar: 'التحكم بالوصول', ur: 'رسائی کا کنٹرول', hi: 'अभिगम नियंत्रण' },
   'nav.platformApi': { en: 'Platform API', ar: 'واجهة برمجة المنصة', ur: 'پلیٹ فارم اے پی آئی', hi: 'प्लेटफ़ॉर्म एपीआई' },
-  'nav.internal': { en: 'Truepoint Internal', ar: 'الداخلية — Truepoint', ur: 'Truepoint اندرونی', hi: 'Truepoint आंतरिक' },
+  'nav.internal': { en: 'Truepoint Internal', ar: 'الداخلية  -  Truepoint', ur: 'Truepoint اندرونی', hi: 'Truepoint आंतरिक' },
   'nav.observability': { en: 'Observability', ar: 'الرصد والمراقبة', ur: 'نگرانی', hi: 'निगरानी' },
   'nav.docs': { en: 'Documentation', ar: 'التوثيق', ur: 'دستاویزات', hi: 'दस्तावेज़ीकरण' },
 

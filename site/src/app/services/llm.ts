@@ -1,6 +1,6 @@
 // ─── Shared model transport ───────────────────────────────────────────────────
 // One client, used by both AI layers. Neither layer owns the connection, the
-// retry policy, or the cache — they own their prompt and their schema.
+// retry policy, or the cache  -  they own their prompt and their schema.
 //
 //   Layer 1 · extraction  → services/extraction.ts   "what is this message?"
 //   Layer 2 · reasoning   → services/reasoning.ts    "what does it mean for the project?"
@@ -15,7 +15,7 @@ const API_ROOT = "https://generativelanguage.googleapis.com/v1beta/models";
 
 /** Free-tier keys throttle by requests-per-minute (observed: ~20 RPM). Two
  *  layers over a mailbox is easily 60+ calls, so we pace *before* sending
- *  rather than colliding and backing off — a paced sync finishes sooner than a
+ *  rather than colliding and backing off  -  a paced sync finishes sooner than a
  *  throttled one. Raise the rate on a paid key by lowering this interval. */
 const MIN_REQUEST_INTERVAL_MS = 3300; // ≈18 requests/minute
 const RATE_LIMIT_RETRIES = 5;
@@ -121,7 +121,7 @@ async function errorText(res: Response): Promise<string> {
 }
 
 // ─── Cache ────────────────────────────────────────────────────────────────────
-// Structured verdicts only — never message bodies.
+// Structured verdicts only  -  never message bodies.
 
 const CACHE_KEY = "san3:llm:v2";
 type CacheMap = Record<string, unknown>;
@@ -138,7 +138,7 @@ function saveCache(cache: CacheMap) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
   } catch {
-    /* quota or private mode — caching is an optimisation, not a requirement */
+    /* quota or private mode  -  caching is an optimisation, not a requirement */
   }
 }
 
@@ -163,7 +163,7 @@ export interface GenerateOptions {
 
 /**
  * Sends one structured-output request.
- * Returns null when the call was impossible — callers decide what a missing
+ * Returns null when the call was impossible  -  callers decide what a missing
  * answer means for them; nobody falls back to guessing.
  */
 export async function generateJson<T>({ layer, prompt, schema, cacheKey, maxTokens = 1200 }: GenerateOptions): Promise<T | null> {

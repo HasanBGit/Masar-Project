@@ -7,12 +7,12 @@ import './landing.css'
 // data-nav="Access" element, so no Access entry lives here.)
 const NAV_INFO: Record<string, { en: string; ar: string }> = {
   Product: {
-    en: 'Truepoint unifies fragmented construction-project communication — WhatsApp groups, email/RFI threads, PMC PDF reports — into a single, owner-facing, trust-verified project record.',
-    ar: 'يوحّد Truepoint التواصل المتناثر في مشاريع البناء — مجموعات واتساب، مراسلات البريد وطلبات المعلومات، تقارير استشاري الإدارة — في سجل مشروع واحد موثّق يخدم المالك.',
+    en: 'Truepoint unifies fragmented construction-project communication  -  WhatsApp groups, email/RFI threads, PMC PDF reports  -  into a single, owner-facing, trust-verified project record.',
+    ar: 'يوحّد Truepoint التواصل المتناثر في مشاريع البناء  -  مجموعات واتساب، مراسلات البريد وطلبات المعلومات، تقارير استشاري الإدارة  -  في سجل مشروع واحد موثّق يخدم المالك.',
   },
   'Trust & Evidence': {
-    en: "The verified milestone ledger and audit log every other trust claim depends on. A photo upload alone is not evidence — it's a pending claim until a verifier acknowledges it.",
-    ar: 'سجل المعالم المُعتمدة وسجل التدقيق اللذان تعتمد عليهما كل مطالبة ثقة أخرى. رفع صورة وحده ليس دليلاً — بل مطالبة معلّقة حتى يُقرّها المدقق.',
+    en: "The verified milestone ledger and audit log every other trust claim depends on. A photo upload alone is not evidence  -  it's a pending claim until a verifier acknowledges it.",
+    ar: 'سجل المعالم المُعتمدة وسجل التدقيق اللذان تعتمد عليهما كل مطالبة ثقة أخرى. رفع صورة وحده ليس دليلاً  -  بل مطالبة معلّقة حتى يُقرّها المدقق.',
   },
   Approvals: {
     en: 'The 3 Edges: Hearing, Understanding, Agreeing. A single named, accountable approver signs off.',
@@ -53,7 +53,7 @@ function setupLoginLink(container: HTMLElement): void {
 
 // Ported from riyadh-city/script.js: the cinematic scroll story (parallax
 // frames driven by CSS custom properties) plus the sights slider. When the
-// visitor prefers reduced motion the rig is not started at all — the section
+// visitor prefers reduced motion the rig is not started at all  -  the section
 // collapses into a static, fully readable layout instead (see .cinema-static
 // in landing.css) and switches live when the preference changes.
 function setupCinemaScroll(container: HTMLElement): () => void {
@@ -204,7 +204,7 @@ function setupCinemaScroll(container: HTMLElement): () => void {
     setVar('--sights-opacity', sightsEnter)
     setVar('--sights-controls-opacity', sightsControlsEnter)
     // Controls are interactive whenever they are visible at all (visibility is
-    // what gates hit-testing — see .sights-controls in landing.css).
+    // what gates hit-testing  -  see .sights-controls in landing.css).
     if (sightsControls) sightsControls.classList.toggle('is-ready', sightsControlsEnter > 0.02)
     setVar('--sights-visibility', sightsEnter > 0.01 ? 'visible' : 'hidden')
     setVar('--sights-y', '0px')
@@ -425,7 +425,7 @@ function setupCinemaScroll(container: HTMLElement): () => void {
 
 // Ported from riyadh-city/script.js: nav info modal, early-access modal,
 // per-card modal, and the EN/AR language switcher. Language state and the
-// document lang/dir now belong to i18next (src/i18n/index.ts) — this module
+// document lang/dir now belong to i18next (src/i18n/index.ts)  -  this module
 // only swaps the data-en/data-ar text inside the landing markup.
 function setupModalsAndLanguage(container: HTMLElement): () => void {
   const modalOverlay = container.querySelector<HTMLElement>('#modal-overlay')
@@ -604,7 +604,7 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
       const key = btn.dataset.nav ?? ''
       const info = NAV_INFO[key]
       if (!info) return
-      // Title from the NAV_INFO key (or its Arabic label) — never from the
+      // Title from the NAV_INFO key (or its Arabic label)  -  never from the
       // button's visible text, which can be a shortened form like "Trust".
       const title = currentLang === 'ar' ? (btn.dataset.ar ?? key) : key
       openModal(title, `<p>${currentLang === 'ar' ? info.ar : info.en}</p>`)
@@ -632,7 +632,7 @@ function setupModalsAndLanguage(container: HTMLElement): () => void {
   }
 
   // Swaps the visible landing copy across all 4 supported languages (en, ar, hi, ur).
-  // Does NOT touch document.documentElement — i18next owns lang/dir globally.
+  // Does NOT touch document.documentElement  -  i18next owns lang/dir globally.
   function applyLanguageText(lang: SupportedLanguage) {
     currentLang = lang
 
