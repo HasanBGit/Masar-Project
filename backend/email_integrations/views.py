@@ -69,12 +69,11 @@ class CallbackView(APIView):
             return Response({"detail": str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except ValueError as exc:
             raise ValidationError({"state": str(exc)})
-        except requests.HTTPError as exc:
+        except requests.HTTPError:
             import logging
-            error_body = exc.response.text if exc.response is not None else str(exc)
-            logging.error("Google OAuth token exchange failed: %s", error_body)
+            logging.error("Google OAuth token exchange failed", exc_info=True)
             return Response(
-                {"code": f"Google rejected authorization code: {error_body}"},
+                {"code": "Google rejected that authorization code - try connecting again."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(EmailAccountSerializer(account).data, status=status.HTTP_201_CREATED)
