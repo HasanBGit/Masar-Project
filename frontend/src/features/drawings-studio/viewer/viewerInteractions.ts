@@ -254,3 +254,23 @@ export function useViewerInteractions(refs: ViewerInteractionRefs, measureUnit =
     resetForTeardown,
   };
 }
+
+/** Raycast a canvas point against a root object's meshes - standalone copy of the
+ *  picking logic above (kept free of hook state) so ModelViewer's comment-pin
+ *  placement can reuse it without going through useViewerInteractions' click mode. */
+export function raycastMeshesAt(
+  clientPoint: { clientX: number; clientY: number },
+  sm: SceneManager,
+  root: THREE.Object3D,
+  canvas: HTMLCanvasElement,
+) {
+  const rect = canvas.getBoundingClientRect();
+  const ndc = new THREE.Vector2(
+    ((clientPoint.clientX - rect.left) / rect.width) * 2 - 1,
+    -((clientPoint.clientY - rect.top) / rect.height) * 2 + 1,
+  );
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(ndc, sm.camera);
+  const hits = raycaster.intersectObject(root, true);
+  return hits.filter((h) => h.object instanceof THREE.Mesh);
+}

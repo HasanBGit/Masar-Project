@@ -454,6 +454,9 @@ export function DrawingsStudioPage({ project }: { project: Project }) {
             <ModelViewer
               fileUrl={selectedModel.file}
               fileName={`${selectedModel.name}.${selectedModel.format}`}
+              modelId={selectedModel.id}
+              meId={me?.id}
+              isOwnerOrAdmin={project.role === 'owner' || project.role === 'admin'}
             />
           ) : (
             <div className="flex flex-col gap-2">

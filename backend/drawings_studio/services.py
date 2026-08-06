@@ -4,7 +4,7 @@ job here is validating an upload's extension and recording it, plus a
 project-scoped delete. See skills/drawings-studio/SKILL.md for scope.
 """
 
-from .models import ACCEPTED_FORMATS, DrawingModel
+from .models import ACCEPTED_FORMATS, DrawingComment, DrawingModel
 
 
 def _format_from_filename(filename: str) -> str:
@@ -38,3 +38,37 @@ def delete_drawing_model(model: DrawingModel, deleted_by) -> None:
         project=project, actor=deleted_by, event_type="drawing_model_deleted",
         subject_type="drawing_model", subject_id=model_id, payload={"name": name},
     )
+
+
+def create_drawing_comment(
+    *, model: DrawingModel, author, body: str, parent: DrawingComment | None = None,
+    position: dict | None = None, viewpoint: dict | None = None,
+) -> DrawingComment:
+    """Root comments (no parent) may carry a position/viewpoint pin; replies never do."""
+    import trust_evidence.services as trust_evidence
+
+    comment = DrawingComment.objects.create(
+        model=model, author=author, body=body, parent=parent,
+        position_x=(position or {}).get("x") if parent is None else None,
+        position_y=(position or {}).get("y") if parent is None else None,
+        position_z=(position or {}).get("z") if parent is None else None,
+        viewpoint=viewpoint if parent is None else None,
+    )
+    trust_evidence.record_event(
+        project=model.project, actor=author, event_type="drawing_comment_added",
+        subject_type="drawing_model", subject_id=model.id, payload={"comment_id": comment.id},
+    )
+    return comment
+
+
+def set_drawing_comment_resolved(comment: DrawingComment, resolved: bool, actor) -> DrawingComment:
+    import trust_evidence.services as trust_evidence
+
+    comment.resolved = resolved
+    comment.save(update_fields=["resolved", "updated_at"])
+    trust_evidence.record_event(
+        project=comment.model.project, actor=actor,
+        event_type="drawing_comment_resolved" if resolved else "drawing_comment_reopened",
+        subject_type="drawing_model", subject_id=comment.model.id, payload={"comment_id": comment.id},
+    )
+    return comment

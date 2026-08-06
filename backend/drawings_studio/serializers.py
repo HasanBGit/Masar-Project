@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import DrawingModel
+from .models import DrawingComment, DrawingModel
 
 MAX_MODEL_FILE_SIZE = 100 * 1024 * 1024  # 100 MB - large enough for real 3D models, small enough to bound abuse
 
@@ -19,3 +19,15 @@ class DrawingModelSerializer(serializers.ModelSerializer):
                 f"File too large ({value.size} bytes) - the limit is {MAX_MODEL_FILE_SIZE // (1024 * 1024)} MB."
             )
         return value
+
+
+class DrawingCommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source="author.get_full_name", read_only=True)
+
+    class Meta:
+        model = DrawingComment
+        fields = [
+            "id", "model", "parent", "author", "author_name", "body",
+            "position_x", "position_y", "position_z", "viewpoint", "resolved", "created_at",
+        ]
+        read_only_fields = ["model", "author", "created_at"]

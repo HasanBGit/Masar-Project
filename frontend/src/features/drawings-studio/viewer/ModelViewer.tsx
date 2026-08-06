@@ -5,24 +5,37 @@
 // standalone SceneManager/ClipManager/BIMViewCube classes against it.
 // Pointer interaction (hover snap, measure, select) lives in the shared
 // useViewerInteractions hook, also used by PrimitiveViewer.
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { AlertTriangle, Box, Loader2, Ruler, Scissors } from 'lucide-react';
-import { SceneManager } from './SceneManager';
+import { AlertTriangle, Box, Loader2, MessageCirclePlus, Ruler, Scissors } from 'lucide-react';
+import { SceneManager, type Viewpoint } from './SceneManager';
 import { ClipManager } from './ClipManager';
 import { BIMViewCube } from './BIMViewCube';
 import { SnapDetector } from './SnapDetector';
 import { installBVH, ensureBoundsTree } from './bvh';
-import { useViewerInteractions } from './viewerInteractions';
+import { useViewerInteractions, raycastMeshesAt } from './viewerInteractions';
 import { loadMeshFile, defaultUnitFor } from './loaders';
+import { CommentPins } from './CommentPins';
+import { CommentThreadPanel } from './CommentThreadPanel';
+import {
+  createDrawingComment,
+  deleteDrawingComment,
+  listDrawingComments,
+  setDrawingCommentResolved,
+} from '../api';
+import type { DrawingComment } from '../../../lib/types';
 
 interface ModelViewerProps {
   fileUrl: string;
   fileName: string;
+  /** Drives the comment-pin feature - omitted (e.g. no persisted model row) disables it entirely. */
+  modelId?: number;
+  meId?: number;
+  isOwnerOrAdmin?: boolean;
   className?: string;
 }
 
-export function ModelViewer({ fileUrl, fileName, className }: ModelViewerProps) {
+export function ModelViewer({ fileUrl, fileName, modelId, meId, isOwnerOrAdmin = false, className }: ModelViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneManagerRef = useRef<SceneManager | null>(null);
   const clipManagerRef = useRef<ClipManager | null>(null);
@@ -44,6 +57,116 @@ export function ModelViewer({ fileUrl, fileName, className }: ModelViewerProps) 
     defaultUnitFor('gltf'),
   );
   const { resetForTeardown } = interactions;
+
+  // --- Comment pins -----------------------------------------------------
+  type ActivePin =
+    | { kind: 'new'; point: { x: number; y: number; z: number }; viewpoint: Viewpoint }
+    | { kind: 'existing'; commentId: number };
+
+  const [comments, setComments] = useState<DrawingComment[]>([]);
+  const [commentMode, setCommentMode] = useState(false);
+  const [activePin, setActivePin] = useState<ActivePin | null>(null);
+  const [panelBusy, setPanelBusy] = useState(false);
+  const [panelError, setPanelError] = useState<string | null>(null);
+
+  const reloadComments = useCallback(async () => {
+    if (!modelId) return;
+    try {
+      setComments(await listDrawingComments(modelId));
+    } catch {
+      // Non-fatal - pins are an overlay on top of a viewer that already works without them.
+    }
+  }, [modelId]);
+
+  useEffect(() => {
+    setComments([]);
+    setActivePin(null);
+    setCommentMode(false);
+    void reloadComments();
+  }, [modelId, reloadComments]);
+
+  function toggleCommentMode() {
+    setCommentMode((prev) => {
+      const next = !prev;
+      if (next && interactions.measureOn) interactions.toggleMeasure();
+      return next;
+    });
+    setActivePin(null);
+  }
+
+  function handleCanvasClick(ev: React.MouseEvent<HTMLCanvasElement>) {
+    const sm = sceneManagerRef.current;
+    const root = loadedObjectRef.current;
+    const canvas = canvasRef.current;
+    if (commentMode && sm && root && canvas && modelId) {
+      const hits = raycastMeshesAt(ev, sm, root, canvas);
+      if (hits.length === 0) return;
+      const point = hits[0]!.point;
+      setActivePin({ kind: 'new', point: { x: point.x, y: point.y, z: point.z }, viewpoint: sm.getViewpoint() });
+      setCommentMode(false);
+      return;
+    }
+    interactions.handleCanvasClick(ev);
+  }
+
+  async function withPanelBusy(action: () => Promise<void>, errorMessage: string) {
+    setPanelBusy(true);
+    setPanelError(null);
+    try {
+      await action();
+    } catch {
+      setPanelError(errorMessage);
+    } finally {
+      setPanelBusy(false);
+    }
+  }
+
+  function handleSubmitNewComment(body: string) {
+    if (activePin?.kind !== 'new' || !modelId) return;
+    void withPanelBusy(async () => {
+      await createDrawingComment({ model: modelId, body, position: activePin.point, viewpoint: activePin.viewpoint });
+      await reloadComments();
+      setActivePin(null);
+    }, 'Could not save this comment.');
+  }
+
+  function handleReply(body: string) {
+    if (activePin?.kind !== 'existing' || !modelId) return;
+    void withPanelBusy(async () => {
+      await createDrawingComment({ model: modelId, body, parent: activePin.commentId });
+      await reloadComments();
+    }, 'Could not post this reply.');
+  }
+
+  function handleToggleResolved(resolved: boolean) {
+    if (activePin?.kind !== 'existing') return;
+    void withPanelBusy(async () => {
+      await setDrawingCommentResolved(activePin.commentId, resolved);
+      await reloadComments();
+    }, 'Could not update this comment.');
+  }
+
+  function handleDeleteComment(commentId: number) {
+    void withPanelBusy(async () => {
+      await deleteDrawingComment(commentId);
+      await reloadComments();
+      if (activePin?.kind === 'existing' && activePin.commentId === commentId) setActivePin(null);
+    }, 'Could not delete this comment.');
+  }
+
+  function handleJumpToViewpoint() {
+    if (activePin?.kind !== 'existing') return;
+    const root = comments.find((c) => c.id === activePin.commentId);
+    const sm = sceneManagerRef.current;
+    if (root?.viewpoint && sm) {
+      sm.setViewpoint(root.viewpoint.position, root.viewpoint.target);
+      sm.requestRender();
+    }
+  }
+
+  const rootComments = comments.filter((c) => c.parent === null);
+  const activeThread =
+    activePin?.kind === 'existing' ? comments.filter((c) => c.id === activePin.commentId || c.parent === activePin.commentId) : [];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -142,10 +265,10 @@ export function ModelViewer({ fileUrl, fileName, className }: ModelViewerProps) 
       <canvas
         key={fileUrl}
         ref={canvasRef}
-        className={`block h-[50svh] max-h-[520px] w-full ${interactions.cursorClass}`}
+        className={`block h-[50svh] max-h-[520px] w-full ${commentMode ? 'cursor-crosshair' : interactions.cursorClass}`}
         onMouseDown={interactions.handlePointerDown}
         onMouseMove={interactions.handlePointerMove}
-        onClick={interactions.handleCanvasClick}
+        onClick={handleCanvasClick}
       />
 
       {status === 'loading' && (
@@ -185,6 +308,17 @@ export function ModelViewer({ fileUrl, fileName, className }: ModelViewerProps) 
             >
               <Ruler size={14} aria-hidden="true" /> Measure
             </button>
+            {modelId != null && (
+              <button
+                type="button"
+                onClick={toggleCommentMode}
+                className={`flex items-center gap-1.5 rounded-[var(--radius-s)] border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition ${
+                  commentMode ? 'border-navy bg-navy text-cream' : 'border-sand bg-white text-navy hover:bg-cream'
+                }`}
+              >
+                <MessageCirclePlus size={14} aria-hidden="true" /> Comment
+              </button>
+            )}
           </div>
 
           {interactions.measureOn && (
@@ -192,6 +326,40 @@ export function ModelViewer({ fileUrl, fileName, className }: ModelViewerProps) 
               <Box size={14} className="text-navy/50" aria-hidden="true" />
               {interactions.measureText ?? 'Click two points on the model to measure.'}
             </div>
+          )}
+
+          {commentMode && (
+            <div className="absolute bottom-3 start-3 flex items-center gap-2 rounded-[var(--radius-s)] border border-sand bg-white px-3 py-1.5 text-xs text-navy shadow-sm">
+              <MessageCirclePlus size={14} className="text-navy/50" aria-hidden="true" />
+              Click on the model to drop a comment pin.
+            </div>
+          )}
+
+          {modelId != null && (
+            <CommentPins
+              sceneManager={sceneManager}
+              canvasRef={canvasRef}
+              comments={rootComments}
+              activeCommentId={activePin?.kind === 'existing' ? activePin.commentId : null}
+              onSelectPin={(id) => setActivePin({ kind: 'existing', commentId: id })}
+            />
+          )}
+
+          {activePin && (
+            <CommentThreadPanel
+              thread={activeThread}
+              isNewPin={activePin.kind === 'new'}
+              busy={panelBusy}
+              error={panelError}
+              meId={meId}
+              isOwnerOrAdmin={isOwnerOrAdmin}
+              onClose={() => setActivePin(null)}
+              onSubmitNew={handleSubmitNewComment}
+              onReply={handleReply}
+              onToggleResolved={handleToggleResolved}
+              onDelete={handleDeleteComment}
+              onJumpToViewpoint={handleJumpToViewpoint}
+            />
           )}
         </>
       )}

@@ -499,3 +499,23 @@ export interface DrawingModel {
   uploaded_by_name: string
   created_at: string
 }
+
+export interface DrawingCommentViewpoint {
+  position: { x: number; y: number; z: number }
+  target: { x: number; y: number; z: number }
+}
+
+export interface DrawingComment {
+  id: number
+  model: number
+  parent: number | null
+  author: number
+  author_name: string
+  body: string
+  position_x: number | null
+  position_y: number | null
+  position_z: number | null
+  viewpoint: DrawingCommentViewpoint | null
+  resolved: boolean
+  created_at: string
+}
