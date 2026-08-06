@@ -745,6 +745,17 @@ html[dir="rtl"] .modal-panel h3 { padding-right: 0; padding-left: 32px; font-fam
   .sight-pin { top: 24px; right: 24px; width: 57.6px; height: 57.6px; }
 }
 
+@media (max-width: 480px) {
+  /* At 4.5rem (set above) "TRUEPOINT" is still wider than the 94vw title
+     box on phones under ~420px wide (iPhone SE/mini, most Android) and
+     visually clips - drop further so the wordmark always fits one line. */
+  .hero-title { font-size: 2.9rem; top: 17vh; }
+  .story-panel h2 { font-size: 2rem; }
+  .facts dt { font-size: 2.1rem; }
+  .facts { gap: 14px; }
+  .sight-card { flex-basis: min(88vw, 300px); }
+}
+
 /* ===== Post-cinema landing sections ===== */
 
 .section-inner {
