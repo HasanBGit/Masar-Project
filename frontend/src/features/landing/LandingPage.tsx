@@ -585,7 +585,7 @@ function applyLanguageToMarkup(container: HTMLElement, lang: Lang) {
 }
 
 const LANDING_DESCRIPTION =
-  'Truepoint turns your email threads, RFIs, and PMC reports into one verified, Arabic-first project record for Saudi and GCC construction. Owner-first, evidence-backed, dispute-ready.'
+  'Truepoint turns your email threads, RFIs, and PMC reports into one verified project record for Saudi and GCC construction. Owner-first, evidence-backed, dispute-ready.'
 
 const FAQ_JSON_LD = {
   '@context': 'https://schema.org',
@@ -620,7 +620,7 @@ const FAQ_JSON_LD = {
       name: 'Is Truepoint only available in Arabic?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "It's bilingual and Arabic-first. Flip the language switcher in the top nav to see the whole product in English or Arabic, right-to-left included.",
+        text: "It's fully bilingual. Flip the language switcher in the top nav to see the whole product in English or Arabic, right-to-left included.",
       },
     },
     {

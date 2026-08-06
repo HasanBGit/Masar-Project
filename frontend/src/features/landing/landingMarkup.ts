@@ -100,10 +100,10 @@ export const LANDING_MARKUP = `
       </div>
 
       <section class="intro-copy" aria-label="Truepoint overview">
-        <p data-ar="تحوّل Truepoint رسائلك الإلكترونية وطلبات المعلومات وتقارير استشاريك إلى سجل مشروعك الموحَّد  -  بالعربية أولاً  -  دون أن تطلب من فريقك تغيير أسلوب عمله.">Truepoint turns your email threads, RFIs, and PMC reports into one verified, Arabic-first project record, without asking your site team to change how they work.</p>
+        <p data-ar="تحوّل Truepoint رسائلك الإلكترونية وطلبات المعلومات وتقارير استشاريك إلى سجل مشروعك الموحَّد دون أن تطلب من فريقك تغيير أسلوب عمله.">Truepoint turns your email threads, RFIs, and PMC reports into one verified project record, without asking your site team to change how they work.</p>
         <div class="hero-tags" aria-label="Truepoint highlights">
           <span data-ar="المالك أولاً">Owner-first</span>
-          <span data-ar="العربية أولاً">Arabic-first</span>
+          <span data-ar="ثنائي اللغة">Bilingual</span>
           <span data-ar="السعودية والخليج">Saudi &amp; GCC</span>
         </div>
       </section>
@@ -123,9 +123,9 @@ export const LANDING_MARKUP = `
         </dl>
       </section>
 
-      <section class="story-panel story-panel-bazaar" aria-label="Arabic-first details">
-        <h2 data-ar="العربية أولاً، ليست إضافة لاحقة.">Arabic-first, not bolted on.</h2>
-        <p data-ar="ملاحظات صوتية ومعالجة لغوية تراعي اللهجة الخليجية  -  مبنيٌّ للعربية منذ اليوم الأول، لا مسار إنجليزي أُضيفت إليه ترجمة لاحقًا.">Voice notes, document capture, and a Gulf-dialect-aware NLP pipeline: built for Arabic first, not translated later.</p>
+      <section class="story-panel story-panel-bazaar" aria-label="Localization details">
+        <h2 data-ar="دعم ثنائي اللغة متكامل.">Full bilingual support.</h2>
+        <p data-ar="ملاحظات صوتية ومعالجة لغوية تراعي اللهجة الخليجية  -  دعم شامل للغتين العربية والإنجليزية بلمسة واحدة.">Voice notes, document capture, and a Gulf-dialect-aware NLP pipeline with seamless English and Arabic support.</p>
         <button class="note-button request-access-btn" type="button">
           <span aria-hidden="true">↗</span>
           <span data-ar="ابدأ مجانًا">Request Early Access</span>
@@ -161,8 +161,8 @@ export const LANDING_MARKUP = `
         </article>
         <article class="feature-card">
           <img class="feature-icon" alt="" loading="lazy" width="44" height="44" src="/landing/icons/mail.svg" />
-          <h3 data-ar="الأولوية للعربية، وجاهز للصوت">Arabic-first, voice-ready</h3>
-          <p data-ar="مبني على معالجة لغوية عربية تراعي اللهجة الخليجية منذ اليوم الأول، لا منتج إنجليزي أُضيفت له ترجمة لاحقاً.">Built on a Gulf-dialect-aware Arabic pipeline from day one, not an English product with translation added later.</p>
+          <h3 data-ar="جاهز للصوت ثنائي اللغة">Bilingual, voice-ready</h3>
+          <p data-ar="مبني على معالجة لغوية تراعي اللهجة الخليجية مع دعم كامل للغتين العربية والإنجليزية.">Built on a Gulf-dialect-aware pipeline with complete support for both Arabic and English.</p>
         </article>
       </div>
     </div>
@@ -181,7 +181,7 @@ export const LANDING_MARKUP = `
         <div class="step">
           <span class="step-num">2</span>
           <h3 data-ar="شاهد السجل يُبنى تلقائياً">Watch the record build itself</h3>
-          <p data-ar="تصل الصور والملاحظات الصوتية وطلبات المعلومات وتقارير استشاري الإدارة إلى خط زمني واحد بالعربية أولاً، مرتبط بالمعالم فور حدوثها.">Photos, voice notes, RFIs, and PMC reports land on one Arabic-first timeline, tied to milestones as they happen.</p>
+          <p data-ar="تصل الصور والملاحظات الصوتية وطلبات المعلومات وتقارير استشاري الإدارة إلى خط زمني واحد موثّق، مرتبط بالمعالم فور حدوثها.">Photos, voice notes, RFIs, and PMC reports land on one verified timeline, tied to milestones as they happen.</p>
         </div>
         <div class="step">
           <span class="step-num">3</span>
@@ -273,7 +273,7 @@ export const LANDING_MARKUP = `
         <div class="credibility-points">
           <div>
             <h3 data-ar="بُني لواقع البناء السعودي، لا مُقتبَس منه">Built for Saudi construction, not adapted to it</h3>
-            <p data-ar="بدأ كل سير عمل من نزاعات مشاريع حقيقية وظروف مواقع فعلية في المملكة، لا من قالب إدارة مشاريع عام أُضيفت له العربية لاحقاً.">Every workflow started from real project disputes and site conditions in the Kingdom, not a generic project-management template with Arabic added on.</p>
+            <p data-ar="بدأ كل سير عمل من نزاعات مشاريع حقيقية وظروف مواقع فعلية في المملكة، مصمماً بدعم كامل للغتين العربية والإنجليزية.">Every workflow started from real project disputes and site conditions in the Kingdom, built with native bilingual support.</p>
           </div>
           <div>
             <h3 data-ar="مستند إلى أبحاث منشورة">Grounded in published research</h3>
@@ -311,7 +311,7 @@ export const LANDING_MARKUP = `
         </details>
         <details class="faq-item">
           <summary data-ar="هل Truepoint متاحة بالعربية فقط؟">Is Truepoint only available in Arabic?</summary>
-          <p data-ar="المنصة ثنائية اللغة وتضع العربية أولاً. بدّل اللغة من الشريط العلوي لترى المنتج كاملاً بالإنجليزية أو العربية، بما في ذلك الاتجاه من اليمين لليسار.">It's bilingual and Arabic-first. Flip the language switcher in the top nav to see the whole product in English or Arabic, right-to-left included.</p>
+          <p data-ar="المنصة ثنائية اللغة بالكامل. بدّل اللغة من الشريط العلوي لترى المنتج كاملاً بالإنجليزية أو العربية، بما في ذلك الاتجاه من اليمين لليسار.">It's fully bilingual. Flip the language switcher in the top nav to see the whole product in English or Arabic, right-to-left included.</p>
         </details>
         <details class="faq-item">
           <summary data-ar="كم تستغرق عملية التأهيل؟">How long does onboarding take?</summary>
