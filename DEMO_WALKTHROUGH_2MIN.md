@@ -1,126 +1,87 @@
-# Truepoint — 2-Minute Executive Demo Walkthrough
+# Truepoint — 2-Minute Demo Cheat Sheet
 
-Welcome to the **Truepoint** platform demo walkthrough. This guide is crafted for presenting the core features of Truepoint (Saudi/GCC construction management & observability platform) in a punchy, 2-minute executive demonstration.
-
----
-
-## ⏱️ Demo Agenda & Timing Breakdown
-
-```
- ┌──────────────────────┬────────────────────────────────────────┬──────────┐
- │ Section              │ Focus / Key Highlight                  │ Time     │
- ├──────────────────────┼────────────────────────────────────────┼──────────┤
- │ 1. Welcome & Context │ Single Source of Truth & Project Hero  │ 0:00-0:20│
- │ 2. Command Center    │ Dashboard, Signals & Gmail Sync        │ 0:20-0:50│
- │ 3. Trust & Controls  │ Evidence Ledger & Approvals (3 Edges)  │ 0:50-1:20│
- │ 4. Financial & Studio│ Change Orders, Payments & 3D Drawings  │ 1:20-1:45│
- │ 5. Handover & Admin  │ Punch List Closeout, API & RBAC        │ 1:45-2:00│
- └──────────────────────┴────────────────────────────────────────┴──────────┘
-```
+A clean, step-by-step presentation guide for demonstrating **Truepoint** (Saudi/GCC construction management & observability platform).
 
 ---
 
-## 📱 Navigation & Module Sitemap
+## ⏱️ Quick Summary & Timing
 
-Follow this menu structure during your live demo walkthrough:
-
-```
-Truepoint (Saudi/GCC Construction Platform)
-├── 🏢 Project Selector: Riyadh Tower - Phase 1
-│
-├── 📊 Overview
-│   ├── 📈 Dashboard                 (Executive KPI Cards, Milestones, Activity Stream)
-│   └── ⚡ Integrations & Signals   (Gmail & Email Ingestion, External Signals)
-│
-├── 🛡️ Trust & Approvals
-│   ├── 🧾 Trust & Evidence          (Verification Ledger, Proof Sign-off, Audit Trail)
-│   └── ✍️ Approvals & Workflows    (3-Edges Decision Pipeline: Hearing, Understanding, Agreeing)
-│
-├── 📄 Documents & Schedule
-│   ├── 📑 RFIs & Change Orders      (Request for Information, SLA Tracking, Variation Orders)
-│   └── 🎨 Drawings Studio          (BIM 3D Visualizer, Version Control, Annotation Layer)
-│
-├── 💰 Contracts & Payments
-│   └── 💳 Contract & Payments       (Payment Certificate Release, Retention & Milestones)
-│
-├── 🏁 Handover
-│   └── 📋 Punch List & Defects      (Defect Resolution, Site Inspection Checkpoints, Closeout)
-│
-└── ⚙️ Administration
-    ├── 🔐 Access Control            (RBAC Roster, Saudi Data Residency, Audit Log)
-    ├── 🔌 Platform API              (API Keys, Webhooks, OpenAPI Spec)
-    └── 📖 Documentation             (System Concepts, Architecture, Developer Guides)
-```
+| # | Feature / Page | What to Show | What to Say (Verbatim / Speaking Point) | Time |
+|---|---|---|---|---|
+| **1** | **Dashboard** | Project Pulse & Decision Queue | *"Truepoint gives owners single-seat visibility over high-stakes project decisions and live SLA countdowns."* | `0:00–0:20` |
+| **2** | **Gmail & Email Integrations** | Connected Email Feed & Auto-Ingest | *"We connect project inboxes directly—incoming emails, security alerts, and change notices get automatically parsed and categorized."* | `0:20–0:40` |
+| **3** | **Trust & Evidence** | Verified Evidence Ledger | *"In Truepoint, claims are never presented as facts until verified by an assigned auditor, building a dispute-proof record."* | `0:40–1:00` |
+| **4** | **RFIs & Change Control** | RFI List & Schedule Impact Flags | *"Every unanswered RFI carries a live schedule-impact warning, preventing silent delay cascades across trades."* | `1:00–1:20` |
+| **5** | **Contracts & Site Payments** | Structured Contract & Evidence Gating | *"Contracts live as active data rules—payments unlock strictly when milestone evidence is verified, never on self-assertion."* | `1:20–1:35` |
+| **6** | **Drawings Studio (3D)** | Interactive 3D Model Viewport | *"Teams can orbit 3D BIM models, take spatial measurements, and position site defects directly on structural shapes."* | `1:35–1:45` |
+| **7** | **Handover & Defects** | Punch List & O&M Checklist | *"Walk the site, log snags by unit/zone, and enforce owner verification for practical completion and defect liability."* | `1:45–1:55` |
+| **8** | **Security & Access Control / API** | Saudi PDPL Residency & Webhook API | *"Data stays compliant with Saudi PDPL residency, backed by strict RBAC and enterprise API/webhook integrations."* | `1:55–2:00` |
 
 ---
 
-## 🎬 Step-by-Step 2-Minute Demo Script
+## 🎬 Section-by-Section Demo Script
 
-### 1️⃣ Overview & Command Center (0:00 – 0:50)
-
-> **Presenter Quote:**  
-> *"Fragmented communication—across unorganized email threads, delayed RFIs, and PMC PDF reports—is the biggest risk in GCC mega-projects. Truepoint unifies all stakeholders into a single, tamper-proof system of record."*
-
-* **Action:** Select **Riyadh Tower - Phase 1** from the header project dropdown.
-* **Feature Highlights:**
-  1. **Dashboard**: Point out real-time KPI stat cards (Active Milestones, Pending Approvals, Retention Reserves, Open RFIs).
-  2. **Integrations & Signals**: Click into **Gmail & Email Integrations**. Show how incoming site emails, change requests, and vendor correspondence are automatically ingested and attached to project records with signal confidence scores.
+### 1️⃣ Overview — Dashboard (`/dashboard`)
+* **What to Show:** Project Pulse cards (Total, Pending, Overdue, High-stakes) and the prioritized decision list with SLA timers.
+* **What to Say:**
+  > *"Welcome to Truepoint. On the Dashboard, owners get immediate visibility over all pending project decisions. Notice the SLA timers—high-stakes decisions are flagged before they cause site delays."*
 
 ---
 
-### 2️⃣ Trust, Evidence & Approvals (0:50 – 1:20)
-
-> **Presenter Quote:**  
-> *"In Truepoint, a photo or progress report isn't evidence until it's verified. Claims are held in a pending queue until a designated verifier signs off."*
-
-* **Action:** Navigate to **Trust & Evidence** under *Trust & Approvals*.
-* **Feature Highlights:**
-  1. **Trust & Evidence Ledger**: Show verified progress records. Demonstrate how milestone payments cannot be released without an immutable evidence chain.
-  2. **Approvals (3 Edges)**: Click **Approvals & Workflows**. Highlight the **3 Edges Methodology**:
-     * 👂 **Hearing** (Notice received)
-     * 💡 **Understanding** (Technical analysis complete)
-     * ✍️ **Agreeing** (Single accountable sign-off by named role—e.g. Sara Al-Otaibi, Owner).
+### 2️⃣ Integrations & Signals — Gmail & Email (`/email-integrations`)
+* **What to Show:** Connected Gmail account, status tags (*Needs acknowledgement*, *Acknowledged*, *No action needed*), and category filters.
+* **What to Say:**
+  > *"Under Gmail & Email Integrations, Truepoint auto-syncs project inboxes. Site emails, RFIs, and safety alerts are ingested and converted into actionable project records without forcing teams to adopt new software."*
 
 ---
 
-### 3️⃣ Financial Control & 3D Drawings Studio (1:20 – 1:45)
-
-> **Presenter Quote:**  
-> *"Financial governance is locked to verified site evidence, eliminating cash flow delays and scope creep."*
-
-* **Action:** Quick click to **RFIs & Change Orders**, then **Contract & Payments**, and finish in **Drawings Studio**.
-* **Feature Highlights:**
-  1. **RFIs & Change Orders**: Show SLA countdown timers and formal change order approval flows.
-  2. **Contract & Payments**: Demonstrate payment milestone certificates with automatic retention calculation (e.g. 5–10% held back).
-  3. **Drawings Studio**: Open the interactive 3D model viewer. Rotate/pan the structural model, slice layers, and show spatial defect positioning.
+### 3️⃣ Trust & Approvals — Trust & Evidence (`/trust-evidence`)
+* **What to Show:** Change-order cost/schedule impact stats, verified milestone ledger, and the *Export dispute bundle* button.
+* **What to Say:**
+  > *"Under Trust & Evidence, we enforce strict proof sign-offs. Claims are held in a pending queue until verified. At any time, owners can export an immutable dispute bundle."*
 
 ---
 
-### 4️⃣ Handover Closeout & Admin Governance (1:45 – 2:00)
-
-> **Presenter Quote:**  
-> *"From site defect logging to full facility handover, Truepoint enforces strict Saudi data residency and granular role-based permissions."*
-
-* **Action:** Navigate to **Punch List & Defects**, then conclude at **Access Control**.
-* **Feature Highlights:**
-  1. **Punch List & Defects**: Show defect status pipeline (Open → Inspected → Rectified → Verified).
-  2. **Access Control & Platform API**: Show member RBAC matrix (Owner, Consultant, Contractor, PM) and API key/webhook integrations for enterprise ERPs (Oracle Primavera / SAP).
+### 4️⃣ Documents & Schedule — RFIs & Change Orders (`/rfi-change-control`)
+* **What to Show:** RFI queue, change order requests, submittals, permits, and supplier delivery checkpoints.
+* **What to Say:**
+  > *"RFIs & Change Control prevents silent schedule slippage. Every RFI tracks schedule-impact risk, and scope changes require structured cost/schedule verification before approval."*
 
 ---
 
-## 👥 Demo Persona Quick Switcher
+### 5️⃣ Contracts & Payments — Site Payments (`/contract-payments`)
+* **What to Show:** Structured Contract builder (Contract Value SAR, Scope Baseline, Retention Reserves) and milestone payment releases.
+* **What to Say:**
+  > *"Under Site Payments, contracts aren't locked inside PDFs—they're enforced as active rules. Milestone payments are gated on verified site proof with automated retention calculation."*
 
-Use these seeded test credentials during Q&A to demonstrate role-based access:
+---
 
-| Role | Email | Best Used For Demonstrating |
+### 6️⃣ Design & Drawings — Drawings Studio (`/drawings-studio`)
+* **What to Show:** Live 3D Viewport (orbit/rotate/section/measure), 3D Block controls (Saudi Tower, Box, Pillar), and saved models.
+* **What to Say:**
+  > *"Drawings Studio offers a live 3D viewport to orbit models, take volume measurements, and slice sections for spatial coordination."*
+
+---
+
+### 7️⃣ Handover — Punch List & Defects (`/handover`)
+* **What to Show:** Punch list unit/zone logger, O&M documentation checklist, and post-handover defect tracking.
+* **What to Say:**
+  > *"Under Handover, teams log snags by unit or zone. Items require owner sign-off to close out, ensuring complete quality before final completion."*
+
+---
+
+### 8️⃣ Administration — Access Control & API (`/access-control` & `/platform-api`)
+* **What to Show:** Member Roster (Owner, PM, Consultant, Contractor), Saudi PDPL compliance badge (`SA / 7y`), and API Key / Webhook subscription forms.
+* **What to Say:**
+  > *"Finally, Security & Platform API enforces granular RBAC, guarantees Saudi data residency under PDPL, and exposes webhooks for ERP integrations like SAP or Primavera."*
+
+---
+
+## 👥 Demo Logins & Roles
+
+| Role | Email | Key Showcase Feature |
 |---|---|---|
-| 👑 **Owner** | `owner@truepoint.sa` | Full project dashboard, payment release, final change approvals |
-| 🕵️ **Consultant** | `consultant@truepoint.sa` | Technical submittal reviews, evidence verification, RFI approvals |
-| 🏗️ **Project Manager** | `pm@truepoint.sa` | Site inspection reports, daily progress logs, defect assignment |
-| 🛠️ **Contractor** | `contractor@truepoint.sa` | Evidence submission, RFI creation, payment requests |
-
----
-
-## 💡 Quick Tips for a Flawless Presentation
-* **Language Switcher:** Click `English / العربية` in the top header to instantly switch to complete RTL Arabic interface if presenting to Arabic-speaking stakeholders.
-* **Theme & Performance:** Pre-load the **Drawings Studio** 3D model prior to stage presentation for seamless camera rotation.
+| 👑 **Owner** | `owner@truepoint.sa` | Executive Dashboard, Payment Release, Final Sign-off |
+| 🕵️ **Consultant** | `consultant@truepoint.sa` | Technical Evidence Verification & Submittal Approval |
+| 🏗️ **Project Manager** | `pm@truepoint.sa` | Site Inspections, RFI Creation & Punch List Management |
+| 🛠️ **Contractor** | `contractor@truepoint.sa` | Submitting Progress Claims & Uploading Inspection Evidence |
