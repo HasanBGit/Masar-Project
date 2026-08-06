@@ -42,7 +42,7 @@ const MESSAGES = {
   'title.dashboard': { en: 'Dashboard', ar: 'لوحة التحكم', ur: 'ڈیش بورڈ', hi: 'डैशबोर्ड' },
   'title.email': { en: 'Gmail & Email Integrations', ar: 'تكامل Gmail والبريد الإلكتروني', ur: 'جی میل اور ای میل انضمام', hi: 'जीमेल और ईमेल एकीकरण' },
   'title.trustEvidence': { en: 'Trust & Evidence', ar: 'الثقة والأدلة', ur: 'اعتماد اور شواہد', hi: 'विश्वास और साक्ष्य' },
-  'title.contractPayments': { en: 'Contract & Payment Verification', ar: 'التحقق من العقود والمدفوعات', ur: 'معاہدہ اور ادائیگی کی تصدیق', hi: 'अनुबंध और भुगतान सत्यापन' },
+  'title.contractPayments': { en: 'Site Payments', ar: 'التحقق من العقود والمدفوعات', ur: 'معاہدہ اور ادائیگی کی تصدیق', hi: 'अनुबंध और भुगतान सत्यापन' },
   'title.rfis': { en: 'RFIs & Change Orders', ar: 'طلبات المعلومات وأوامر التغيير', ur: 'آر ایف آئیز اور تبدیلی کے احکامات', hi: 'RFI और परिवर्तन आदेश' },
   'title.handover': { en: 'Handover & Post-Handover', ar: 'التسليم وما بعده', ur: 'حوالگی اور مابعد حوالگی', hi: 'हैंडओवर और पोस्ट-हैंडओवर' },
   'title.drawingsStudio': { en: 'Drawings Studio', ar: 'استوديو المخططات', ur: 'ڈرائنگ اسٹوڈیو', hi: 'ड्रॉइंग स्टूडियो' },

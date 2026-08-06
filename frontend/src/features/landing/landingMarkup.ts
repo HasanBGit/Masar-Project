@@ -35,11 +35,11 @@ export const LANDING_MARKUP = `
 
           <section class="sights-slider" aria-label="Truepoint modules slider">
             <div class="sights-track">
-              <article class="sight-card" tabindex="0" role="button" aria-label="Open Approvals Workflow card"
-                data-kicker-ar="وحدة أساسية" data-title-ar="سير عمل الاعتماد" data-body-ar="الحواف الثلاث: الاستماع والفهم والموافقة — شرطٌ لازم قبل إتمام أي توقيع.">
+              <article class="sight-card" tabindex="0" role="button" aria-label="Open Approval Chain card"
+                data-kicker-ar="وحدة أساسية" data-title-ar="سلسلة الاعتماد" data-body-ar="الحواف الثلاث: الاستماع والفهم والموافقة — شرطٌ لازم قبل إتمام أي توقيع.">
                 <span class="sight-kicker">Core Module</span>
                 <img class="sight-pin" alt="" loading="lazy" width="128" height="128" src="/landing/icons/approvals.svg" />
-                <h3>Approvals Workflow</h3>
+                <h3>Approval Chain</h3>
                 <p>The 3 Edges: Hearing, Understanding, Agreeing, before any sign-off counts.</p>
               </article>
               <article class="sight-card" tabindex="0" role="button" aria-label="Open Trust and Evidence card"

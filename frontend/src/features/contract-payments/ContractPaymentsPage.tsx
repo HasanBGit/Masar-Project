@@ -703,7 +703,7 @@ export function ContractPaymentsPage({ project }: { project: Project }) {
     <div className="flex flex-col gap-8">
       <div>
         <p className="text-sm font-semibold text-gold-ink">{project.name}</p>
-        <h1 className="font-[var(--font-display)] text-3xl font-bold text-navy">Contract &amp; Payment Verification</h1>
+        <h1 className="font-[var(--font-display)] text-3xl font-bold text-navy">Site Payments</h1>
         <p className="mt-1 text-sm text-navy/60">
           The contract as an active reference the platform enforces against - payment only unlocks on verified
           evidence, never on self-assertion.
